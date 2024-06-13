@@ -1,0 +1,55 @@
+SHRINE QUERY RESULTS (OBFUSCATED PATIENT COUNTS),,BIDMC,Harvard-Mass General Brigham,Kansas U (Not Active),MCW Test Node,PennMedicine (Not Active),UAB,UCLA,UCSD,UPitt,USC Keck,UTSW,shrine-bidmc-test
+All Patients,,Sent to Site,Sent to Site,Sent to Site,130,Sent to Site,395,10 patients or fewer,360,435,Site Error,Site Error,195
+NIH Enrollment American Indian or Alaska Native-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-Female-No Ethnicity Info,,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment American Indian or Alaska Native-Female-Not Hispanic,,150,150,150,150,150,150,150,150,150,150,150,150
+NIH Enrollment American Indian or Alaska Native-Male-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-Male-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-Male-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-No Sex Info-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-No Sex Info-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment American Indian or Alaska Native-No Sex Info-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Female-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Female-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Male-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Male-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-Male-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-No Sex Info-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Asian-No Sex Info-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Female-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Female-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Male-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Male-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-Male-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-No Sex Info-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Black or African American-No Sex Info-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Female-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Female-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Male-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Male-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Multiple race-Male-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Female-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Female-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Male-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Male-No Ethnicity Info,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment Native Hawaiian or Other Pacific Islander-Male-Not Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment No Race Info-Female-Hispanic,,30,30,30,30,30,30,30,30,30,30,30,unavailable
+NIH Enrollment No Race Info-Female-No Ethnicity Info,,15,15,15,15,15,15,15,15,15,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-Female-Not Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-Male-Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-Male-No Ethnicity Info,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-Male-Not Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-No Sex Info-No Ethnicity Info,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment No Race Info-No Sex Info-Not Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment White-Female-Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment White-Female-No Ethnicity Info,,20,20,20,20,20,20,20,20,20,unavailable,unavailable,unavailable
+NIH Enrollment White-Female-Not Hispanic,,200,200,200,200,200,200,200,200,200,unavailable,unavailable,unavailable
+NIH Enrollment White-Male-Hispanic,,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment White-Male-No Ethnicity Info,,25,25,25,25,25,25,25,25,25,unavailable,unavailable,unavailable
+NIH Enrollment White-Male-Not Hispanic,,165,165,165,165,165,165,165,165,165,unavailable,unavailable,unavailable
+NIH Enrollment White-No Sex Info-No Ethnicity Info,,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,10 patients or fewer,unavailable,unavailable,unavailable
+NIH Enrollment White-No Sex Info-Not Hispanic,,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,unavailable,10 patients or fewer,unavailable,unavailable,unavailable
