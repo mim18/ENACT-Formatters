@@ -1,0 +1,14 @@
+fieldset, legend {
+    all: revert;
+}
+
+.selected-files {
+    background-color: #e2e3e5;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+#demographFileTable td {
+    vertical-align: middle;
+}
