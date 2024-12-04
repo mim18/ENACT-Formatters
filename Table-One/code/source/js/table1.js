@@ -1,12 +1,12 @@
+let numOfColumns = 0;
+let numOfDemVars = 0;
+let isQueryData = false;
+let totalCounts = [];
+let demographicVars = [];
+
 const patientCountsSelect = document.getElementById('selectPatientCounts');
 const demographicRawData = new Map();
 const dataCounts = new Map();
-let numOfColumns = 0;
-let numOfDemVars = 0;
-let totalCounts = [];
-let datatype = '';
-let comorbidity = '';
-let demographicVars = [];
 
 /**
  * Tally all the counts from the breakdown data.
@@ -59,64 +59,6 @@ const tallyCounts = (rawData, countsForTenOrLess) => {
 
     return count;
 };
-const computeDemographicCounts = () => {
-    const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
-
-    if (datatype === 'query') {
-        for (let column = 1; column <= numOfColumns; column++) {
-            for (let variable = 1; variable <= numOfDemVars; variable++) {
-                const id = `demoVar${variable}Col${column}`;
-                const count = tallyCounts(demographicRawData.get(id), countsForTenOrLess);
-
-                dataCounts.set(id, count);
-                totalCounts[column] += count;
-            }
-        }
-    } else {
-        for (let column = 1; column <= numOfColumns; column++) {
-            const id = `demoBreakdownCol${column}`;
-            const count = tallyBreakdownCounts(demographicRawData.get(id), column, countsForTenOrLess);
-
-            totalCounts[column] += count;
-        }
-    }
-};
-const computeCounts = () => {
-    // clear data
-    totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
-    dataCounts.clear();
-
-    computeDemographicCounts();
-};
-const readInBreakdownData = (csvFile, label, map) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const lines = [];
-            event.target.result
-                    .split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line !== '')
-                    .slice(1)
-                    .forEach(line => lines.push(line));
-
-            numOfDemVars = lines.length;
-
-            // extra variable names if haven't done before
-            if (demographicVars.length === 0) {
-                for (let line of lines) {
-                    demographicVars.push(line.substring(0, line.indexOf(',')));
-                }
-            }
-
-            map.set(label, lines);
-
-            resolve();
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsText(csvFile);
-    });
-};
 /**
  * i2b2 query data format.
  * 
@@ -143,6 +85,35 @@ const readIn2ColumnData = (csvFile, label, map) => {
         reader.readAsText(csvFile);
     });
 };
+const readInBreakdownData = (csvFile, label, map) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const lines = [];
+            event.target.result
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== '')
+                    .slice(1)
+                    .forEach(line => lines.push(line));
+
+            numOfDemVars = lines.length;
+
+            // add demographic variables from data if they weren't added already
+            if (demographicVars.length === 0) {
+                for (let line of lines) {
+                    demographicVars.push(line.substring(0, line.indexOf(',')));
+                }
+            }
+
+            map.set(label, lines);
+
+            resolve();
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(csvFile);
+    });
+};
 /**
  * Read in demographic data from queries.
  * 
@@ -151,7 +122,7 @@ const readIn2ColumnData = (csvFile, label, map) => {
  */
 const getDemographicDataReaders = (readers) => {
     for (let column = 1; column <= numOfColumns; column++) {
-        if (datatype === 'query') {
+        if (isQueryData) {
             for (let variable = 1; variable <= numOfDemVars; variable++) {
                 const id = `demoVar${variable}Col${column}`;
 
@@ -161,8 +132,6 @@ const getDemographicDataReaders = (readers) => {
                 }
             }
         } else {
-            demographicVars = [];
-
             const id = `demoBreakdownCol${column}`;
             const breakdownFiles = document.getElementById(id).files;
             for (const file of breakdownFiles) {
@@ -171,6 +140,35 @@ const getDemographicDataReaders = (readers) => {
         }
     }
 };
+const computeDemographicCounts = () => {
+    const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
+
+    if (isQueryData) {
+        for (let column = 1; column <= numOfColumns; column++) {
+            for (let variable = 1; variable <= numOfDemVars; variable++) {
+                const id = `demoVar${variable}Col${column}`;
+                const count = tallyCounts(demographicRawData.get(id), countsForTenOrLess);
+
+                dataCounts.set(id, count);
+                totalCounts[column] += count;
+            }
+        }
+    } else {
+        for (let column = 1; column <= numOfColumns; column++) {
+            const id = `demoBreakdownCol${column}`;
+            const count = tallyBreakdownCounts(demographicRawData.get(id), column, countsForTenOrLess);
+
+            totalCounts[column] += count;
+        }
+    }
+};
+const computeCounts = () => {
+    // clear data
+    totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
+    dataCounts.clear();
+
+    computeDemographicCounts();
+};
 /**
  * Load all data from input files.
  * 
@@ -178,7 +176,16 @@ const getDemographicDataReaders = (readers) => {
  * @returns {undefined}
  */
 const loadData = (callback) => {
+    // clear previous data
     demographicRawData.clear();
+    demographicVars = [];
+
+    // add demographic variables from user's input for query data
+    if (isQueryData) {
+        for (let variable = 1; variable <= numOfDemVars; variable++) {
+            demographicVars.push($(`#demoVar${variable}`).val());
+        }
+    }
 
     const readers = [];
     getDemographicDataReaders(readers);
@@ -206,170 +213,6 @@ const createColumnInput = (i) => {
 
     return rowDiv;
 };
-const createVarInput = (i) => {
-    const id = `demoVar${i}`;
-
-    // <div class="row g-2 align-items-center"></div>
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'row g-2 align-items-center mb-3';
-    rowDiv.innerHTML = `
-<div class="col-auto">
-    <label for="${id}" class="col-form-label fw-bold">Variable ${i}:</label>
-</div>
-<div class="col-auto">
-    <input type="text" class="form-control" id="${id}" name="${id}" required="required" />
-</div>
-`;
-
-    return rowDiv;
-};
-const addTableOneHeader = (thead) => {
-    const theadRow = thead.insertRow(0);
-
-    // first column header is empty
-    theadRow.insertCell(0).outerHTML = '<th></th>';
-
-    // add column labels
-    $('form#step2Form :input[id^=column]').each(function (index) {
-        const val = $(this).val().trim();
-        theadRow.insertCell(index + 1).outerHTML = `<th>${val}</th>`;
-    });
-};
-const addTableOneRowTotal = (tbody) => {
-    const tbodyRow = tbody.insertRow(0);
-
-    tbodyRow.insertCell(0).outerHTML = '<th>Total</th>';
-
-    const numOfCols = $('#numOfCols').val();
-    for (let i = 1; i <= numOfCols; i++) {
-        tbodyRow.insertCell(i).innerText = `(n=${totalCounts[i]})`;
-    }
-};
-const addDemographicCounts = (tbody) => {
-    const tableRows = [];
-
-    if (datatype === 'query') {
-        // add demographic variables
-        for (let variable = 1; variable <= numOfDemVars; variable++) {
-            const tbodyRow = tbody.insertRow(-1);
-            tbodyRow.insertCell(0).outerHTML = `<td>${$(`#demoVar${variable}`).val()}</td>`;
-
-            tableRows.push(tbodyRow);
-        }
-    } else {
-        // add demographic variables
-        for (let variable = 0; variable < numOfDemVars; variable++) {
-            const tbodyRow = tbody.insertRow(-1);
-            tbodyRow.insertCell(0).outerHTML = `<td>${demographicVars[variable]}</td>`;
-
-            tableRows.push(tbodyRow);
-        }
-    }
-
-    for (let column = 1; column <= numOfColumns; column++) {
-        let rowIndex = 0;
-        for (let variable = 1; variable <= numOfDemVars; variable++) {
-            const id = `demoVar${variable}Col${column}`;
-            const count = dataCounts.get(id);
-            const percentage = Math.round((count / totalCounts[column]) * 100);
-
-            // add counts to table
-            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
-        }
-    }
-
-//    if (datatype === 'query') {
-//        // add demographic variables
-//        for (let variable = 1; variable <= numOfDemVars; variable++) {
-//            const tbodyRow = tbody.insertRow(-1);
-//            tbodyRow.insertCell(0).outerHTML = `<td>${$(`#demoVar${variable}`).val()}</td>`;
-//
-//            tableRows.push(tbodyRow);
-//        }
-//
-//        for (let column = 1; column <= numOfColumns; column++) {
-//            let rowIndex = 0;
-//            for (let variable = 1; variable <= numOfDemVars; variable++) {
-//                const id = `demoVar${variable}Col${column}`;
-//                const count = dataCounts.get(id);
-//                const percentage = Math.round((count / totalCounts[column]) * 100);
-//
-//                // add counts to table
-//                tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
-//            }
-//        }
-//    } else {
-//        // add demographic variables
-//        for (let variable = 0; variable < numOfDemVars; variable++) {
-//            const tbodyRow = tbody.insertRow(-1);
-//            tbodyRow.insertCell(0).outerHTML = `<td>${demographicVars[variable]}</td>`;
-//
-//            tableRows.push(tbodyRow);
-//        }
-//    }
-};
-const addTableOneRowDemographics = (table) => {
-    const tbody = table.createTBody();
-    tbody.className = 'table-group-divider';
-
-    const tbodyRow = tbody.insertRow(-1);
-    tbodyRow.className = 'table-info';
-    tbodyRow.insertCell(0).outerHTML = `<th colspan="${numOfColumns + 1}">Demographics</th>`;
-
-    addDemographicCounts(tbody);
-};
-const constructTableOne = () => {
-    // clear table
-    $('#tableOne').empty();
-
-    // get table
-    const table = document.getElementById('tableOne');
-
-    // create table caption
-    const caption = table.createCaption();
-    caption.innerText = 'Table 1';
-
-    // create table head
-    const thead = table.createTHead();
-
-    // create table body
-    const tbody = table.createTBody();
-    tbody.className = 'table-group-divider';
-
-    addTableOneHeader(thead);
-    addTableOneRowTotal(tbody);
-    addTableOneRowDemographics(table);
-};
-const setTableDemographicBreakdown = () => {
-    const demVarInputs = document.getElementById('demBreakdownInputs');
-    demVarInputs.innerHTML = '';
-
-    let comorbidityName = '';
-    if (comorbidity === 'elixhauser') {
-        comorbidityName = 'Elixhauser';
-    } else if (comorbidity === 'charlson') {
-        comorbidityName = 'Charlson';
-    }
-};
-const setTableDemographicVarNames = () => {
-    const demVarInputs = document.getElementById('demVarInputs');
-
-    const numOfVarInputs = demVarInputs.childElementCount;
-    if (numOfVarInputs < numOfDemVars) {
-        // add more var inputs
-        for (let i = numOfVarInputs + 1; i <= numOfDemVars; i++) {
-            demVarInputs.appendChild(createVarInput(i));
-        }
-    } else if (numOfVarInputs > numOfDemVars) {
-        // remove var inputs
-        let counts = numOfVarInputs;
-        while (counts > numOfDemVars) {
-            // remove the last column input
-            demVarInputs.removeChild(demVarInputs.lastChild);
-            counts--;
-        }
-    }
-};
 const setTableColumnNames = () => {
     const columnInputs = document.getElementById('columnInputs');
 
@@ -388,12 +231,44 @@ const setTableColumnNames = () => {
             counts--;
         }
     }
+};
+const createVarInput = (i) => {
+    const id = `demoVar${i}`;
 
-    // create a new array of lenght (numOfCols + 1) initialized with zeros.
-    totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
+    // <div class="row g-2 align-items-center"></div>
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row g-2 align-items-center mb-3';
+    rowDiv.innerHTML = `
+<div class="col-auto">
+    <label for="${id}" class="col-form-label fw-bold">Variable ${i}:</label>
+</div>
+<div class="col-auto">
+    <input type="text" class="form-control" id="${id}" name="${id}" required="required" />
+</div>
+`;
+
+    return rowDiv;
+};
+const setTableDemographicVarNames = () => {
+    const demVarInputs = document.getElementById('demVarInputs');
+    const numOfVarInputs = demVarInputs.childElementCount;
+    if (numOfVarInputs < numOfDemVars) {
+        // add more var inputs
+        for (let i = numOfVarInputs + 1; i <= numOfDemVars; i++) {
+            demVarInputs.appendChild(createVarInput(i));
+        }
+    } else if (numOfVarInputs > numOfDemVars) {
+        // remove var inputs
+        let counts = numOfVarInputs;
+        while (counts > numOfDemVars) {
+            // remove the last column input
+            demVarInputs.removeChild(demVarInputs.lastChild);
+            counts--;
+        }
+    }
 };
 const setTableVariables = () => {
-    if (datatype === 'query') {
+    if (isQueryData) {
         setTableDemographicVarNames();
         $('#demVarFieldset').show();
         $('#demBreakdownFieldset').hide();
@@ -415,7 +290,7 @@ const constructFileUpload = () => {
         legend.innerText = columnName;
         fieldset.appendChild(legend);
 
-        if (datatype === 'query') {
+        if (isQueryData) {
             for (let variable = 1; variable <= numOfDemVars; variable++) {
                 const id = `demoVar${variable}Col${column}`;
                 const variableName = $(`#demoVar${variable}`).val();
@@ -451,9 +326,93 @@ const constructFileUpload = () => {
         fileUpload.appendChild(fieldset);
     }
 };
+const addTableOneHeader = (thead) => {
+    const theadRow = thead.insertRow(0);
+
+    // first column header is empty
+    theadRow.insertCell(0).outerHTML = '<th></th>';
+
+    // add column labels
+    $('form#step2Form :input[id^=column]').each(function (index) {
+        const val = $(this).val().trim();
+        theadRow.insertCell(index + 1).outerHTML = `<th>${val}</th>`;
+    });
+};
+const addTableOneRowTotal = (tbody) => {
+    const tbodyRow = tbody.insertRow(0);
+
+    tbodyRow.insertCell(0).outerHTML = '<th>Total</th>';
+
+    const numOfCols = $('#numOfCols').val();
+    for (let i = 1; i <= numOfCols; i++) {
+        tbodyRow.insertCell(i).innerText = `(n=${totalCounts[i]})`;
+    }
+};
+const addDemographicCounts = (tbody) => {
+    const tableRows = [];
+
+    // add demographic variables
+    for (let variable = 0; variable < numOfDemVars; variable++) {
+        const tbodyRow = tbody.insertRow(-1);
+        tbodyRow.insertCell(0).outerHTML = `<td>${demographicVars[variable]}</td>`;
+
+        tableRows.push(tbodyRow);
+    }
+
+    for (let column = 1; column <= numOfColumns; column++) {
+        let rowIndex = 0;
+        for (let variable = 1; variable <= numOfDemVars; variable++) {
+            const id = `demoVar${variable}Col${column}`;
+            const count = dataCounts.get(id);
+            const percentage = Math.round((count / totalCounts[column]) * 100);
+
+            // add counts to table
+            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
+        }
+    }
+};
+const addTableOneRowDemographics = (table) => {
+    const tbody = table.createTBody();
+    tbody.className = 'table-group-divider';
+
+    const tbodyRow = tbody.insertRow(-1);
+    tbodyRow.className = 'table-info';
+    tbodyRow.insertCell(0).outerHTML = `<th colspan="${numOfColumns + 1}">Demographics</th>`;
+
+    addDemographicCounts(tbody);
+};
+const constructTableOne = () => {
+    // clear table
+    $('#tableOne').empty();
+
+    // get table
+    const table = document.getElementById('tableOne');
+
+    // create table caption
+    const caption = table.createCaption();
+    caption.innerText = 'Table 1';
+
+    // create table head
+    const thead = table.createTHead();
+
+    // create table body
+    const tbody = table.createTBody();
+    tbody.className = 'table-group-divider';
+
+    addTableOneHeader(thead);
+    addTableOneRowTotal(tbody);
+    addTableOneRowDemographics(table);
+};
 const defineTableStructure = () => {
     setTableColumnNames();
     setTableVariables();
+};
+const initializeValues = () => {
+    numOfColumns = parseInt($('#numOfCols').val());
+    numOfDemVars = parseInt($('#numOfDemVars').val());
+
+    // create a new array of lenght (numOfCols + 1) initialized with zeros.
+    totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
 };
 const showTab = (current, next) => {
     if (current === 0 && next === 1) {
@@ -461,16 +420,19 @@ const showTab = (current, next) => {
             return;
         }
 
+        initializeValues();
         defineTableStructure();
     } else if (current === 1 && next === 2) {
         if (!$('#step2Form').valid()) {
             return;
         }
+
         constructFileUpload();
     } else if (current === 2 && next === 3) {
         if (!$('#step3Form').valid()) {
             return;
         }
+
         loadData(constructTableOne);
     }
 
@@ -488,17 +450,13 @@ const showTab = (current, next) => {
     navLinks[next].classList.add('active');
     navLinks[next].classList.remove('disabled');
 };
-
 const showDemographicOpts = () => {
-    switch (datatype) {
-        case 'query':
-            $('#demQueryOpts').show();
-            $('#numOfDemVars').prop('required', true);
-            break;
-        case 'breakdown':
-            $('#demQueryOpts').hide();
-            $('#numOfDemVars').prop('required', false);
-            break;
+    if (isQueryData) {
+        $('#demQueryOpts').show();
+        $('#numOfDemVars').prop('required', true);
+    } else {
+        $('#demQueryOpts').hide();
+        $('#numOfDemVars').prop('required', false);
     }
 };
 const handlePatientCountChange = (event) => {
@@ -506,27 +464,11 @@ const handlePatientCountChange = (event) => {
     constructTableOne();
 };
 $(document).ready(function () {
-    // save initial values
-    numOfColumns = parseInt($('#numOfCols').val());
-    numOfDemVars = parseInt($('#numOfDemVars').val());
-    datatype = $('form#setup1Form input[type="radio"][name="datatype"]:checked').val();
-//    comorbidity = $('form#setup1Form input[type="radio"][name="comorbidity"]:checked').val();
-
+    isQueryData = $('input[name="datatype"]:checked').val() === 'query';
     showDemographicOpts();
-
-    // setup event listeners
-    $('form#setup1Form input[type="radio"][name="datatype"]').on('change', function () {
-        datatype = $(this).val();
+    $('input[name="datatype"]').on('change', function () {
+        isQueryData = $(this).val() === 'query';
         showDemographicOpts();
-    });
-//    $('form#setup1Form input[type="radio"][name="comorbidity"]').on('change', function () {
-//        comorbidity = $(this).val();
-//    });
-    $('#numOfCols').on('change', function () {
-        numOfColumns = parseInt($(this).val());
-    });
-    $('#numOfDemVars').on('change', function () {
-        numOfDemVars = parseInt($(this).val());
     });
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
