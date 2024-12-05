@@ -1,22 +1,67 @@
+/**
+ * table1.js
+ * 
+ * @description This file contains methods for formatting data for display and
+ * export.
+ * @author Kevin V. Bui
+ * November 29, 2024
+ */
 let numOfColumns = 0;
-let numOfDemVars = 0;
 let isQueryData = false;
-let totalCounts = [];
+
+let numOfDemVars = 0;
 let demographicVars = [];
+const demographicRawData = new Map();
+
+let hasComorbidity = false;
+let comorbidity = '';
+let numOfComorbidVars = 0;
+let comorbidityVars = [];
+const comorbidityRawData = new Map();
+
+let totalCounts = [];
 
 const patientCountsSelect = document.getElementById('selectPatientCounts');
-const demographicRawData = new Map();
 const dataCounts = new Map();
 
 /**
- * Tally all the counts from the breakdown data.
+ * Tally all the counts from the comorbidity breakdown data.
  * 
  * 
  * @param {type} rawData each data in the array is the counts for a
  *  variable (table row)
  * @returns {undefined}
  */
-const tallyBreakdownCounts = (rawData, column, countsForTenOrLess) => {
+const tallyComorbidityBreakdownCounts = (rawData, column, countsForTenOrLess) => {
+    let totalSum = 0;
+
+    for (let variable = 1; variable <= rawData.length; variable++) {
+        const id = `comorbidVar${variable}Col${column}`;
+
+        let sum = rawData[variable - 1].split(',')
+                .map(line => line.trim())
+                .filter(line => line !== '')
+                .slice(2)
+                .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
+                .map(dat => isNaN(dat) ? 0 : parseInt(dat))
+                .reduce((n1, n2) => n1 + n2);
+        dataCounts.set(id, sum);
+
+        totalSum += sum;
+    }
+
+    return totalSum;
+};
+
+/**
+ * Tally all the counts from the demographic breakdown data.
+ * 
+ * 
+ * @param {type} rawData each data in the array is the counts for a
+ *  variable (table row)
+ * @returns {undefined}
+ */
+const tallyDemographicBreakdownCounts = (rawData, column, countsForTenOrLess) => {
     let totalSum = 0;
 
     for (let variable = 1; variable <= rawData.length; variable++) {
@@ -85,7 +130,36 @@ const readIn2ColumnData = (csvFile, label, map) => {
         reader.readAsText(csvFile);
     });
 };
-const readInBreakdownData = (csvFile, label, map) => {
+const readInComorbidityBreakdownData = (csvFile, label, map) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const lines = [];
+            event.target.result
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== '')
+                    .slice(1)
+                    .forEach(line => lines.push(line));
+
+            numOfComorbidVars = lines.length;
+
+            // add demographic variables from data if they weren't added already
+            if (comorbidityVars.length === 0) {
+                for (let line of lines) {
+                    comorbidityVars.push(line.substring(0, line.indexOf(',')));
+                }
+            }
+
+            map.set(label, lines);
+
+            resolve();
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(csvFile);
+    });
+};
+const readInDemographicBreakdownData = (csvFile, label, map) => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -114,6 +188,15 @@ const readInBreakdownData = (csvFile, label, map) => {
         reader.readAsText(csvFile);
     });
 };
+const getComorbidityDataReaders = (readers) => {
+    for (let column = 1; column <= numOfColumns; column++) {
+        const id = `comorbidityCol${column}`;
+        const breakdownFiles = document.getElementById(id).files;
+        for (const file of breakdownFiles) {
+            readers.push(readInComorbidityBreakdownData(file, id, comorbidityRawData));
+        }
+    }
+};
 /**
  * Read in demographic data from queries.
  * 
@@ -135,14 +218,20 @@ const getDemographicDataReaders = (readers) => {
             const id = `demoBreakdownCol${column}`;
             const breakdownFiles = document.getElementById(id).files;
             for (const file of breakdownFiles) {
-                readers.push(readInBreakdownData(file, id, demographicRawData));
+                readers.push(readInDemographicBreakdownData(file, id, demographicRawData));
             }
         }
     }
 };
-const computeDemographicCounts = () => {
-    const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
+const computeComorbidityCounts = (countsForTenOrLess) => {
+    for (let column = 1; column <= numOfColumns; column++) {
+        const id = `comorbidityCol${column}`;
+        const count = tallyComorbidityBreakdownCounts(comorbidityRawData.get(id), column, countsForTenOrLess);
 
+        totalCounts[column] += count;
+    }
+};
+const computeDemographicCounts = (countsForTenOrLess) => {
     if (isQueryData) {
         for (let column = 1; column <= numOfColumns; column++) {
             for (let variable = 1; variable <= numOfDemVars; variable++) {
@@ -156,7 +245,7 @@ const computeDemographicCounts = () => {
     } else {
         for (let column = 1; column <= numOfColumns; column++) {
             const id = `demoBreakdownCol${column}`;
-            const count = tallyBreakdownCounts(demographicRawData.get(id), column, countsForTenOrLess);
+            const count = tallyDemographicBreakdownCounts(demographicRawData.get(id), column, countsForTenOrLess);
 
             totalCounts[column] += count;
         }
@@ -167,7 +256,11 @@ const computeCounts = () => {
     totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
     dataCounts.clear();
 
-    computeDemographicCounts();
+    const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
+    computeDemographicCounts(countsForTenOrLess);
+    if (hasComorbidity) {
+        computeComorbidityCounts(countsForTenOrLess);
+    }
 };
 /**
  * Load all data from input files.
@@ -178,7 +271,9 @@ const computeCounts = () => {
 const loadData = (callback) => {
     // clear previous data
     demographicRawData.clear();
+    comorbidityRawData.clear();
     demographicVars = [];
+    comorbidityVars = [];
 
     // add demographic variables from user's input for query data
     if (isQueryData) {
@@ -189,6 +284,9 @@ const loadData = (callback) => {
 
     const readers = [];
     getDemographicDataReaders(readers);
+    if (hasComorbidity) {
+        getComorbidityDataReaders(readers);
+    }
 
     Promise.all(readers).then(() => {
         computeCounts();
@@ -276,6 +374,75 @@ const setTableVariables = () => {
         $('#demVarFieldset').hide();
     }
 };
+const constructDemographicFileUpload = (fieldset, column) => {
+    const divContainer = document.createElement('div');
+    divContainer.className = 'p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3';
+
+    const title = document.createElement('h6');
+    title.className = 'card-title text-dark fw-bold mb-3';
+    title.innerText = 'Demographic Data';
+    divContainer.appendChild(title);
+
+    if (isQueryData) {
+        for (let variable = 1; variable <= numOfDemVars; variable++) {
+            const id = `demoVar${variable}Col${column}`;
+            const variableName = $(`#demoVar${variable}`).val();
+
+            const div = document.createElement('div');
+            div.className = (variable === numOfDemVars) ? 'row g-2 align-items-center' : 'row g-2 align-items-center mb-3';
+            div.innerHTML = `
+                    <div class="col-auto">
+                        <label for="${id}" class="col-form-label fw-bold">${variableName}:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input id="${id}" name="${id}" type="file" required="required" />
+                    </div>
+                    `;
+            divContainer.appendChild(div);
+        }
+    } else {
+        const id = `demoBreakdownCol${column}`;
+
+        const div = document.createElement('div');
+        div.className = 'row g-2 align-items-center';
+        div.innerHTML = `
+                <div class="col-auto">
+                    <label for="${id}" class="col-form-label fw-bold">Demographic Breakdown:</label>
+                </div>
+                <div class="col-auto">
+                    <input id="${id}" name="${id}" type="file" required="required" />
+                </div>
+                `;
+        divContainer.appendChild(div);
+    }
+
+    fieldset.appendChild(divContainer);
+};
+const constructComorbidityFileUpload = (fieldset, column) => {
+    const divContainer = document.createElement('div');
+    divContainer.className = 'p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3 mt-4';
+
+    const title = document.createElement('h6');
+    title.className = 'card-title text-dark fw-bold mb-3';
+    title.innerText = `Comorbidity Data: ${comorbidity}`;
+    divContainer.appendChild(title);
+
+    const id = `comorbidityCol${column}`;
+
+    const div = document.createElement('div');
+    div.className = 'row g-2 align-items-center';
+    div.innerHTML = `
+                <div class="col-auto">
+                    <label for="${id}" class="col-form-label fw-bold">Comorbidity:</label>
+                </div>
+                <div class="col-auto">
+                    <input id="${id}" name="${id}" type="file" required="required" />
+                </div>
+                `;
+    divContainer.appendChild(div);
+
+    fieldset.appendChild(divContainer);
+};
 const constructFileUpload = () => {
     const fileUpload = document.getElementById('fileUpload');
     fileUpload.innerHTML = '';
@@ -290,37 +457,9 @@ const constructFileUpload = () => {
         legend.innerText = columnName;
         fieldset.appendChild(legend);
 
-        if (isQueryData) {
-            for (let variable = 1; variable <= numOfDemVars; variable++) {
-                const id = `demoVar${variable}Col${column}`;
-                const variableName = $(`#demoVar${variable}`).val();
-
-                const div = document.createElement('div');
-                div.className = 'row g-2 align-items-center mb-3';
-                div.innerHTML = `
-                    <div class="col-auto">
-                        <label for="${id}" class="col-form-label fw-bold">${variableName}:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input id="${id}" name="${id}" type="file" required="required" />
-                    </div>
-                    `;
-                fieldset.appendChild(div);
-            }
-        } else {
-            const id = `demoBreakdownCol${column}`;
-
-            const div = document.createElement('div');
-            div.className = 'row g-2 align-items-center mb-3';
-            div.innerHTML = `
-                <div class="col-auto">
-                    <label for="${id}" class="col-form-label fw-bold">Demographic Breakdown:</label>
-                </div>
-                <div class="col-auto">
-                    <input id="${id}" name="${id}" type="file" required="required" />
-                </div>
-                `;
-            fieldset.appendChild(div);
+        constructDemographicFileUpload(fieldset, column);
+        if (hasComorbidity) {
+            constructComorbidityFileUpload(fieldset, column);
         }
 
         fileUpload.appendChild(fieldset);
@@ -348,6 +487,29 @@ const addTableOneRowTotal = (tbody) => {
         tbodyRow.insertCell(i).innerText = `(n=${totalCounts[i]})`;
     }
 };
+const addComorbidityCounts = (tbody) => {
+    const tableRows = [];
+
+    // add comorbidity variables
+    for (let variable = 0; variable < numOfComorbidVars; variable++) {
+        const tbodyRow = tbody.insertRow(-1);
+        tbodyRow.insertCell(0).outerHTML = `<td>${comorbidityVars[variable]}</td>`;
+
+        tableRows.push(tbodyRow);
+    }
+
+    for (let column = 1; column <= numOfColumns; column++) {
+        let rowIndex = 0;
+        for (let variable = 1; variable <= numOfComorbidVars; variable++) {
+            const id = `comorbidVar${variable}Col${column}`;
+            const count = dataCounts.get(id);
+            const percentage = Math.round((count / totalCounts[column]) * 100);
+
+            // add counts to table
+            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
+        }
+    }
+};
 const addDemographicCounts = (tbody) => {
     const tableRows = [];
 
@@ -370,6 +532,16 @@ const addDemographicCounts = (tbody) => {
             tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
         }
     }
+};
+const addTableOneRowComorbidity = (table) => {
+    const tbody = table.createTBody();
+    tbody.className = 'table-group-divider';
+
+    const tbodyRow = tbody.insertRow(-1);
+    tbodyRow.className = 'table-info';
+    tbodyRow.insertCell(0).outerHTML = `<th colspan="${numOfColumns + 1}">${comorbidity}</th>`;
+
+    addComorbidityCounts(tbody);
 };
 const addTableOneRowDemographics = (table) => {
     const tbody = table.createTBody();
@@ -402,6 +574,9 @@ const constructTableOne = () => {
     addTableOneHeader(thead);
     addTableOneRowTotal(tbody);
     addTableOneRowDemographics(table);
+    if (hasComorbidity) {
+        addTableOneRowComorbidity(table);
+    }
 };
 const defineTableStructure = () => {
     setTableColumnNames();
@@ -410,6 +585,9 @@ const defineTableStructure = () => {
 const initializeValues = () => {
     numOfColumns = parseInt($('#numOfCols').val());
     numOfDemVars = parseInt($('#numOfDemVars').val());
+
+    comorbidity = $('input[name="comorbidity"]:checked').val();
+    hasComorbidity = comorbidity !== 'none';
 
     // create a new array of lenght (numOfCols + 1) initialized with zeros.
     totalCounts = Array.from({length: numOfColumns + 1}, () => 0);
