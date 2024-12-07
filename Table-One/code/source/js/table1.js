@@ -6,6 +6,7 @@
  * @author Kevin V. Bui
  * November 29, 2024
  */
+
 let numOfColumns = 0;
 let isQueryData = false;
 
@@ -35,10 +36,10 @@ const dataCounts = new Map();
 const tallyComorbidityBreakdownCounts = (rawData, column, countsForTenOrLess) => {
     let totalSum = 0;
 
-    for (let variable = 1; variable <= rawData.length; variable++) {
-        const id = `comorbidVar${variable}Col${column}`;
+    for (let variable = 0; variable < rawData.length; variable++) {
+        const id = `comorbidVar${variable + 1}Col${column}`;
 
-        let sum = rawData[variable - 1].split(',')
+        let sum = rawData[variable].split(',')
                 .map(line => line.trim())
                 .filter(line => line !== '')
                 .slice(2)
@@ -64,10 +65,10 @@ const tallyComorbidityBreakdownCounts = (rawData, column, countsForTenOrLess) =>
 const tallyDemographicBreakdownCounts = (rawData, column, countsForTenOrLess) => {
     let totalSum = 0;
 
-    for (let variable = 1; variable <= rawData.length; variable++) {
-        const id = `demoVar${variable}Col${column}`;
+    for (let variable = 0; variable < rawData.length; variable++) {
+        const id = `demoVar${variable + 1}Col${column}`;
 
-        let sum = rawData[variable - 1].split(',')
+        let sum = rawData[variable].split(',')
                 .map(line => line.trim())
                 .filter(line => line !== '')
                 .slice(2)
@@ -144,10 +145,14 @@ const readInComorbidityBreakdownData = (csvFile, label, map) => {
 
             numOfComorbidVars = lines.length;
 
-            // add demographic variables from data if they weren't added already
+            // add comorbidity variables from data if they weren't added already
             if (comorbidityVars.length === 0) {
                 for (let line of lines) {
-                    comorbidityVars.push(line.substring(0, line.indexOf(',')));
+                    if (line.startsWith('All Patients')) {
+                        numOfComorbidVars--;
+                    } else {
+                        comorbidityVars.push(line.substring(0, line.indexOf(',')));
+                    }
                 }
             }
 
@@ -176,7 +181,11 @@ const readInDemographicBreakdownData = (csvFile, label, map) => {
             // add demographic variables from data if they weren't added already
             if (demographicVars.length === 0) {
                 for (let line of lines) {
-                    demographicVars.push(line.substring(0, line.indexOf(',')));
+                    if (line.startsWith('All Patients')) {
+                        numOfDemVars--;
+                    } else {
+                        demographicVars.push(line.substring(0, line.indexOf(',')));
+                    }
                 }
             }
 
@@ -206,15 +215,23 @@ const getComorbidityDataReaders = (readers) => {
 const getDemographicDataReaders = (readers) => {
     for (let column = 1; column <= numOfColumns; column++) {
         if (isQueryData) {
+            // get total counts
+            const id = `totalCountsCol${column}`;
+            const totalCountFiles = document.getElementById(id).files;
+            for (const file of totalCountFiles) {
+                readers.push(readIn2ColumnData(file, id, demographicRawData));
+            }
+
+            // get the query demographic counts
             for (let variable = 1; variable <= numOfDemVars; variable++) {
                 const id = `demoVar${variable}Col${column}`;
-
                 const demographicFiles = document.getElementById(id).files;
                 for (const file of demographicFiles) {
                     readers.push(readIn2ColumnData(file, id, demographicRawData));
                 }
             }
         } else {
+            // get the breakdown demographic counts
             const id = `demoBreakdownCol${column}`;
             const breakdownFiles = document.getElementById(id).files;
             for (const file of breakdownFiles) {
@@ -226,28 +243,51 @@ const getDemographicDataReaders = (readers) => {
 const computeComorbidityCounts = (countsForTenOrLess) => {
     for (let column = 1; column <= numOfColumns; column++) {
         const id = `comorbidityCol${column}`;
-        const count = tallyComorbidityBreakdownCounts(comorbidityRawData.get(id), column, countsForTenOrLess);
 
-        totalCounts[column] += count;
+        const reducedData = [];
+        const data = comorbidityRawData.get(id);
+        for (line of data) {
+            if (!line.startsWith('All Patients')) {
+                reducedData.push(line);
+            }
+        }
+
+        const count = tallyComorbidityBreakdownCounts(reducedData, column, countsForTenOrLess);
     }
 };
 const computeDemographicCounts = (countsForTenOrLess) => {
     if (isQueryData) {
         for (let column = 1; column <= numOfColumns; column++) {
+            const id = `totalCountsCol${column}`;
+            totalCounts[column] = tallyCounts(demographicRawData.get(id), countsForTenOrLess);
+
             for (let variable = 1; variable <= numOfDemVars; variable++) {
                 const id = `demoVar${variable}Col${column}`;
                 const count = tallyCounts(demographicRawData.get(id), countsForTenOrLess);
-
                 dataCounts.set(id, count);
-                totalCounts[column] += count;
             }
         }
     } else {
         for (let column = 1; column <= numOfColumns; column++) {
             const id = `demoBreakdownCol${column}`;
-            const count = tallyDemographicBreakdownCounts(demographicRawData.get(id), column, countsForTenOrLess);
 
-            totalCounts[column] += count;
+            const reducedData = [];
+            const data = demographicRawData.get(id);
+            for (line of data) {
+                if (line.startsWith('All Patients')) {
+                    totalCounts[column] = line.split(',')
+                            .map(line => line.trim())
+                            .filter(line => line !== '')
+                            .slice(2)
+                            .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
+                            .map(dat => isNaN(dat) ? 0 : parseInt(dat))
+                            .reduce((n1, n2) => n1 + n2);
+                } else {
+                    reducedData.push(line);
+                }
+            }
+
+            const count = tallyDemographicBreakdownCounts(reducedData, column, countsForTenOrLess);
         }
     }
 };
@@ -330,6 +370,23 @@ const setTableColumnNames = () => {
         }
     }
 };
+const createGroupInput = (i) => {
+    const id = `group${i}`;
+
+    // <div class="row g-2 align-items-center"></div>
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row g-2 align-items-center mb-3';
+    rowDiv.innerHTML = `
+<div class="col-auto">
+    <label for="${id}" class="col-form-label fw-bold">Group ${i}:</label>
+</div>
+<div class="col-auto">
+    <input type="text" class="form-control" id="${id}" name="${id}" required="required" />
+</div>
+`;
+
+    return rowDiv;
+};
 const createVarInput = (i) => {
     const id = `demoVar${i}`;
 
@@ -374,6 +431,21 @@ const setTableVariables = () => {
         $('#demVarFieldset').hide();
     }
 };
+const constructQueryDemographicTotalCountsFileUpload = (divContainer, column) => {
+    const id = `totalCountsCol${column}`;
+
+    const div = document.createElement('div');
+    div.className = 'row g-2 align-items-center mb-3';
+    div.innerHTML = `
+                    <div class="col-auto">
+                        <label for="${id}" class="col-form-label fw-bold">Total Counts:</label>
+                    </div>
+                    <div class="col-auto">
+                        <input id="${id}" name="${id}" type="file" required="required" />
+                    </div>
+                    `;
+    divContainer.appendChild(div);
+};
 const constructDemographicFileUpload = (fieldset, column) => {
     const divContainer = document.createElement('div');
     divContainer.className = 'p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3';
@@ -384,6 +456,7 @@ const constructDemographicFileUpload = (fieldset, column) => {
     divContainer.appendChild(title);
 
     if (isQueryData) {
+        constructQueryDemographicTotalCountsFileUpload(divContainer, column);
         for (let variable = 1; variable <= numOfDemVars; variable++) {
             const id = `demoVar${variable}Col${column}`;
             const variableName = $(`#demoVar${variable}`).val();
@@ -506,7 +579,7 @@ const addComorbidityCounts = (tbody) => {
             const percentage = Math.round((count / totalCounts[column]) * 100);
 
             // add counts to table
-            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
+            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-2">${count}</span> (${percentage}%)`;
         }
     }
 };
@@ -529,7 +602,7 @@ const addDemographicCounts = (tbody) => {
             const percentage = Math.round((count / totalCounts[column]) * 100);
 
             // add counts to table
-            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-4">${count}</span> (${percentage}%)`;
+            tableRows[rowIndex++].insertCell(column).innerHTML = `<span class="me-2">${count}</span> (${percentage}%)`;
         }
     }
 };
