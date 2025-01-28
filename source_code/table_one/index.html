@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Table One</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="../vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    </head>
+    <body class="bg-body-tertiary">
+        <div class="px-4">
+            <main>
+                <div class="py-5 g-5">
+                    <ul class="nav nav-pills" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="step1" data-bs-toggle="tab" data-bs-target="#step1-pane" type="button" role="tab" aria-controls="step1-pane" aria-selected="true">Step 1: Define Table Attributes</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link disabled" id="step2" data-bs-toggle="tab" data-bs-target="#step2-pane" type="button" role="tab" aria-controls="step2-pane" aria-selected="false">Step 2: Upload Files</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link disabled" id="step3" data-bs-toggle="tab" data-bs-target="#step3-pane" type="button" role="tab" aria-controls="step3-pane" aria-selected="false">Step 3: Generate Table</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane py-4 show active" id="step1-pane" role="tabpanel" aria-labelledby="step1" tabindex="0">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-5">Define Table Columns and Rows</h5>
+                                    <form id="setup1Form">
+                                        <div class="row">
+                                            <!-- table columns -->
+                                            <div class="col-sm-12 col-md-12 col-lg-4">
+                                                <div class="p-3 mb-2 bg-light text-dark">
+                                                    <label class="col-form-label fw-bold" for="columnInput">Table Columns:</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="columnInput" name="columnInput" placeholder="Column name" value="" required="required" />
+                                                        <button class="btn btn-secondary btn-sm" type="button" onclick="addColumn();"><i class="bi bi-plus-circle-fill"></i> Add Column</button>
+                                                    </div>
+                                                    <ul class="list-group mt-2" id="columnList"></ul>
+                                                </div>
+                                            </div>
+                                            <!-- end of table columns -->
+                                            <!-- demographic data type -->
+                                            <div class="col-sm-12 col-md-12 col-lg-4">
+                                                <div class="p-3 mb-2 bg-light text-dark">
+                                                    <div class="row g-2 align-items-center">
+                                                        <div class="col-auto">
+                                                            <label class="col-form-label fw-bold">Demographic Data Type:</label>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="demQuery" value="query" required="required" checked="checked" />
+                                                                <label class="form-check-label" for="demQuery">Query</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="demBreakdown" value="breakdown" required="required" />
+                                                                <label class="form-check-label" for="demBreakdown">Breakdown</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="demQueryOpts" class="mt-3" style="display: none;">
+                                                        <label class="col-form-label fw-bold" for="demVarInput">Demographic Variables:</label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" id="demVarInput" name="demVarInput" placeholder="Variable name" value="" required="required" />
+                                                            <button class="btn btn-secondary btn-sm" type="button" onclick="addDemoVariable();"><i class="bi bi-plus-circle-fill"></i> Add Variable</button>
+                                                        </div>
+                                                        <ul class="list-group mt-2" id="demVarList"></ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- end of demographic data type -->
+                                            <!-- comorbidity -->
+                                            <div class="col-sm-12 col-md-12 col-lg-4">
+                                                <div class="p-3 mb-2 bg-light text-dark">
+                                                    <div class="row g-2 align-items-center mb-3">
+                                                        <div class="col-auto">
+                                                            <label class="col-form-label fw-bold">Comorbidity:</label>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="comorbidity" id="charlson" value="Charlson" required="required" />
+                                                                <label class="form-check-label" for="charlson">Charlson</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="comorbidity" id="elixhauser" value="Elixhauser" required="required" />
+                                                                <label class="form-check-label" for="elixhauser">Elixhauser</label>
+                                                            </div>
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="comorbidity" id="noComorbidity:" value="none" required="required" checked="checked" />
+                                                                <label class="form-check-label" for="noComorbidity:">None</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- end of comorbidity -->
+                                        </div>
+                                        <!-- additional variables -->
+                                        <div class="row">
+                                            <h6 class="card-subtitle mt-5 mb-4 text-body-secondary">Additional Variables</h6>
+                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                                <div class="p-3 mb-2 bg-light text-dark">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <label class="col-form-label fw-bold" for="groupInput">Groups:</label>
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control" id="groupInput" name="groupInput" placeholder="Group name" value="" />
+                                                                <button class="btn btn-secondary btn-sm" type="button" onclick="addGroup();"><i class="bi bi-plus-circle-fill"></i> Add Group</button>
+                                                            </div>
+                                                            <ul class="list-group mt-2" id="groupList"></ul>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div id="groupVars"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- end of additional variables -->
+                                    </form>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-success" onclick="showNextTab(1);"><i class="bi bi-arrow-right-circle"></i> Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane py-4" id="step2-pane" role="tabpanel" aria-labelledby="step2" tabindex="1">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-5">Upload Files</h5>
+                                    <!-- step-2 form -->
+                                    <form id="step2Form">
+                                        <div id="fileUpload"></div>
+                                    </form>
+                                    <!-- end of step-2 form -->
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-secondary" onclick="showPreviousTab(0);"><i class="bi bi-arrow-left-circle"></i> Back</button>
+                                        <button type="button" class="btn btn-success" onclick="showNextTab(2);"><i class="bi bi-arrow-right-circle"></i> Next</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane py-4" id="step3-pane" role="tabpanel" aria-labelledby="step3" tabindex="2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-5">Construct Table 1</h5>
+                                    <div class="row g-2 align-items-center mb-3">
+                                        <div class="col-auto">
+                                            <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                        </div>
+                                        <div class="col-auto">
+                                            <select class="form-select" id="selectPatientCounts" aria-label="Default select example">
+                                                <option value="0">0</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10" selected="selected">10</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <table id="tableOne" class="table table-sm table-bordered border-secondary table-striped caption-top mb-0"></table>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-start">
+                                        <button type="button" class="btn btn-secondary" onclick="showPreviousTab(1);"><i class="bi bi-arrow-left-circle"></i> Back</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <script src="../vendor/jquery/jquery-3.7.1.slim.min.js"></script>
+        <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../vendor/jquery-validation/jquery.validate.min.js"></script>
+        <script src="../vendor/papaparse/papaparse.min.js"></script>
+        <script src="js/table1.js"></script>
+    </body>
+</html>
