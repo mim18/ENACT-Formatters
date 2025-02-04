@@ -1134,6 +1134,15 @@ const getTable1HeaderContent = (rowData) => {
 
     rowData.push(content.join(','));
 };
+const getTable1TotalContent = (rowData) => {
+    let content = [];
+    content.push('Total');
+    for (let colNum = 0; colNum < columns.length; colNum++) {
+        content.push(`(n=${totalCounts[colNum]})`);
+    }
+
+    rowData.push(content.join(','));
+};
 const getTable1DemographicContents = (rowData) => {
     let content = [];
     content.push('Demographic Distribution By');
@@ -1156,7 +1165,7 @@ const getTable1DemographicContents = (rowData) => {
             const count = dataCounts.get(id);
             const percentage = Math.round((count / totalCounts[colNum]) * 100);
 
-            content.push(`${count} ${percentage}%`);
+            content.push(`${count} (${percentage}%)`);
         }
         rowData.push(content.join(','));
     }
@@ -1221,6 +1230,7 @@ const getTable1GroupVarContents = (rowData) => {
 const getTable1Contents = () => {
     const rowData = [];
     getTable1HeaderContent(rowData);
+    getTable1TotalContent(rowData);
     getTable1DemographicContents(rowData);
     if (hasComorbidity) {
         getTable1ComorbidityContents(rowData);
