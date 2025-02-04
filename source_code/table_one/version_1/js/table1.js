@@ -30,11 +30,7 @@ const groupVarRawData = new Map();
 
 let totalCounts = [];
 
-const validSites = new Set();
-
 const patientCountsSelect = document.getElementById('selectPatientCounts');
-const exportData = document.getElementById('exportData');
-
 const dataCounts = new Map();
 
 // data readers
@@ -48,135 +44,92 @@ const dataCounts = new Map();
  */
 const readIn2ColumnData = (csvFile, label, map) => {
     return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const counts = [];
-                const lines = results.data;
-                for (let i = 1; i < lines.length; i++) {
-                    const data = lines[i];
-                    if (data.length > 1) {
-                        const site = data[0].trim();
-                        const count = data[1].trim();
-                        if (validSites.has(site)) {
-                            counts.push(count);
-                        }
-                    }
-                }
-                map.set(label, counts);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = [];
+            event.target.result
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== '')
+                    .forEach(line => data.push(line));
+            map.set(label, data);
 
-                resolve();
-            }
-        });
+            resolve();
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(csvFile);
     });
 };
 const readInDemographicBreakdownData = (csvFile, label, map) => {
     return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const sites = new Set();
-                const lines = results.data;
-                // at least 1 line
-                if (lines.length > 1) {
-                    // get valid columns (sites)
-                    const sites = lines[0];
-                    const isValidSites = [false, false];
-                    for (let i = 2; i < sites.length; i++) {
-                        const site = sites[i].trim();
-                        isValidSites.push(validSites.has(site));
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const lines = [];
+            event.target.result
+                    .split('\n')
+                    .map(line => line.replace('Demographic Distribution by', ''))
+                    .map(line => line.trim())
+                    .filter(line => line !== '')
+                    .slice(1)
+                    .forEach(line => lines.push(line));
+
+            // add demographic variables from data if they weren't added already
+            if (demoVars.length === 0) {
+                for (let line of lines) {
+                    if (!line.startsWith('All Patients')) {
+                        demoVars.push(Papa.parse(line).data[0][0].trim());
                     }
-
-                    const addVar = (demoVars.length === 0);
-                    const lineData = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        const data = lines[i];
-                        // requires at least 3 columns
-                        if (data.length < 2) {
-                            continue;
-                        }
-
-                        if (addVar) {
-                            const variable = data[0].trim();
-                            if (!variable.startsWith('All Patients')) {
-                                demoVars.push(variable.replace('Demographic Distribution by', '').trim());
-                            }
-                        }
-
-                        const counts = [];
-                        for (let j = 2; j < data.length; j++) {
-                            if (isValidSites[j]) {
-                                const count = data[j].trim();
-                                counts.push(count);
-                            }
-                        }
-                        lineData.push(counts);
-                    }
-                    map.set(label, lineData);
                 }
-
-                resolve();
             }
-        });
+
+            map.set(label, lines);
+
+            resolve();
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(csvFile);
     });
 };
 const readInComorbidityBreakdownData = (csvFile, label, map) => {
     return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const sites = new Set();
-                const lines = results.data;
-                // at least 1 line
-                if (lines.length > 1) {
-                    // get valid columns (sites)
-                    const sites = lines[0];
-                    const isValidSites = [false, false];
-                    for (let i = 2; i < sites.length; i++) {
-                        const site = sites[i].trim();
-                        isValidSites.push(validSites.has(site));
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const lines = [];
+            event.target.result
+                    .split('\n')
+                    .map(line => line.replace('Elixhauser Comorbidities', ''))
+                    .map(line => line.trim())
+                    .filter(line => line !== '')
+                    .slice(1)
+                    .forEach(line => lines.push(line));
+
+            // add comorbidity variables from data if they weren't added already
+            if (comorbidVars.length === 0) {
+                for (let line of lines) {
+                    if (!line.startsWith('All Patients')) {
+                        comorbidVars.push(Papa.parse(line).data[0][0].trim());
                     }
-
-                    const addVar = (comorbidVars.length === 0);
-                    const lineData = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        const data = lines[i];
-                        // requires at least 3 columns
-                        if (data.length < 2) {
-                            continue;
-                        }
-
-                        if (addVar) {
-                            const variable = data[0].trim();
-                            if (!variable.startsWith('All Patients')) {
-                                comorbidVars.push(variable.replace(comorbidity, '').trim());
-                            }
-                        }
-
-                        const counts = [];
-                        for (let j = 2; j < data.length; j++) {
-                            if (isValidSites[j]) {
-                                const count = data[j].trim();
-                                counts.push(count);
-                            }
-                        }
-                        lineData.push(counts);
-                    }
-                    map.set(label, lineData);
                 }
-
-                resolve();
             }
-        });
+
+            map.set(label, lines);
+
+            resolve();
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(csvFile);
     });
 };
 
 // data loading
-const getDemographicData = (tasks) => {
+const getDemographicDataReaders = (readers) => {
     for (let colNum = 0; colNum < columns.length; colNum++) {
         if (isQueryData) {
             // get total counts
             const id = `totalCountsCol${colNum}`;
             const totalCountFiles = document.getElementById(id).files;
             for (const file of totalCountFiles) {
-                tasks.push(readIn2ColumnData(file, id, demographicRawData));
+                readers.push(readIn2ColumnData(file, id, demographicRawData));
             }
 
             // get the query demographic counts
@@ -184,7 +137,7 @@ const getDemographicData = (tasks) => {
                 const id = `demoVar${varNum}Col${colNum}`;
                 const demographicFiles = document.getElementById(id).files;
                 for (const file of demographicFiles) {
-                    tasks.push(readIn2ColumnData(file, id, demographicRawData));
+                    readers.push(readIn2ColumnData(file, id, demographicRawData));
                 }
             }
         } else {
@@ -194,21 +147,21 @@ const getDemographicData = (tasks) => {
             const id = `demoBreakdownCol${colNum}`;
             const breakdownFiles = document.getElementById(id).files;
             for (const file of breakdownFiles) {
-                tasks.push(readInDemographicBreakdownData(file, id, demographicRawData));
+                readers.push(readInDemographicBreakdownData(file, id, demographicRawData));
             }
         }
     }
 };
-const getComorbidityData = (tasks) => {
+const getComorbidityDataReaders = (readers) => {
     for (let colNum = 0; colNum < columns.length; colNum++) {
         const id = `comorbidityCol${colNum}`;
         const breakdownFiles = document.getElementById(id).files;
         for (const file of breakdownFiles) {
-            tasks.push(readInComorbidityBreakdownData(file, id, comorbidityRawData));
+            readers.push(readInComorbidityBreakdownData(file, id, comorbidityRawData));
         }
     }
 };
-const getGroupVarData = (tasks) => {
+const getGroupVarDataReaders = (readers) => {
     for (let colNum = 0; colNum < columns.length; colNum++) {
         for (let varGroupNum = 0; varGroupNum < groups.length; varGroupNum++) {
             const group = groups[varGroupNum];
@@ -220,156 +173,13 @@ const getGroupVarData = (tasks) => {
 
                 const groupVarFiles = document.getElementById(id).files;
                 for (const file of groupVarFiles) {
-                    tasks.push(readIn2ColumnData(file, id, groupVarRawData));
+                    readers.push(readIn2ColumnData(file, id, groupVarRawData));
                 }
             }
         }
     }
-};
-
-const getColumnDataValidSiteTask = (csvFile) => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const sites = new Set();
-                const lines = results.data;
-                for (let i = 1; i < lines.length; i++) {
-                    const data = lines[i];
-                    if (data.length > 1) {
-                        const site = data[0].trim();
-                        const count = data[1].trim();
-                        if (count === '10 patients or fewer' || !isNaN(count)) {
-                            sites.add(site);
-                        }
-                    }
-                }
-
-                resolve(sites);
-            }
-        });
-    });
-};
-const getBreakdownDataValidSiteTask = (csvFile) => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const sites = new Set();
-                const lines = results.data;
-                if (lines.length > 1) {
-                    const names = lines[0];
-                    const availability = lines[1];
-                    for (let i = 2; i < names.length; i++) {
-                        const site = names[i].trim();
-                        const count = availability[i].trim();
-                        if (count === '10 patients or fewer' || !isNaN(count)) {
-                            sites.add(site);
-                        }
-                    }
-                }
-
-                resolve(sites);
-            }
-        });
-    });
-};
-const getDemographicValidSites = (tasks) => {
-    for (let colNum = 0; colNum < columns.length; colNum++) {
-        if (isQueryData) {
-            // total counts
-            const id = `totalCountsCol${colNum}`;
-            const totalCountFiles = document.getElementById(id).files;
-            for (const file of totalCountFiles) {
-                tasks.push(getColumnDataValidSiteTask(file));
-            }
-
-            // query demographic counts
-            for (let varNum = 0; varNum < demoVars.length; varNum++) {
-                const id = `demoVar${varNum}Col${colNum}`;
-                const demographicFiles = document.getElementById(id).files;
-                for (const file of demographicFiles) {
-                    tasks.push(getColumnDataValidSiteTask(file));
-                }
-            }
-        } else {
-            // get the breakdown demographic counts
-            const id = `demoBreakdownCol${colNum}`;
-            const breakdownFiles = document.getElementById(id).files;
-            for (const file of breakdownFiles) {
-                tasks.push(getBreakdownDataValidSiteTask(file));
-            }
-        }
-    }
-};
-const getComorbidityValidSites = (tasks) => {
-    for (let colNum = 0; colNum < columns.length; colNum++) {
-        const id = `comorbidityCol${colNum}`;
-        const breakdownFiles = document.getElementById(id).files;
-        for (const file of breakdownFiles) {
-            tasks.push(getBreakdownDataValidSiteTask(file));
-        }
-    }
-};
-const getGroupVarValidSites = (tasks) => {
-    for (let colNum = 0; colNum < columns.length; colNum++) {
-        for (let varGroupNum = 0; varGroupNum < groups.length; varGroupNum++) {
-            const group = groups[varGroupNum];
-
-            const groupVars = groupVarNames.get(group);
-            const additionalVars = Array.from(groupVars);
-            for (let varNum = 0; varNum < additionalVars.length; varNum++) {
-                const id = `additionalVarCol${colNum}Group${varGroupNum}Var${varNum}`;
-
-                const groupVarFiles = document.getElementById(id).files;
-                for (const file of groupVarFiles) {
-                    tasks.push(getColumnDataValidSiteTask(file));
-                }
-            }
-        }
-    }
-};
-const analyzeAndLoadData = (callback) => {
-    // clear previous data
-    validSites.clear();
-    demographicRawData.clear();
-    comorbidityRawData.clear();
-    comorbidVars = [];
-
-    // get valid sites
-    const tasks = [];
-    getDemographicValidSites(tasks);
-    if (hasComorbidity) {
-        getComorbidityValidSites(tasks);
-    }
-    if (groups.length > 0) {
-        getGroupVarValidSites(tasks);
-    }
-
-    Promise.all(tasks).then((results) => {
-        let sites = new Set();
-        for (let i = 0; i < results.length; i++) {
-            sites = sites.size > 0 ? sites.intersection(results[i]) : sites.union(results[i]);
-        }
-        sites.forEach(e => validSites.add(e));
-
-        loadData(callback);
-    });
 };
 const loadData = (callback) => {
-    const tasks = [];
-    getDemographicData(tasks);
-    if (hasComorbidity) {
-        getComorbidityData(tasks);
-    }
-    if (groups.length > 0) {
-        getGroupVarData(tasks);
-    }
-
-    Promise.all(tasks).then(() => {
-        computeCounts();
-        callback();
-    });
-};
-const loadDataPrev = (callback) => {
     // clear previous data
     demographicRawData.clear();
     comorbidityRawData.clear();
@@ -392,36 +202,60 @@ const loadDataPrev = (callback) => {
 
 // tally counts
 const tallyCounts = (rawData, countsForTenOrLess) => {
-    let total = 0;
-    rawData.forEach(count => {
-        if (count === '10 patients or fewer') {
-            total += countsForTenOrLess;
-        } else {
-            total += parseInt(count);
+    let count = 0;
+    rawData.forEach(line => {
+//        const data = line.split(',');
+        const data = Papa.parse(line).data[0];
+        if (data.length === 2) {
+            const dat = data[1].trim();
+            if (dat === '10 patients or fewer') {
+                count += countsForTenOrLess;
+            } else if (!isNaN(dat)) {
+                count += parseInt(dat);
+            }
         }
     });
 
-    return total;
+    return count;
 };
 const tallyDemographicBreakdownCounts = (rawData, columnNum, countsForTenOrLess) => {
-    for (let varNum = 1; varNum < rawData.length; varNum++) {
-        const id = `demoVar${varNum - 1}Col${columnNum}`;
-        let sum = rawData[varNum]
+    let totalSum = 0;
+
+    for (let varNum = 0; varNum < rawData.length; varNum++) {
+        const id = `demoVar${varNum}Col${columnNum}`;
+        let sum = Papa.parse(rawData[varNum]).data[0]
+                .map(line => line.trim())
+                .filter(line => line !== '')
+                .slice(2)
                 .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
                 .map(dat => isNaN(dat) ? 0 : parseInt(dat))
                 .reduce((n1, n2) => n1 + n2);
         dataCounts.set(id, sum);
+
+        totalSum += sum;
     }
+
+    return totalSum;
 };
 const tallyComorbidityBreakdownCounts = (rawData, colNum, countsForTenOrLess) => {
-    for (let varNum = 1; varNum < rawData.length; varNum++) {
-        const id = `comorbidVar${varNum - 1}Col${colNum}`;
-        let sum = rawData[varNum]
+    let totalSum = 0;
+
+    for (let varNum = 0; varNum < rawData.length; varNum++) {
+        const id = `comorbidVar${varNum}Col${colNum}`;
+
+        let sum = Papa.parse(rawData[varNum]).data[0]
+                .map(line => line.trim())
+                .filter(line => line !== '')
+                .slice(2)
                 .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
                 .map(dat => isNaN(dat) ? 0 : parseInt(dat))
                 .reduce((n1, n2) => n1 + n2);
         dataCounts.set(id, sum);
+
+        totalSum += sum;
     }
+
+    return totalSum;
 };
 
 // compute counts
@@ -455,13 +289,23 @@ const computeDemographicCounts = (countsForTenOrLess) => {
         for (let colNum = 0; colNum < columns.length; colNum++) {
             const id = `demoBreakdownCol${colNum}`;
 
-            const lineData = demographicRawData.get(id);
-            totalCounts[colNum] = lineData[0]
-                    .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
-                    .map(dat => isNaN(dat) ? 0 : parseInt(dat))
-                    .reduce((n1, n2) => n1 + n2);
+            const reducedData = [];
+            const data = demographicRawData.get(id);
+            for (const line of data) {
+                if (line.startsWith('All Patients')) {
+                    totalCounts[colNum] = Papa.parse(line).data[0]
+                            .map(line => line.trim())
+                            .filter(line => line !== '')
+                            .slice(2)
+                            .map(dat => (dat === '10 patients or fewer') ? countsForTenOrLess : dat)
+                            .map(dat => isNaN(dat) ? 0 : parseInt(dat))
+                            .reduce((n1, n2) => n1 + n2);
+                } else {
+                    reducedData.push(line);
+                }
+            }
 
-            tallyDemographicBreakdownCounts(lineData, colNum, countsForTenOrLess);
+            const count = tallyDemographicBreakdownCounts(reducedData, colNum, countsForTenOrLess);
         }
     }
 };
@@ -469,8 +313,15 @@ const computeComorbidityCounts = (countsForTenOrLess) => {
     for (let colNum = 0; colNum < columns.length; colNum++) {
         const id = `comorbidityCol${colNum}`;
 
-        const lineData = comorbidityRawData.get(id);
-        tallyComorbidityBreakdownCounts(lineData, colNum, countsForTenOrLess);
+        const reducedData = [];
+        const data = comorbidityRawData.get(id);
+        for (const line of data) {
+            if (!line.startsWith('All Patients')) {
+                reducedData.push(line);
+            }
+        }
+
+        const count = tallyComorbidityBreakdownCounts(reducedData, colNum, countsForTenOrLess);
     }
 };
 const addDemographicCounts = (tbody) => {
@@ -736,7 +587,7 @@ const constructQueryDemographicTotalCountsFileUpload = (divContainer, columnNum)
     const div = document.createElement('div');
     div.className = 'row g-2 align-items-center';
     div.innerHTML = `
-        <hr class="m-2" />
+        <hr />
         <div class="col-auto">
             <label for="${id}" class="col-form-label">Total Counts:</label>
         </div>
@@ -929,12 +780,8 @@ const collectVariables = () => {
     columns = Array.from(columnNames);
     demoVars = Array.from(demoVarNames);
 
-    comorbidity = $('input[name="comorbidity"]:checked').val().trim();
+    comorbidity = $('input[name="comorbidity"]:checked').val();
     hasComorbidity = comorbidity !== 'none';
-    if (hasComorbidity) {
-        comorbidity = `${comorbidity} Comorbidities`;
-    }
-
 
     groups = Array.from(groupNames);
 };
@@ -976,7 +823,7 @@ const addTableOneRowComorbidity = (table) => {
 
     const tbodyRow = tbody.insertRow(-1);
     tbodyRow.className = 'table-info';
-    tbodyRow.insertCell(0).outerHTML = `<th colspan="${columns.length + 1}">${comorbidity}</th>`;
+    tbodyRow.insertCell(0).outerHTML = `<th colspan="${columns.length + 1}">${comorbidity} Comorbidities</th>`;
 
     addComorbidityCounts(tbody);
 };
@@ -1025,8 +872,6 @@ const constructTableOne = () => {
     if (groupVarRawData.size > 0) {
         addTableOneRowGroupVars(table);
     }
-
-    $('#siteList').val(Array.from(validSites).join('\n'));
 };
 
 // wizard tabs
@@ -1037,7 +882,7 @@ const showTab = (tab) => {
     tabs[tab].classList.add('show', 'active');
 
     // update the navigation links
-    const navLinks = document.querySelectorAll('.nav-link-tab');
+    const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.classList.remove('active');
         link.classList.add('disabled');
@@ -1068,7 +913,7 @@ const showNextTab = (tab) => {
                 return;
             }
 
-            analyzeAndLoadData(constructTableOne);
+            loadData(constructTableOne);
 
             break;
     }
@@ -1121,137 +966,14 @@ const addToGroup = (item) => {
     }
 };
 
-const getTable1HeaderContent = (rowData) => {
-    const content = [];
-    content.push('');
-    for (let i = 0; i < columns.length; i++) {
-        let val = columns[i];
-        if (val.includes(',')) {
-            val = `"${val}"`;
-        }
-        content.push(val);
-    }
-
-    rowData.push(content.join(','));
-};
-const getTable1DemographicContents = (rowData) => {
-    let content = [];
-    content.push('Demographic Distribution By');
-    for (let i = 0; i < columns.length; i++) {
-        content.push('');
-    }
-    rowData.push(content.join(','));
-
-    for (let varNum = 0; varNum < demoVars.length; varNum++) {
-        content = [];
-
-        let val = demoVars[varNum];
-        if (val.includes(',')) {
-            val = `"${val}"`;
-        }
-        content.push(val);
-
-        for (let colNum = 0; colNum < columns.length; colNum++) {
-            const id = `demoVar${varNum}Col${colNum}`;
-            const count = dataCounts.get(id);
-            const percentage = Math.round((count / totalCounts[colNum]) * 100);
-
-            content.push(`${count} ${percentage}%`);
-        }
-        rowData.push(content.join(','));
-    }
-};
-const getTable1ComorbidityContents = (rowData) => {
-    let content = [];
-    content.push(comorbidity);
-    for (let i = 0; i < columns.length; i++) {
-        content.push('');
-    }
-    rowData.push(content.join(','));
-
-    for (let varNum = 0; varNum < comorbidVars.length; varNum++) {
-        content = [];
-
-        let val = comorbidVars[varNum];
-        if (val.includes(',')) {
-            val = `"${val}"`;
-        }
-        content.push(val);
-
-        for (let colNum = 0; colNum < columns.length; colNum++) {
-            const id = `comorbidVar${varNum}Col${colNum}`;
-            const count = dataCounts.get(id);
-            const percentage = Math.round((count / totalCounts[colNum]) * 100);
-
-            content.push(`${count} ${percentage}%`);
-        }
-        rowData.push(content.join(','));
-    }
-};
-const getTable1GroupVarContents = (rowData) => {
-    for (let varGroupNum = 0; varGroupNum < groups.length; varGroupNum++) {
-        const group = groups[varGroupNum];
-
-        const groupVars = groupVarNames.get(group);
-        if (groupVars.size > 0) {
-            content = [];
-            content.push(group);
-            for (let i = 0; i < columns.length; i++) {
-                content.push('');
-            }
-            rowData.push(content.join(','));
-
-            const additionalVars = Array.from(groupVars);
-            for (let varNum = 0; varNum < additionalVars.length; varNum++) {
-                content = [];
-                content.push(additionalVars[varNum]);
-
-                for (let colNum = 0; colNum < columns.length; colNum++) {
-                    const id = `additionalVarCol${colNum}Group${varGroupNum}Var${varNum}`;
-                    const count = dataCounts.get(id);
-                    const percentage = Math.round((count / totalCounts[colNum]) * 100);
-
-                    content.push(`${count} ${percentage}%`);
-                }
-                rowData.push(content.join(','));
-            }
-        }
-    }
-};
-const getTable1Contents = () => {
-    const rowData = [];
-    getTable1HeaderContent(rowData);
-    getTable1DemographicContents(rowData);
-    if (hasComorbidity) {
-        getTable1ComorbidityContents(rowData);
-    }
-    if (groupVarRawData.size > 0) {
-        getTable1GroupVarContents(rowData);
-    }
-
-    return rowData.join('\r\n');
-};
-const handleExportData = (event) => {
-    event.preventDefault();
-
-    const content = getTable1Contents();
-    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
-
-    const downloadLink = document.createElement("a");
-    downloadLink.download = 'table1.csv';
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.click();
-};
 const handlePatientCountChange = (event) => {
     computeCounts();
     constructTableOne();
 };
 $(document).ready(function () {
     groupInputCounts = 0;
-    validSites.clear();
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
-    exportData.addEventListener('click', handleExportData, false);
 
     $('#setup1Form').validate({
         messages: {
