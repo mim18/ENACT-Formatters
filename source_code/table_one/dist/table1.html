@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Table One</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    </head>
+    <body class="bg-body-tertiary">
+        <div class="px-4 py-5">
+            <main>
+                <ul class="nav nav-pills" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link nav-link-tab active" id="step1" data-bs-toggle="tab" data-bs-target="#step1-pane" type="button" role="tab" aria-controls="step1-pane" aria-selected="true">Step 1: Define Table Attributes</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link nav-link-tab disabled" id="step2" data-bs-toggle="tab" data-bs-target="#step2-pane" type="button" role="tab" aria-controls="step2-pane" aria-selected="false">Step 2: Upload Files</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link nav-link-tab disabled" id="step3" data-bs-toggle="tab" data-bs-target="#step3-pane" type="button" role="tab" aria-controls="step3-pane" aria-selected="false">Step 3: Generate Table</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane py-4 show active" id="step1-pane" role="tabpanel" aria-labelledby="step1" tabindex="0">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-5">Define Table Columns and Rows</h5>
+                                <form id="setup1Form">
+                                    <div class="row">
+                                        <!-- table columns -->
+                                        <div class="col-sm-12 col-md-12 col-lg-4">
+                                            <div class="p-3 mb-2 bg-light text-dark">
+                                                <label class="col-form-label fw-bold" for="columnInput">Table Columns:</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="columnInput" name="columnInput" placeholder="Column name" value="" required="required" />
+                                                    <button class="btn btn-secondary btn-sm" type="button" onclick="addColumn();"><i class="bi bi-plus-circle-fill"></i> Add Column</button>
+                                                </div>
+                                                <ul class="list-group mt-2" id="columnList"></ul>
+                                            </div>
+                                        </div>
+                                        <!-- end of table columns -->
+                                        <!-- demographic data type -->
+                                        <div class="col-sm-12 col-md-12 col-lg-4">
+                                            <div class="p-3 mb-2 bg-light text-dark">
+                                                <div class="row g-2 align-items-center">
+                                                    <div class="col-auto">
+                                                        <label class="col-form-label fw-bold">Demographic Data Type:</label>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="datatype" id="demQuery" value="query" required="required" checked="checked" />
+                                                            <label class="form-check-label" for="demQuery">Query</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="datatype" id="demBreakdown" value="breakdown" required="required" />
+                                                            <label class="form-check-label" for="demBreakdown">Breakdown</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="demQueryOpts" class="mt-3" style="display: none;">
+                                                    <label class="col-form-label fw-bold" for="demVarInput">Demographic Variables:</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="demVarInput" name="demVarInput" placeholder="Variable name" value="" required="required" />
+                                                        <button class="btn btn-secondary btn-sm" type="button" onclick="addDemoVariable();"><i class="bi bi-plus-circle-fill"></i> Add Variable</button>
+                                                    </div>
+                                                    <ul class="list-group mt-2" id="demVarList"></ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- end of demographic data type -->
+                                        <!-- comorbidity -->
+                                        <div class="col-sm-12 col-md-12 col-lg-4">
+                                            <div class="p-3 mb-2 bg-light text-dark">
+                                                <div class="row g-2 align-items-center mb-3">
+                                                    <div class="col-auto">
+                                                        <label class="col-form-label fw-bold">Comorbidity:</label>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="comorbidity" id="charlson" value="Charlson" required="required" />
+                                                            <label class="form-check-label" for="charlson">Charlson</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="comorbidity" id="elixhauser" value="Elixhauser" required="required" />
+                                                            <label class="form-check-label" for="elixhauser">Elixhauser</label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="comorbidity" id="noComorbidity:" value="none" required="required" checked="checked" />
+                                                            <label class="form-check-label" for="noComorbidity:">None</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- end of comorbidity -->
+                                    </div>
+                                    <!-- additional variables -->
+                                    <div class="row">
+                                        <h6 class="card-subtitle mt-5 mb-4 text-body-secondary">Additional Variables</h6>
+                                        <div class="col-sm-12 col-md-12 col-lg-8">
+                                            <div class="p-3 mb-2 bg-light text-dark">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <label class="col-form-label fw-bold" for="groupInput">Groups:</label>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control" id="groupInput" name="groupInput" placeholder="Group name" value="" />
+                                                            <button class="btn btn-secondary btn-sm" type="button" onclick="addGroup();"><i class="bi bi-plus-circle-fill"></i> Add Group</button>
+                                                        </div>
+                                                        <ul class="list-group mt-2" id="groupList"></ul>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div id="groupVars"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end of additional variables -->
+                                </form>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-success" onclick="showNextTab(1);"><i class="bi bi-arrow-right-circle"></i> Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane py-4" id="step2-pane" role="tabpanel" aria-labelledby="step2" tabindex="1">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-5">Upload Files</h5>
+                                <!-- step-2 form -->
+                                <form id="step2Form">
+                                    <div id="fileUpload"></div>
+                                </form>
+                                <!-- end of step-2 form -->
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-secondary" onclick="showPreviousTab(0);"><i class="bi bi-arrow-left-circle"></i> Back</button>
+                                    <button type="button" class="btn btn-success" onclick="showNextTab(2);"><i class="bi bi-arrow-right-circle"></i> Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane py-4" id="step3-pane" role="tabpanel" aria-labelledby="step3" tabindex="2">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-5">Construct Table 1</h5>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-auto">
+                                            <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                        </div>
+                                        <div class="col-auto">
+                                            <select class="form-select" id="selectPatientCounts" aria-label="Default select example">
+                                                <option value="0">0</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10" selected="selected">10</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <nav class="navbar navbar-expand-sm m-0 p-0">
+                                        <div class="container-fluid">
+                                            <div class="collapse navbar-collapse">
+                                                <ul class="navbar-nav">
+                                                    <li class="nav-item">
+                                                        <a class="nav-link active" id="exportData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
+                                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i> Export to File
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </nav>
+                                </div>
+                                <table id="tableOne" class="table table-sm table-bordered border-secondary table-striped caption-top"></table>
+                                <div class="card border-success mt-3" style="width: 25rem;">
+                                    <div class="card-header text-bg-success">Sites Included</div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" id="siteList" rows="5" readonly="readonly" style="resize: none;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-start">
+                                    <button type="button" class="btn btn-secondary" onclick="showPreviousTab(1);"><i class="bi bi-arrow-left-circle"></i> Back</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+        <script>const columnNames=new Set;let columns=[],isQueryData=!1;const demoVarNames=new Set;let demoVars=[],comorbidity="",hasComorbidity=!1,comorbidVars=[];const groupNames=new Set;let groups=[];const groupVarInputs=new Map,groupVarNames=new Map;let groupInputCounts=0;const demographicRawData=new Map,comorbidityRawData=new Map,groupVarRawData=new Map;let totalCounts=[];const validSites=new Set,patientCountsSelect=document.getElementById("selectPatientCounts"),exportData=document.getElementById("exportData"),dataCounts=new Map,readIn2ColumnData=(e,t,o)=>new Promise(((a,n)=>{Papa.parse(e,{complete:function(e){const n=[],r=e.data;for(let e=1;e<r.length;e++){const t=r[e];if(t.length>1){const e=t[0].trim(),o=t[1].trim();validSites.has(e)&&n.push(o)}}o.set(t,n),a()}})})),readInDemographicBreakdownData=(e,t,o)=>new Promise(((a,n)=>{Papa.parse(e,{complete:function(e){new Set;const n=e.data;if(n.length>1){const e=n[0],a=[!1,!1];for(let t=2;t<e.length;t++){const o=e[t].trim();a.push(validSites.has(o))}const r=0===demoVars.length,l=[];for(let e=1;e<n.length;e++){const t=n[e];if(t.length<2)continue;if(r){const e=t[0].trim();e.startsWith("All Patients")||demoVars.push(e.replace("Demographic Distribution by","").trim())}const o=[];for(let e=2;e<t.length;e++)if(a[e]){const a=t[e].trim();o.push(a)}l.push(o)}o.set(t,l)}a()}})})),readInComorbidityBreakdownData=(e,t,o)=>new Promise(((a,n)=>{Papa.parse(e,{complete:function(e){new Set;const n=e.data;if(n.length>1){const e=n[0],a=[!1,!1];for(let t=2;t<e.length;t++){const o=e[t].trim();a.push(validSites.has(o))}const r=0===comorbidVars.length,l=[];for(let e=1;e<n.length;e++){const t=n[e];if(t.length<2)continue;if(r){const e=t[0].trim();e.startsWith("All Patients")||comorbidVars.push(e.replace(comorbidity,"").trim())}const o=[];for(let e=2;e<t.length;e++)if(a[e]){const a=t[e].trim();o.push(a)}l.push(o)}o.set(t,l)}a()}})})),getDemographicData=e=>{for(let t=0;t<columns.length;t++)if(isQueryData){const o=`totalCountsCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(readIn2ColumnData(t,o,demographicRawData));for(let o=0;o<demoVars.length;o++){const a=`demoVar${o}Col${t}`,n=document.getElementById(a).files;for(const t of n)e.push(readIn2ColumnData(t,a,demographicRawData))}}else{demoVars=[];const o=`demoBreakdownCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(readInDemographicBreakdownData(t,o,demographicRawData))}},getComorbidityData=e=>{for(let t=0;t<columns.length;t++){const o=`comorbidityCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(readInComorbidityBreakdownData(t,o,comorbidityRawData))}},getGroupVarData=e=>{for(let t=0;t<columns.length;t++)for(let o=0;o<groups.length;o++){const a=groups[o],n=groupVarNames.get(a),r=Array.from(n);for(let a=0;a<r.length;a++){const n=`additionalVarCol${t}Group${o}Var${a}`,r=document.getElementById(n).files;for(const t of r)e.push(readIn2ColumnData(t,n,groupVarRawData))}}},getColumnDataValidSiteTask=e=>new Promise(((t,o)=>{Papa.parse(e,{complete:function(e){const o=new Set,a=e.data;for(let e=1;e<a.length;e++){const t=a[e];if(t.length>1){const e=t[0].trim(),a=t[1].trim();"10 patients or fewer"!==a&&isNaN(a)||o.add(e)}}t(o)}})})),getBreakdownDataValidSiteTask=e=>new Promise(((t,o)=>{Papa.parse(e,{complete:function(e){const o=new Set,a=e.data;if(a.length>1){const e=a[0],t=a[1];for(let a=2;a<e.length;a++){const n=e[a].trim(),r=t[a].trim();"10 patients or fewer"!==r&&isNaN(r)||o.add(n)}}t(o)}})})),getDemographicValidSites=e=>{for(let t=0;t<columns.length;t++)if(isQueryData){const o=`totalCountsCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(getColumnDataValidSiteTask(t));for(let o=0;o<demoVars.length;o++){const a=`demoVar${o}Col${t}`,n=document.getElementById(a).files;for(const t of n)e.push(getColumnDataValidSiteTask(t))}}else{const o=`demoBreakdownCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(getBreakdownDataValidSiteTask(t))}},getComorbidityValidSites=e=>{for(let t=0;t<columns.length;t++){const o=`comorbidityCol${t}`,a=document.getElementById(o).files;for(const t of a)e.push(getBreakdownDataValidSiteTask(t))}},getGroupVarValidSites=e=>{for(let t=0;t<columns.length;t++)for(let o=0;o<groups.length;o++){const a=groups[o],n=groupVarNames.get(a),r=Array.from(n);for(let a=0;a<r.length;a++){const n=`additionalVarCol${t}Group${o}Var${a}`,r=document.getElementById(n).files;for(const t of r)e.push(getColumnDataValidSiteTask(t))}}},analyzeAndLoadData=e=>{validSites.clear(),demographicRawData.clear(),comorbidityRawData.clear(),comorbidVars=[];const t=[];getDemographicValidSites(t),hasComorbidity&&getComorbidityValidSites(t),groups.length>0&&getGroupVarValidSites(t),Promise.all(t).then((t=>{let o=new Set;for(let e=0;e<t.length;e++)o=o.size>0?o.intersection(t[e]):o.union(t[e]);o.forEach((e=>validSites.add(e))),loadData(e)}))},loadData=e=>{const t=[];getDemographicData(t),hasComorbidity&&getComorbidityData(t),groups.length>0&&getGroupVarData(t),Promise.all(t).then((()=>{computeCounts(),e()}))},loadDataPrev=e=>{demographicRawData.clear(),comorbidityRawData.clear(),comorbidVars=[];const t=[];getDemographicDataReaders(t),hasComorbidity&&getComorbidityDataReaders(t),groups.length>0&&getGroupVarDataReaders(t),Promise.all(t).then((()=>{computeCounts(),e()}))},tallyCounts=(e,t)=>{let o=0;return e.forEach((e=>{o+="10 patients or fewer"===e?t:parseInt(e)})),o},tallyDemographicBreakdownCounts=(e,t,o)=>{for(let a=1;a<e.length;a++){const n=`demoVar${a-1}Col${t}`;let r=e[a].map((e=>"10 patients or fewer"===e?o:e)).map((e=>isNaN(e)?0:parseInt(e))).reduce(((e,t)=>e+t));dataCounts.set(n,r)}},tallyComorbidityBreakdownCounts=(e,t,o)=>{for(let a=1;a<e.length;a++){const n=`comorbidVar${a-1}Col${t}`;let r=e[a].map((e=>"10 patients or fewer"===e?o:e)).map((e=>isNaN(e)?0:parseInt(e))).reduce(((e,t)=>e+t));dataCounts.set(n,r)}},computeGroupVarCounts=e=>{for(let t=0;t<columns.length;t++)for(let o=0;o<groups.length;o++){const a=groups[o],n=groupVarNames.get(a),r=Array.from(n);for(let a=0;a<r.length;a++){const n=`additionalVarCol${t}Group${o}Var${a}`,r=tallyCounts(groupVarRawData.get(n),e);dataCounts.set(n,r)}}},computeDemographicCounts=e=>{if(isQueryData)for(let t=0;t<columns.length;t++){const o=`totalCountsCol${t}`;totalCounts[t]=tallyCounts(demographicRawData.get(o),e);for(let o=0;o<demoVars.length;o++){const a=`demoVar${o}Col${t}`,n=tallyCounts(demographicRawData.get(a),e);dataCounts.set(a,n)}}else for(let t=0;t<columns.length;t++){const o=`demoBreakdownCol${t}`,a=demographicRawData.get(o);totalCounts[t]=a[0].map((t=>"10 patients or fewer"===t?e:t)).map((e=>isNaN(e)?0:parseInt(e))).reduce(((e,t)=>e+t)),tallyDemographicBreakdownCounts(a,t,e)}},computeComorbidityCounts=e=>{for(let t=0;t<columns.length;t++){const o=`comorbidityCol${t}`,a=comorbidityRawData.get(o);tallyComorbidityBreakdownCounts(a,t,e)}},addDemographicCounts=e=>{const t=[];for(let o=0;o<demoVars.length;o++){const a=e.insertRow(-1);a.insertCell(0).outerHTML=`<td>${demoVars[o]}</td>`,t.push(a)}for(let e=0;e<columns.length;e++){let o=0;for(let a=0;a<demoVars.length;a++){const n=`demoVar${a}Col${e}`,r=dataCounts.get(n),l=Math.round(r/totalCounts[e]*100);t[o++].insertCell(e+1).innerHTML=`<span class="me-2">${r}</span> (${l}%)`}}},addGroupVarCounts=(e,t,o)=>{const a=[];for(let o=0;o<t.length;o++){const n=e.insertRow(-1);n.insertCell(0).outerHTML=`<td>${t[o]}</td>`,a.push(n)}for(let e=0;e<columns.length;e++){let n=0;for(let r=0;r<t.length;r++){const t=`additionalVarCol${e}Group${o}Var${r}`,l=dataCounts.get(t),s=Math.round(l/totalCounts[e]*100);a[n++].insertCell(e+1).innerHTML=`<span class="me-2">${l}</span> (${s}%)`}}},addComorbidityCounts=e=>{const t=[];for(let o=0;o<comorbidVars.length;o++){const a=e.insertRow(-1);a.insertCell(0).outerHTML=`<td>${comorbidVars[o]}</td>`,t.push(a)}for(let e=0;e<columns.length;e++){let o=0;for(let a=0;a<comorbidVars.length;a++){const n=`comorbidVar${a}Col${e}`,r=dataCounts.get(n),l=Math.round(r/totalCounts[e]*100);t[o++].insertCell(e+1).innerHTML=`<span class="me-2">${r}</span> (${l}%)`}}},computeCounts=()=>{totalCounts=Array.from({length:columns.length},(()=>0)),dataCounts.clear();const e=parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);computeDemographicCounts(e),hasComorbidity&&computeComorbidityCounts(e),groupVarRawData.size>0&&computeGroupVarCounts(e)},deleteItemFromHtmlList=e=>{const t=e.parentElement.innerText,o=e.parentElement;return e.parentElement.parentElement.removeChild(o),t},addItemToHtmlList=(e,t,o)=>{const a=document.createElement("li");a.className="list-group-item list-group-item-info bg-opacity-10 border border-info",a.innerHTML=`${e} <a class="text-danger float-end" title="Delete" onclick="${o}"><i class="bi bi-trash3"></i></a>`,t.appendChild(a)},addToHtmlList=(e,t,o,a)=>{const n=e.value.trim();return e.value="",""===n||o.has(n)||(o.add(n),addItemToHtmlList(n,t,a)),n},removeDemoVariable=e=>{const t=deleteItemFromHtmlList(e);demoVarNames.delete(t),demoVarNames.size>0?$("#demVarInput").prop("required",!1):$("#demVarInput").prop("required",!0)},addDemoVariable=()=>{const e=document.getElementById("demVarInput"),t=document.getElementById("demVarList");addToHtmlList(e,t,demoVarNames,"removeDemoVariable(this);"),demoVarNames.size>0?$("#demVarInput").prop("required",!1):$("#demVarInput").prop("required",!0)},removeColumn=e=>{const t=deleteItemFromHtmlList(e);columnNames.delete(t),columnNames.size>0?$("#columnInput").prop("required",!1):$("#columnInput").prop("required",!0)},addColumn=()=>{const e=document.getElementById("columnInput"),t=document.getElementById("columnList");addToHtmlList(e,t,columnNames,"removeColumn(this);"),columnNames.size>0?$("#columnInput").prop("required",!1):$("#columnInput").prop("required",!0)},removeGroupVar=(e,t,o)=>{const a=deleteItemFromHtmlList(e),n=groupVarNames.get(t);n.delete(a);const r=`group${o}VarInput`;n.size>0?$(`#${r}`).prop("required",!1):$(`#${r}`).prop("required",!0)},addGroupVar=(e,t)=>{const o=`group${t}VarInput`,a=`group${t}VarList`,n=groupVarNames.get(e),r=document.getElementById(o),l=document.getElementById(a);addToHtmlList(r,l,n,`removeGroupVar(this, '${e}', ${t});`),n.size>0?$(`#${o}`).prop("required",!1):$(`#${o}`).prop("required",!0)},removeGroup=e=>{const t=deleteItemFromHtmlList(e);groupNames.delete(t),groupNames.size>0?$("#columnInput").prop("required",!1):$("#columnInput").prop("required",!0);const o=groupVarInputs.get(t);document.getElementById("groupVars").removeChild(o),groupVarInputs.delete(t),groupVarNames.delete(t)},addGroup=()=>{const e=document.getElementById("groupInput"),t=document.getElementById("groupList"),o=addToHtmlList(e,t,groupNames,"removeGroup(this);");""!==o&&createGroupVarInput(o),groupNames.size>0?$("#columnInput").prop("required",!1):$("#columnInput").prop("required",!0)},createGroupVarInput=e=>{const t=`group${groupInputCounts}VarInput`,o=document.createElement("div");o.className="card border-primary-subtle mb-3",groupVarInputs.set(e,o),groupVarNames.set(e,new Set);const a=document.createElement("div");a.className="card-header bg-primary-subtle text-primary-emphasis",a.innerText=e,o.appendChild(a);const n=document.createElement("div");n.className="card-body",n.innerHTML=`\n<label class="col-form-label fw-bold" for="${t}">Additional Variables:</label>\n<div class="input-group">\n    <input type="text" class="form-control" id="${t}" name="${t}" placeholder="Variable name" value="" required="required" />\n    <button class="btn btn-secondary btn-sm" type="button" onclick="addGroupVar('${e}', ${groupInputCounts});"><i class="bi bi-plus-circle-fill"></i> Add Variable</button>\n</div>\n<ul class="list-group mt-2" id="group${groupInputCounts}VarList"></ul>\n`,o.appendChild(n);document.getElementById("groupVars").appendChild(o),groupInputCounts++},constructQueryDemographicTotalCountsFileUpload=(e,t)=>{const o=`totalCountsCol${t}`,a=document.createElement("div");a.className="row g-2 align-items-center",a.innerHTML=`\n        <hr class="m-2" />\n        <div class="col-auto">\n            <label for="${o}" class="col-form-label">Total Counts:</label>\n        </div>\n        <div class="col-auto">\n            <input id="${o}" name="${o}" type="file" required="required" />\n        </div>\n`,e.appendChild(a)},constructDemographicFileUpload=(e,t)=>{const o=document.createElement("div");if(o.className="text-bg-warning p-3 bg-opacity-10 border border-warning",o.style="max-width: 45rem;",isQueryData){for(let e=0;e<demoVars.length;e++){const a=demoVars[e],n=`demoVar${e}Col${t}`,r=document.createElement("div");r.className="row g-2 align-items-center mb-3",r.innerHTML=`\n                <div class="col-auto">\n                    <label for="${n}" class="col-form-label">${a}:</label>\n                </div>\n                <div class="col-auto">\n                    <input id="${n}" name="${n}" type="file" required="required" />\n                </div>\n`,o.appendChild(r)}constructQueryDemographicTotalCountsFileUpload(o,t)}else{const e=`demoBreakdownCol${t}`,a=document.createElement("div");a.className="row g-2 align-items-center",a.innerHTML=`\n                <div class="col-auto">\n                    <label for="${e}" class="col-form-label">Demographic Breakdown:</label>\n                </div>\n                <div class="col-auto">\n                    <input id="${e}" name="${e}" type="file" required="required" />\n                </div>\n`,o.appendChild(a)}const a=document.createElement("h6");a.className="card-title fw-bold mb-2",a.innerText="Demographic Counts";const n=document.createElement("div");n.className="col-sm-12 col-md-12 col-lg-4 py-2",n.appendChild(a),n.appendChild(o),e.appendChild(n)},constructComorbidityFileUpload=(e,t)=>{const o=document.createElement("div");o.className="text-bg-warning p-3 bg-opacity-10 border border-warning",o.style="max-width: 45rem;";const a=`comorbidityCol${t}`,n=document.createElement("div");n.className="row g-2 align-items-center",n.innerHTML=`\n        <div class="col-auto">\n            <label for="${a}" class="col-form-label">${comorbidity}:</label>\n        </div>\n        <div class="col-auto">\n            <input id="${a}" name="${a}" type="file" required="required" />\n        </div>\n`,o.appendChild(n);const r=document.createElement("h6");r.className="card-title fw-bold mb-2",r.innerText="Comorbidity";const l=document.createElement("div");l.className="col-sm-12 col-md-12 col-lg-4 py-2",l.appendChild(r),l.appendChild(o),e.appendChild(l)},constructGroupVariableFileUpload=(e,t)=>{const o=document.createElement("div");o.className="text-bg-warning p-3 bg-opacity-10 border border-warning",o.style="max-width: 45rem;";for(let e=0;e<groups.length;e++){const a=groups[e],n=groupVarNames.get(a);if(n.size>0){const r=document.createElement("h6");r.className="card-title fw-bold mb-3",r.innerText=a,o.appendChild(r);const l=Array.from(n);for(let a=0;a<l.length;a++){const n=`additionalVarCol${t}Group${e}Var${a}`,r=document.createElement("div");r.className="row g-2 align-items-center mb-4",r.innerHTML=`\n        <div class="col-auto">\n            <label for="${n}" class="col-form-label">${l[a]}:</label>\n        </div>\n        <div class="col-auto">\n            <input id="${n}" name="${n}" type="file" required="required" />\n        </div>\n`,o.appendChild(r)}}}const a=document.createElement("h6");a.className="card-title fw-bold mb-2",a.innerText="Additional Variables";const n=document.createElement("div");n.className="col-sm-12 col-md-12 col-lg-4 py-2",n.appendChild(a),n.appendChild(o),e.appendChild(n)},constructFileUpload=()=>{const e=document.getElementById("fileUpload");e.innerHTML="";for(let t=0;t<columns.length;t++){const o=columns[t],a=document.createElement("div");a.className="card-header",a.innerHTML=`Column: <span class="fw-bold">${o}</span>`;const n=document.createElement("div");n.className="card-body row",constructDemographicFileUpload(n,t),hasComorbidity&&constructComorbidityFileUpload(n,t),groups.length>0&&constructGroupVariableFileUpload(n,t);const r=document.createElement("div");r.className="card mb-4",r.appendChild(a),r.appendChild(n),e.appendChild(r)}},isValidStep1Form=()=>0!==columnNames.size&&(!isQueryData||0!==demoVarNames.size),collectVariables=()=>{columns=Array.from(columnNames),demoVars=Array.from(demoVarNames),comorbidity=$('input[name="comorbidity"]:checked').val().trim(),hasComorbidity="none"!==comorbidity,hasComorbidity&&(comorbidity=`${comorbidity} Comorbidities`),groups=Array.from(groupNames)},addTableOneHeader=e=>{const t=e.insertRow(0);t.insertCell(0).outerHTML="<th></th>";for(let e=0;e<columns.length;e++)t.insertCell(e+1).outerHTML=`<th>${columns[e]}</th>`},addTableOneRowTotal=e=>{const t=e.insertRow(0);t.insertCell(0).outerHTML="<th>Total</th>";for(let e=0;e<columns.length;e++)t.insertCell(e+1).innerText=`(n=${totalCounts[e]})`},addTableOneRowDemographics=e=>{const t=e.createTBody();t.className="table-group-divider";const o=t.insertRow(-1);o.className="table-info",o.insertCell(0).outerHTML=`<th colspan="${columns.length+1}">Demographic Distribution By</th>`,addDemographicCounts(t)},addTableOneRowComorbidity=e=>{const t=e.createTBody();t.className="table-group-divider";const o=t.insertRow(-1);o.className="table-info",o.insertCell(0).outerHTML=`<th colspan="${columns.length+1}">${comorbidity}</th>`,addComorbidityCounts(t)},addTableOneRowGroupVars=e=>{for(let t=0;t<groups.length;t++){const o=groups[t],a=groupVarNames.get(o);if(a.size>0){const n=e.createTBody();n.className="table-group-divider";const r=n.insertRow(-1);r.className="table-info",r.insertCell(0).outerHTML=`<th colspan="${columns.length+1}">${o}</th>`;const l=Array.from(a);addGroupVarCounts(n,l,t)}}},constructTableOne=()=>{$("#tableOne").empty();const e=document.getElementById("tableOne");e.createCaption().innerText="Table 1";const t=e.createTHead(),o=e.createTBody();o.className="table-group-divider",addTableOneHeader(t),addTableOneRowTotal(o),addTableOneRowDemographics(e),hasComorbidity&&addTableOneRowComorbidity(e),groupVarRawData.size>0&&addTableOneRowGroupVars(e),$("#siteList").val(Array.from(validSites).join("\n"))},showTab=e=>{const t=document.querySelectorAll(".tab-pane");t.forEach((e=>e.classList.remove("show","active"))),t[e].classList.add("show","active");const o=document.querySelectorAll(".nav-link-tab");o.forEach((e=>{e.classList.remove("active"),e.classList.add("disabled")})),o[e].classList.add("active"),o[e].classList.remove("disabled")},showNextTab=e=>{switch(e){case 1:if($("#columnInput").val(""),$("#demVarInput").val(""),0===columnNames.size||isQueryData&&0===demoVarNames.size)return $("#setup1Form").valid(),void $("#demQuery").trigger("change");columns=Array.from(columnNames),demoVars=Array.from(demoVarNames),comorbidity=$('input[name="comorbidity"]:checked').val().trim(),hasComorbidity="none"!==comorbidity,hasComorbidity&&(comorbidity=`${comorbidity} Comorbidities`),groups=Array.from(groupNames),constructFileUpload();break;case 2:if(!$("#step2Form").valid())return;analyzeAndLoadData(constructTableOne)}showTab(e)},showPreviousTab=e=>{showTab(e)},validateErrorPlacement=(e,t)=>{e.addClass("invalid-feedback"),"checkbox"===t.prop("type")?e.insertAfter(t.next("label")):e.insertAfter(t.next("button"))},validateHighlight=e=>{$(e).addClass("is-invalid").removeClass("is-valid")},validateUnhighlight=e=>{$(e).addClass("is-valid").removeClass("is-invalid")},getTable1HeaderContent=e=>{const t=[];t.push("");for(let e=0;e<columns.length;e++){let o=columns[e];o.includes(",")&&(o=`"${o}"`),t.push(o)}e.push(t.join(","))},getTable1TotalContent=e=>{let t=[];t.push("Total");for(let e=0;e<columns.length;e++)t.push(`(n=${totalCounts[e]})`);e.push(t.join(","))},getTable1DemographicContents=e=>{let t=[];t.push("Demographic Distribution By");for(let e=0;e<columns.length;e++)t.push("");e.push(t.join(","));for(let o=0;o<demoVars.length;o++){t=[];let a=demoVars[o];a.includes(",")&&(a=`"${a}"`),t.push(a);for(let e=0;e<columns.length;e++){const a=`demoVar${o}Col${e}`,n=dataCounts.get(a),r=Math.round(n/totalCounts[e]*100);t.push(`${n} (${r}%)`)}e.push(t.join(","))}},getTable1ComorbidityContents=e=>{let t=[];t.push(comorbidity);for(let e=0;e<columns.length;e++)t.push("");e.push(t.join(","));for(let o=0;o<comorbidVars.length;o++){t=[];let a=comorbidVars[o];a.includes(",")&&(a=`"${a}"`),t.push(a);for(let e=0;e<columns.length;e++){const a=`comorbidVar${o}Col${e}`,n=dataCounts.get(a),r=Math.round(n/totalCounts[e]*100);t.push(`${n} ${r}%`)}e.push(t.join(","))}},getTable1GroupVarContents=e=>{for(let t=0;t<groups.length;t++){const o=groups[t],a=groupVarNames.get(o);if(a.size>0){content=[],content.push(o);for(let e=0;e<columns.length;e++)content.push("");e.push(content.join(","));const n=Array.from(a);for(let o=0;o<n.length;o++){content=[],content.push(n[o]);for(let e=0;e<columns.length;e++){const a=`additionalVarCol${e}Group${t}Var${o}`,n=dataCounts.get(a),r=Math.round(n/totalCounts[e]*100);content.push(`${n} ${r}%`)}e.push(content.join(","))}}}},getTable1Contents=()=>{const e=[];return getTable1HeaderContent(e),getTable1TotalContent(e),getTable1DemographicContents(e),hasComorbidity&&getTable1ComorbidityContents(e),groupVarRawData.size>0&&getTable1GroupVarContents(e),e.join("\r\n")},handleExportData=e=>{e.preventDefault();const t=getTable1Contents(),o=new Blob([t],{type:"text/csv;charset=utf-8;"}),a=document.createElement("a");a.download="table1.csv",a.href=URL.createObjectURL(o),a.click()},handlePatientCountChange=e=>{computeCounts(),constructTableOne()};$(document).ready((function(){groupInputCounts=0,validSites.clear(),patientCountsSelect.addEventListener("change",handlePatientCountChange,!1),exportData.addEventListener("click",handleExportData,!1),$("#setup1Form").validate({messages:{columnInput:"Requires at least one column must be added.",demVarInput:"Requires at least one variable must be added."},errorElement:"em",errorClass:"text-danger",errorPlacement:validateErrorPlacement,highlight:validateHighlight,unhighlight:validateUnhighlight}),$("#step2Form").validate({errorElement:"em",errorClass:"text-danger",highlight:validateHighlight,unhighlight:validateUnhighlight}),$('input[name="datatype"]').on("change",(function(){isQueryData="query"===$('input[name="datatype"]:checked').val(),isQueryData?($("#demQueryOpts").show(),$("#demVarInput").prop("required",!0)):($("#demQueryOpts").hide(),$("#demVarInput").prop("required",!1))})),$("#demQuery").trigger("change")}));</script>
+    </body>
+</html>
