@@ -6,3 +6,5 @@
 - Total results for each csv only including sites that have answers in all four files
 - Put the total for the csv in the appropriate square
 - Allow user to edit the Yes/ No labels
+- Example Exposure = Sex, Outcome = Atenolol, Exposure Yes= Female, Exposure No = Male, Outcome Yes = Yes (Atenolol), Outcome No = No (atenolol)
+- File labels are in file names
