@@ -5,3 +5,4 @@
 - Determine which sites have answers (a number or 10 or fewer) in all four csv files. 
 - Total results for each csv only including sites that have answers in all four files
 - Put the total for the csv in the appropriate square
+- Allow user to edit the Yes/ No labels
