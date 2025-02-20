@@ -24,4 +24,6 @@ web utilities to format ENACT csvs to useful standard formats
   
 ### 2x2 tables
   * 4 labels and 4 queries
+  * Aggregated
+  * Each site
   
