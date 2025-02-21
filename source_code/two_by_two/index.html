@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Table 2x2</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="../vendor/bootstrap-icons/bootstrap-icons.min.css" />
+        <style>
+            .rotate-text {
+                writing-mode: vertical-rl;
+                transform: scale(-1, -1);
+            }
+            .dropArea {
+                color: #0f3c4b;
+                background-color: #f9f9fa;
+                outline: 2px solid #0f3c4b;
+                transition:
+                    outline-offset 0.2s ease-out,
+                    outline-color 0.3s ease-in-out,
+                    background-color 0.2s ease-out;
+            }
+            .dropArea.highlight {
+                outline-offset: -4px;
+                outline-color: #0f3c4b;
+                background-color: #f3f5f7;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container my-5">
+            <div class="p-5 bg-body-tertiary rounded-3">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="card border-secondary">
+                            <div class="card-header text-bg-secondary">Labels</div>
+                            <div class="card-body">
+                                <form>
+                                    <h5 class="card-title mb-3">Side Labels</h5>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="mainRowLabelInput" value="Exposure" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row 1 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="row1LabelInput" value="Yes" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row 2 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="row2LabelInput" value="No" />
+                                    </div>
+
+                                    <h5 class="card-title mb-3 mt-3">Top Labels</h5>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Column Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="mainColumnLabelInput" value="Outcome" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Column 1 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="column1LabelInput" value="Yes" />
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Column 2 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="column2LabelInput" value="No" />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-8 text-center">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <td class="h3" colspan="3" id="mainColumnLabel">Outcome</td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="h4" id="column1Label">Yes</td>
+                                    <td class="h4" id="column2Label">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="h3 align-middle" rowspan="2"><span class="rotate-text" id="mainRowLabel">Exposure</span></td>
+                                    <td class="h4 align-middle" id="row1Label">Yes</td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r1c1">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r1c1">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r1c1"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r1c2">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r1c2">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r1c2"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="h4 align-middle" id="row2Label">No</td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r2c1">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r2c1">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r2c1"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r2c2">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r2c2">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r2c2"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="../vendor/jquery/jquery-3.7.1.slim.min.js"></script>
+        <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../vendor/jquery-validation/jquery.validate.min.js"></script>
+        <script src="../vendor/papaparse/papaparse.min.js"></script>
+        <script src="js/table_2x2.js"></script>
+        <script>
+            $(document).ready(function () {
+                // Bind the input event to update the display dynamically
+                $("#mainRowLabelInput").on("input", updateMainRowLabel);
+                $("#row1LabelInput").on("input", updateRow1Label);
+                $("#row2LabelInput").on("input", updateRow2Label);
+
+                $("#mainColumnLabelInput").on("input", updateMainColumnLabel);
+                $("#column1LabelInput").on("input", updateColumn1Label);
+                $("#column2LabelInput").on("input", updateColumn2Label);
+
+                updateMainRowLabel();
+                updateRow1Label();
+                updateRow2Label();
+
+                updateMainColumnLabel();
+                updateColumn1Label();
+                updateColumn2Label();
+            });
+        </script>
+    </body>
+</html>
