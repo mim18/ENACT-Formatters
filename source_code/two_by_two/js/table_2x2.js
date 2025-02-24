@@ -111,6 +111,16 @@ const construct2x2Table = () => {
     totalCounts.forEach((counts, id) => {
         $(`#${id}`).text(counts);
     });
+
+    const r1c1 = totalCounts.get('r1c2');
+    const r1c2 = totalCounts.get('r1c2');
+    const r2c1 = totalCounts.get('r2c1');
+    const r2c2 = totalCounts.get('r2c2');
+
+    const stderr = Math.sqrt((1.0 / r1c2) + (1.0 / r2c2));
+    $('#stderr').text(stderr);
+    $('#ci_lower').text(Math.exp(Math.log(1.044) - (1.96 * stderr)));
+    $('#ci_upper').text(Math.exp(Math.log(1.044) + (1.96 * stderr)));
 };
 
 const saveInputData = (fileId, csvFile) => {
@@ -145,6 +155,12 @@ const generateTable = () => {
         sites.forEach(e => validSites.add(e));
         loadData(construct2x2Table);
     });
+
+//    totalCounts.set('r1c1', 78675);
+//    totalCounts.set('r1c2', 8300);
+//    totalCounts.set('r2c1', 14530);
+//    totalCounts.set('r2c2', 1600);
+//    construct2x2Table();
 };
 
 /**

@@ -178,33 +178,59 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-responsive text-center pt-5">
-                        <table class="table table-bordered">
-                            <tbody>
-                                <tr>
-                                    <td></td>
-                                     <td></td>
-                                    <td class="h3" colspan="2" id="tableColumnLabel">Outcome</td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="h4" id="tableColumn1Label">Yes</td>
-                                    <td class="h4" id="tableColumn2Label">No</td>
-                                </tr>
-                                <tr>
-                                    <td class="h3 align-middle" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
-                                    <td class="h4 align-middle" id="tableRow1Label">Yes</td>
-                                    <td id="r1c1"></td>
-                                    <td id="r1c2"></td>
-                                </tr>
-                                <tr>
-                                    <td class="h4 align-middle" id="tableRow2Label">No</td>
-                                    <td id="r2c1"></td>
-                                    <td id="r2c2"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="table-responsive text-center">
+                                <table class="table table-sm table-borderless caption-top">
+                                    <caption>Table 2x2</caption>
+                                    <tbody>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="h4" colspan="2" id="tableColumnLabel">Outcome</td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="h5" id="tableColumn1Label">Yes</td>
+                                            <td class="h5" id="tableColumn2Label">No</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="h4 align-middle" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
+                                            <td class="h5 align-middle" id="tableRow1Label">Yes</td>
+                                            <td class="align-middle h5 border border-black border-3" id="r1c1"></td>
+                                            <td class="align-middle h5 border border-black border-3" id="r1c2"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="h5 align-middle" id="tableRow2Label">No</td>
+                                            <td class="align-middle h5 border border-black border-3" id="r2c1"></td>
+                                            <td class="align-middle h5 border border-black border-3" id="r2c2"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="table-responsive ps-4">
+                                <table class="table table-sm caption-top">
+                                    <caption>Statistics</caption>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Std Error</th>
+                                            <td id="stderr"></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Lower bound 95% CI</th>
+                                            <td id="ci_lower"></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Upper bound 95% CI</th>
+                                            <td id="ci_upper"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
