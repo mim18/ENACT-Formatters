@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Table 2x2</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+        <style>
+            .rotate-text {
+                writing-mode: vertical-rl;
+                transform: scale(-1, -1);
+            }
+            .dropArea {
+                color: #0f3c4b;
+                background-color: #f9f9fa;
+                outline: 2px solid #0f3c4b;
+                transition:
+                    outline-offset 0.2s ease-out,
+                    outline-color 0.3s ease-in-out,
+                    background-color 0.2s ease-out;
+            }
+            .dropArea.highlight {
+                outline-offset: -4px;
+                outline-color: #0f3c4b;
+                background-color: #f3f5f7;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container my-5">
+            <div class="p-5 bg-body-tertiary rounded-3 mb-4">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-4">
+                        <div class="card border-secondary mb-3">
+                            <div class="card-header text-bg-secondary">Labels</div>
+                            <div class="card-body">
+                                <form id="label_inputs">
+                                    <h5 class="card-title mb-3">Side Labels</h5>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="mainRowLabelInput" name="mainRowLabelInput" value="Exposure" required="required" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row 1 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="row1LabelInput" name="row1LabelInput" value="Yes" required="required" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Row 2 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="row2LabelInput" name="row2LabelInput" value="No" required="required" />
+                                    </div>
+
+                                    <h5 class="card-title mb-3 mt-3">Top Labels</h5>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Column Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="mainColumnLabelInput" name="mainColumnLabelInput" value="Outcome" required="required" />
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Column 1 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="column1LabelInput" name="column1LabelInput" value="Yes" required="required" />
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Column 2 Label</span>
+                                        <input type="text" aria-label="Row group" class="form-control" id="column2LabelInput" name="column2LabelInput" value="No" required="required" />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-12 col-lg-8 text-center">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="h3" colspan="2" id="mainColumnLabel">Outcome</td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="h4" id="column1Label">Yes</td>
+                                    <td class="h4" id="column2Label">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="h3 align-middle" rowspan="2"><span class="rotate-text" id="mainRowLabel">Exposure</span></td>
+                                    <td class="h4 align-middle" id="row1Label">Yes</td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r1c1">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r1c1">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r1c1"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r1c2">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r1c2">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r1c2"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="h4 align-middle" id="row2Label">No</td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r2c1">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r2c1">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r2c1"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-center p-4 dropArea" id="droparea_r2c2">
+                                            <p>
+                                                Drag &amp; Drop or
+                                                <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                <label class="btn btn-primary" for="file_r2c2">Choose CSV file</label>
+                                            </p>
+                                            <div id="filename_r2c2"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="d-grid gap-1 col-6 mx-auto">
+                        <button class="btn btn-success" type="button" id="generate_table">Generate 2x2 Table</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card border-secondary">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h6 class="m-0">Table 2x2</h6>
+                    <nav class="navbar navbar-expand-sm m-0 p-0">
+                        <div class="container-fluid">
+                            <div class="collapse navbar-collapse">
+                                <ul class="navbar-nav">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="exportData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
+                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+                <div class="card-body">
+                    <div class="text-bg-light p-3 mb-4">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-auto">
+                                <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                            </div>
+                            <div class="col-auto">
+                                <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10" selected="selected">10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-sm-12 col-md-12 col-lg-6">
+                            <div class="table-responsive text-center">
+                                <table class="table table-sm table-borderless caption-top">
+                                    <caption>Table 2x2</caption>
+                                    <tbody>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="h4" colspan="2" id="tableColumnLabel">Outcome</td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="h5" id="tableColumn1Label">Yes</td>
+                                            <td class="h5" id="tableColumn2Label">No</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="h4 align-middle" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
+                                            <td class="h5 align-middle" id="tableRow1Label">Yes</td>
+                                            <td class="align-middle h5 border border-black border-3" id="r1c1"></td>
+                                            <td class="align-middle h5 border border-black border-3" id="r1c2"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="h5 align-middle" id="tableRow2Label">No</td>
+                                            <td class="align-middle h5 border border-black border-3" id="r2c1"></td>
+                                            <td class="align-middle h5 border border-black border-3" id="r2c2"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-12 col-lg-4">
+                            <div class="table-responsive ps-4">
+                                <table class="table table-sm caption-top">
+                                    <caption>Statistics</caption>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">SE for ln(IRR)</th>
+                                            <td id="stderr"></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Lower bound 95% CI</th>
+                                            <td id="ci_lower"></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Upper bound 95% CI</th>
+                                            <td id="ci_upper"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-4">
+                            <div class="card border-success" style="width: 25rem;">
+                                <div class="card-header text-bg-success">Sites Included</div>
+                                <div class="card-body">
+                                    <textarea class="form-control" id="siteList" rows="5" readonly="readonly" style="resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="fileRequired" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="fileRequiredLabel">Data File Required</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">Please provide the data file (CSV) for each of the four cells.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+        <script>const dropAreas=document.getElementsByClassName("dropArea"),fileSelectors=document.getElementsByClassName("file_select"),fileRequiredModal=new bootstrap.Modal("#fileRequired"),patientCountsSelect=document.getElementById("selectPatientCounts"),mapFiles=new Map,fileRawData=new Map,validSites=new Set,totalCounts=new Map,readIn2ColumnData=(e,t,a)=>new Promise(((n,l)=>{Papa.parse(e,{complete:function(e){const l=[],o=e.data;for(let e=1;e<o.length;e++){const t=o[e];if(t.length>1){const e=t[0].trim(),a=t[1].trim();validSites.has(e)&&l.push(a)}}a.set(t,l),n()}})})),loadData=e=>{fileRawData.clear();const t=[];mapFiles.forEach(((e,a)=>{var n,l,o;t.push((n=e,l=a,o=fileRawData,new Promise(((e,t)=>{Papa.parse(n,{complete:function(t){const a=[],n=t.data;for(let e=1;e<n.length;e++){const t=n[e];if(t.length>1){const e=t[0].trim(),n=t[1].trim();validSites.has(e)&&a.push(n)}}o.set(l,a),e()}})}))))})),Promise.all(t).then((()=>{computeCounts(),e()}))},getColumnDataValidSiteTask=e=>new Promise(((t,a)=>{Papa.parse(e,{complete:function(e){const a=new Set,n=e.data;for(let e=1;e<n.length;e++){const t=n[e];if(t.length>1){const e=t[0].trim(),n=t[1].trim();"10 patients or fewer"!==n&&isNaN(n)||a.add(e)}}t(a)}})})),getValidSiteTasks=()=>{const e=[];return mapFiles.forEach(((t,a)=>{var n;e.push((n=t,new Promise(((e,t)=>{Papa.parse(n,{complete:function(t){const a=new Set,n=t.data;for(let e=1;e<n.length;e++){const t=n[e];if(t.length>1){const e=t[0].trim(),n=t[1].trim();"10 patients or fewer"!==n&&isNaN(n)||a.add(e)}}e(a)}})}))))})),e},tallyCounts=(e,t)=>{let a=0;return e.forEach((e=>{a+="10 patients or fewer"===e?t:parseInt(e)})),a},computeCounts=()=>{totalCounts.clear();const e=parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);fileRawData.forEach(((t,a)=>{totalCounts.set(a,tallyCounts(t,e))}))},construct2x2Table=()=>{$("#tableColumnLabel").text($("#mainColumnLabel").text()),$("#tableColumn1Label").text($("#column1Label").text()),$("#tableColumn2Label").text($("#column2Label").text()),$("#tableRowLabel").text($("#mainRowLabel").text()),$("#tableRow1Label").text($("#row1Label").text()),$("#tableRow2Label").text($("#row2Label").text()),totalCounts.forEach(((e,t)=>{$(`#${t}`).text(e)}));const e=totalCounts.get("r1c1"),t=totalCounts.get("r1c2"),a=totalCounts.get("r2c1"),n=totalCounts.get("r2c2"),l=n/a/(t/e),o=Math.sqrt(1/t+1/n);$("#stderr").text(o),$("#ci_lower").text(Math.exp(Math.log(l)-1.96*o)),$("#ci_upper").text(Math.exp(Math.log(l)+1.96*o)),$("#siteList").val(Array.from(validSites).join("\n"))},saveInputData=(e,t)=>{if((e=e.trim())&&t){mapFiles.set(e,t);const a=`<div class="alert alert-success" role="alert">\n        <i class="bi bi-file-earmark-arrow-up"></i> ${t.name}\n</div>`;$(`#filename_${e}`).html(a)}},generateTable=()=>{$("#label_inputs").valid()&&(mapFiles.size<4?fileRequiredModal.show():(validSites.clear(),fileRawData.clear(),Promise.all(getValidSiteTasks()).then((e=>{let t=new Set;for(let a=0;a<e.length;a++)t=t.size>0?t.intersection(e[a]):t.union(e[a]);t.forEach((e=>validSites.add(e))),loadData(construct2x2Table)}))))},preventDefaults=e=>{e.preventDefault(),e.stopPropagation()};["dragenter","dragover","dragleave","drop"].forEach((e=>{for(const t of dropAreas)t.addEventListener(e,preventDefaults,!1)}));const highlight=e=>e.target.classList.add("highlight");["dragenter","dragover"].forEach((e=>{for(const t of dropAreas)t.addEventListener(e,highlight,!1)}));const unhighlight=e=>e.target.classList.remove("highlight");["dragleave"].forEach((e=>{for(const t of dropAreas)t.addEventListener(e,unhighlight,!1)}));const handleDrop=e=>{e.dataTransfer.items?[...e.dataTransfer.items].forEach(((t,a)=>{if("file"===t.kind){const a=t.getAsFile();if("text/csv"===a.type){const t=e.target.id.replace("droparea_","");saveInputData(t,a)}}})):[...e.dataTransfer.files].forEach(((t,a)=>{const n=e.target.id.replace("droparea_","");saveInputData(n,t)}))};["drop"].forEach((e=>{for(const t of dropAreas)t.addEventListener(e,handleDrop,!1)}));const handleFileSelect=e=>{if(e.target.files.length>0){const t=e.target.id.replace("file_","");saveInputData(t,e.target.files[0])}e.target.value=""};for(const e of fileSelectors)e.addEventListener("change",handleFileSelect,!1);const updateMainRowLabel=()=>{const e=$("#mainRowLabelInput").val();$("#mainRowLabel").text(e)},updateRow1Label=()=>{const e=$("#row1LabelInput").val();$("#row1Label").text(e)},updateRow2Label=()=>{const e=$("#row2LabelInput").val();$("#row2Label").text(e)},updateMainColumnLabel=()=>{const e=$("#mainColumnLabelInput").val();$("#mainColumnLabel").text(e)},updateColumn1Label=()=>{const e=$("#column1LabelInput").val();$("#column1Label").text(e)},updateColumn2Label=()=>{const e=$("#column2LabelInput").val();$("#column2Label").text(e)},handlePatientCountChange=e=>{totalCounts.size>=4&&(computeCounts(),construct2x2Table())};$(document).ready((function(){$("#generate_table").on("click",generateTable),patientCountsSelect.addEventListener("change",handlePatientCountChange,!1),$("#label_inputs").validate({errorElement:"em",errorClass:"text-danger",errorPlacement:function(e,t){e.addClass("invalid-feedback"),e.insertAfter(t)},highlight:function(e){$(e).addClass("is-invalid").removeClass("is-valid")},unhighlight:function(e){$(e).addClass("is-valid").removeClass("is-invalid")}}),$("#mainRowLabelInput").on("input",updateMainRowLabel),$("#row1LabelInput").on("input",updateRow1Label),$("#row2LabelInput").on("input",updateRow2Label),$("#mainColumnLabelInput").on("input",updateMainColumnLabel),$("#column1LabelInput").on("input",updateColumn1Label),$("#column2LabelInput").on("input",updateColumn2Label),updateMainRowLabel(),updateRow1Label(),updateRow2Label(),updateMainColumnLabel(),updateColumn1Label(),updateColumn2Label()}));</script>
+    </body>
+</html>
