@@ -31,7 +31,7 @@
         <div class="container my-5">
             <div class="p-5 bg-body-tertiary rounded-3 mb-4">
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-sm-12 col-md-12 col-lg-4">
                         <div class="card border-secondary mb-3">
                             <div class="card-header text-bg-secondary">Labels</div>
                             <div class="card-body">
@@ -67,7 +67,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-8 text-center">
+                    <div class="col-sm-12 col-md-12 col-lg-8 text-center">
                         <table class="table table-borderless">
                             <tbody>
                                 <tr>
@@ -178,8 +178,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
+                    <div class="row mb-4">
+                        <div class="col-sm-12 col-md-12 col-lg-6">
                             <div class="table-responsive text-center">
                                 <table class="table table-sm table-borderless caption-top">
                                     <caption>Table 2x2</caption>
@@ -210,13 +210,13 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-sm-12 col-md-12 col-lg-4">
                             <div class="table-responsive ps-4">
                                 <table class="table table-sm caption-top">
                                     <caption>Statistics</caption>
                                     <tbody>
                                         <tr>
-                                            <th scope="row">Std Error</th>
+                                            <th scope="row">SE for ln(IRR)</th>
                                             <td id="stderr"></td>
                                         </tr>
                                         <tr>
@@ -229,6 +229,16 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12 col-lg-4">
+                            <div class="card border-success" style="width: 25rem;">
+                                <div class="card-header text-bg-success">Sites Included</div>
+                                <div class="card-body">
+                                    <textarea class="form-control" id="siteList" rows="5" readonly="readonly" style="resize: none;"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>

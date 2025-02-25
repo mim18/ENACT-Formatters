@@ -112,15 +112,21 @@ const construct2x2Table = () => {
         $(`#${id}`).text(counts);
     });
 
-    const r1c1 = totalCounts.get('r1c2');
+    const r1c1 = totalCounts.get('r1c1');
     const r1c2 = totalCounts.get('r1c2');
     const r2c1 = totalCounts.get('r2c1');
     const r2c2 = totalCounts.get('r2c2');
 
+    // incidence rate ratio
+    // (num of no exposure) / (num of exposure)
+    const irr = (r2c2 / r2c1) / (r1c2 / r1c1);
+
     const stderr = Math.sqrt((1.0 / r1c2) + (1.0 / r2c2));
     $('#stderr').text(stderr);
-    $('#ci_lower').text(Math.exp(Math.log(1.044) - (1.96 * stderr)));
-    $('#ci_upper').text(Math.exp(Math.log(1.044) + (1.96 * stderr)));
+    $('#ci_lower').text(Math.exp(Math.log(irr) - (1.96 * stderr)));
+    $('#ci_upper').text(Math.exp(Math.log(irr) + (1.96 * stderr)));
+    
+    $('#siteList').val(Array.from(validSites).join('\n'));
 };
 
 const saveInputData = (fileId, csvFile) => {
