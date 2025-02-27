@@ -125,8 +125,9 @@ const construct2x2Table = () => {
     $('#stderr').text(stderr);
     $('#ci_lower').text(Math.exp(Math.log(irr) - (1.96 * stderr)));
     $('#ci_upper').text(Math.exp(Math.log(irr) + (1.96 * stderr)));
-    
+
     $('#siteList').val(Array.from(validSites).join('\n'));
+    $('#siteCounts').text(validSites.size);
 };
 
 const saveInputData = (fileId, csvFile) => {
@@ -273,25 +274,10 @@ const handlePatientCountChange = (event) => {
     }
 };
 
-$(document).ready(function () {
-    $('#generate_table').on('click', generateTable);
-
-    patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
-
-    $('#label_inputs').validate({
-        errorElement: "em",
-        errorClass: 'text-danger',
-        errorPlacement: function (error, element) {
-            error.addClass("invalid-feedback");
-            error.insertAfter(element);
-        },
-        highlight: function (element) {
-            $(element).addClass("is-invalid").removeClass("is-valid");
-        },
-        unhighlight: function (element) {
-            $(element).addClass("is-valid").removeClass("is-invalid");
-        }
-    });
+const resetData = () => {
+    // clear data
+    $('#siteList').val('');
+    $('#siteCounts').text(0);
 
     // bind the side-label input event to update the display dynamically
     $('#mainRowLabelInput').on('input', updateMainRowLabel);
@@ -312,4 +298,27 @@ $(document).ready(function () {
     updateMainColumnLabel();
     updateColumn1Label();
     updateColumn2Label();
+};
+
+$(document).ready(function () {
+    $('#generate_table').on('click', generateTable);
+
+    patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
+
+    $('#label_inputs').validate({
+        errorElement: "em",
+        errorClass: 'text-danger',
+        errorPlacement: function (error, element) {
+            error.addClass("invalid-feedback");
+            error.insertAfter(element);
+        },
+        highlight: function (element) {
+            $(element).addClass("is-invalid").removeClass("is-valid");
+        },
+        unhighlight: function (element) {
+            $(element).addClass("is-valid").removeClass("is-invalid");
+        }
+    });
+
+    resetData();
 });
