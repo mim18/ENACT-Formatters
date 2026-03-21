@@ -1037,7 +1037,7 @@ const showTab = (tab) => {
     tabs[tab].classList.add('show', 'active');
 
     // update the navigation links
-    const navLinks = document.querySelectorAll('.nav-link-tab');
+    const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.classList.remove('active');
         link.classList.add('disabled');
