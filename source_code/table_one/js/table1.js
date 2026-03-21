@@ -1026,7 +1026,12 @@ const constructTableOne = () => {
         addTableOneRowGroupVars(table);
     }
 
-    $('#siteList').val(Array.from(validSites).join('\n'));
+    $('#siteNames tbody').empty();
+    const siteNamesTbody = document.querySelector('#siteNames tbody');
+    for (const siteName of validSites) {
+        const row = siteNamesTbody.insertRow(-1);
+        row.insertCell(0).innerHTML = siteName;
+    }
 };
 
 // wizard tabs
