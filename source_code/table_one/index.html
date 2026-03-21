@@ -184,8 +184,15 @@
                                     </nav>
                                 </div>
                                 <table id="tableOne" class="table table-sm table-bordered border-secondary table-striped caption-top"></table>
-                                <div class="card border-success mt-3" style="width: 25rem;">
-                                    <div class="card-header text-bg-success">Sites Included</div>
+                                <div class="card border-success mt-3" style="width: 30rem;">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0">Sites Included</h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="realSiteNames" />
+                                            <label class="form-check-label" for="realSiteNames">Show Site Names</label>
+                                        </div>
+                                    </div>
+                                    <!--<div class="card-header text-bg-success"></div>-->
                                     <div class="card-body">
                                         <div class="overflow-scroll" style="max-height: 200px;">
                                             <table class="table table-sm table-striped w-100" id="siteNames">

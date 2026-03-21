@@ -31,6 +31,7 @@ const groupVarRawData = new Map();
 let totalCounts = [];
 
 const validSites = new Set();
+const validSiteMap = new Map();
 
 const patientCountsSelect = document.getElementById('selectPatientCounts');
 const exportData = document.getElementById('exportData');
@@ -330,6 +331,7 @@ const getGroupVarValidSites = (tasks) => {
 const analyzeAndLoadData = (callback) => {
     // clear previous data
     validSites.clear();
+    validSiteMap.clear();
     demographicRawData.clear();
     comorbidityRawData.clear();
     comorbidVars = [];
@@ -345,11 +347,17 @@ const analyzeAndLoadData = (callback) => {
     }
 
     Promise.all(tasks).then((results) => {
+        // collect all valid sites
         let sites = new Set();
         for (let i = 0; i < results.length; i++) {
             sites = sites.size > 0 ? sites.intersection(results[i]) : sites.union(results[i]);
         }
         sites.forEach(e => validSites.add(e));
+
+        // map all valid site names to generic site names
+        Array.from(validSites).forEach((site, index) => {
+            validSiteMap.set(site, 'Site ' + index);
+        });
 
         loadData(callback);
     });
@@ -1026,11 +1034,15 @@ const constructTableOne = () => {
         addTableOneRowGroupVars(table);
     }
 
+    loadSiteNames(document.getElementById('realSiteNames').checked);
+};
+
+const loadSiteNames = (showSiteNames) => {
     $('#siteNames tbody').empty();
     const siteNamesTbody = document.querySelector('#siteNames tbody');
-    for (const siteName of validSites) {
+    for (const [key, value] of validSiteMap) {
         const row = siteNamesTbody.insertRow(-1);
-        row.insertCell(0).innerHTML = siteName;
+        row.insertCell(0).innerHTML = showSiteNames ? key : value;
     }
 };
 
@@ -1264,6 +1276,7 @@ const handlePatientCountChange = (event) => {
 $(document).ready(function () {
     groupInputCounts = 0;
     validSites.clear();
+    validSiteMap.clear();
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
     exportData.addEventListener('click', handleExportData, false);
@@ -1298,6 +1311,10 @@ $(document).ready(function () {
         }
     });
     $('#demQuery').trigger('change');
+
+    $('input[id="realSiteNames"]').on('change', function () {
+        loadSiteNames(document.getElementById('realSiteNames').checked);
+    });
 
 //    addToHtmlColumnList('vmat-2');
 //    addToHtmlColumnList('no vmat-2');
