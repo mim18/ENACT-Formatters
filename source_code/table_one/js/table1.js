@@ -355,7 +355,7 @@ const analyzeAndLoadData = (callback) => {
         sites.forEach(e => validSites.add(e));
 
         // map all valid site names to generic site names
-        Array.from(validSites).forEach((site, index) => {
+        Array.from(validSites).sort().forEach((site, index) => {
             validSiteMap.set(site, 'Site ' + index);
         });
 
@@ -1038,6 +1038,8 @@ const constructTableOne = () => {
 };
 
 const loadSiteNames = (showSiteNames) => {
+    $('#siteCounts').text(validSites.size);
+
     $('#siteNames tbody').empty();
     const siteNamesTbody = document.querySelector('#siteNames tbody');
     for (const [key, value] of validSiteMap) {
@@ -1277,6 +1279,8 @@ $(document).ready(function () {
     groupInputCounts = 0;
     validSites.clear();
     validSiteMap.clear();
+
+    $('#siteCounts').text(0);
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
     exportData.addEventListener('click', handleExportData, false);
