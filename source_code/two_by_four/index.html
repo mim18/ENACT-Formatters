@@ -9,7 +9,7 @@
         <style>
             .rotate-text {
                 writing-mode: sideways-lr;
-                padding-right: 10px;                
+                padding-right: 10px;
             }
             .dropArea {
                 color: #0f3c4b;
@@ -257,10 +257,28 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-12 col-md-12 col-lg-6">
-                                    <div class="card border-success" style="width: 25rem;">
-                                        <div class="card-header text-bg-success">Sites Included (<span id="siteCounts">0</span>)</div>
+                                    <div class="card border-success mt-3" style="width: 30rem;">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h6>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="realSiteNames" />
+                                                <label class="form-check-label" for="realSiteNames">Show Site Names</label>
+                                            </div>
+                                        </div>
+                                        <!--<div class="card-header text-bg-success"></div>-->
                                         <div class="card-body">
-                                            <textarea class="form-control" id="siteList" rows="5" readonly="readonly" style="resize: none;"></textarea>
+                                            <div class="overflow-scroll" style="max-height: 200px;">
+                                                <table class="table table-sm table-striped w-100" id="siteNames">
+                                                    <!--
+                                                    <thead class="sticky-top top-0">
+                                                        <tr>
+                                                            <th>Site Name</th>
+                                                        </tr>
+                                                    </thead>
+                                                    -->
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

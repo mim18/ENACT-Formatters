@@ -8,6 +8,7 @@ const mapFiles = new Map();
 const fileRawData = new Map();
 
 const validSites = new Set();
+const validSiteMap = new Map();
 
 const totalCounts = new Map();
 
@@ -142,9 +143,18 @@ const construct2x2Table = () => {
     $('#ci_lower').text(roundToThree(lower95CI));
     $('#ci_upper').text(roundToThree(upper95CI));
 
+    loadSiteNames(document.getElementById('realSiteNames').checked);
+};
 
-    $('#siteList').val(Array.from(validSites).join('\n'));
+const loadSiteNames = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
+
+    $('#siteNames tbody').empty();
+    const siteNamesTbody = document.querySelector('#siteNames tbody');
+    for (const [key, value] of validSiteMap) {
+        const row = siteNamesTbody.insertRow(-1);
+        row.insertCell(0).innerHTML = showSiteNames ? key : value;
+    }
 };
 
 const saveInputData = (fileId, csvFile) => {
@@ -170,6 +180,7 @@ const generateTable = () => {
     }
 
     validSites.clear();
+    validSiteMap.clear();
     fileRawData.clear();
     Promise.all(getValidSiteTasks()).then((results) => {
         let sites = new Set();
@@ -177,6 +188,12 @@ const generateTable = () => {
             sites = sites.size > 0 ? sites.intersection(results[i]) : sites.union(results[i]);
         }
         sites.forEach(e => validSites.add(e));
+
+        // map all valid site names to generic site names
+        Array.from(validSites).sort().forEach((site, index) => {
+            validSiteMap.set(site, 'Site ' + index);
+        });
+
         loadData(construct2x2Table);
     });
 
@@ -302,8 +319,9 @@ const handlePatientCountChange = (event) => {
 
 const resetData = () => {
     // clear data
-    $('#siteList').val('');
     $('#siteCounts').text(0);
+
+    $('#siteNames tbody').empty();
 
     // bind the side-label input event to update the display dynamically
     $('#mainRowLabelInput').on('input', updateMainRowLabel);
@@ -331,9 +349,16 @@ const resetData = () => {
 };
 
 $(document).ready(function () {
+    validSites.clear();
+    validSiteMap.clear();
+
     $('#generate_table').on('click', generateTable);
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
+
+    $('input[id="realSiteNames"]').on('change', function () {
+        loadSiteNames(document.getElementById('realSiteNames').checked);
+    });
 
     $('#label_inputs').validate({
         errorElement: "em",
