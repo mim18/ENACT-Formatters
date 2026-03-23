@@ -35,6 +35,7 @@ const validSiteMap = new Map();
 
 const patientCountsSelect = document.getElementById('selectPatientCounts');
 const exportData = document.getElementById('exportData');
+const exportSiteNames = document.getElementById('exportSiteNames');
 
 const dataCounts = new Map();
 
@@ -1283,6 +1284,16 @@ const getTable1Contents = () => {
 
     return rowData.join('\r\n');
 };
+const getSiteNameContents = () => {
+    const content = [];
+
+    content.push('"Site Name","Generic Site Name"');
+    [...validSiteMap.keys()].sort().forEach(name => {
+        content.push(`"${name}","${validSiteMap.get(name)}"`);
+    });
+
+    return content.join('\r\n');
+};
 const handleExportData = (event) => {
     event.preventDefault();
 
@@ -1291,6 +1302,17 @@ const handleExportData = (event) => {
 
     const downloadLink = document.createElement("a");
     downloadLink.download = 'table1.csv';
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.click();
+};
+const handleExportSiteNames = (event) => {
+    event.preventDefault();
+
+    const content = getSiteNameContents();
+    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+    const downloadLink = document.createElement("a");
+    downloadLink.download = 'table1_sites.csv';
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.click();
 };
@@ -1307,6 +1329,7 @@ $(document).ready(function () {
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
     exportData.addEventListener('click', handleExportData, false);
+    exportSiteNames.addEventListener('click', handleExportSiteNames, false);
 
     $('#setup1Form').validate({
         messages: {
