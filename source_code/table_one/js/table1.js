@@ -38,6 +38,27 @@ const exportData = document.getElementById('exportData');
 
 const dataCounts = new Map();
 
+/**
+ * Fisher-Yates Shuffle
+ * 
+ * @param {type} array
+ * @returns {shuffled array}
+ */
+const shuffle = (array) => {
+    let randomIndex;
+    let currentIndex = array.length;
+    while (currentIndex !== 0) {
+        // pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // swap it with the current element
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+};
+
 // data readers
 /**
  * i2b2 query data format.
@@ -355,8 +376,9 @@ const analyzeAndLoadData = (callback) => {
         sites.forEach(e => validSites.add(e));
 
         // map all valid site names to generic site names
-        Array.from(validSites).sort().forEach((site, index) => {
-            validSiteMap.set(site, 'Site ' + index);
+        const shuffledIndexes = shuffle([...Array(validSites.size).keys()]);
+        Array.from(validSites).forEach((site, index) => {
+            validSiteMap.set(site, `Site ${shuffledIndexes[index]}`);
         });
 
         loadData(callback);
@@ -1042,10 +1064,11 @@ const loadSiteNames = (showSiteNames) => {
 
     $('#siteNames tbody').empty();
     const siteNamesTbody = document.querySelector('#siteNames tbody');
-    for (const [key, value] of validSiteMap) {
+    const names = showSiteNames ? [...validSiteMap.keys()] : [...validSiteMap.values()];
+    names.sort().forEach(name => {
         const row = siteNamesTbody.insertRow(-1);
-        row.insertCell(0).innerHTML = showSiteNames ? key : value;
-    }
+        row.insertCell(0).innerHTML = name;
+    });
 };
 
 // wizard tabs
