@@ -13,8 +13,6 @@ const validSiteMap = new Map();
 
 const totalCounts = new Map();
 
-const decimalPlace = 2;
-
 /**
  * Fisher-Yates Shuffle
  * 
@@ -124,8 +122,8 @@ const computeCounts = () => {
     });
 };
 
-const roundTo = (number, decimalPlace) => {
-    return Number(number.toFixed(decimalPlace));
+const roundToThree = (number) => {
+    return Number(number.toFixed(3));
 };
 const construct2x2Table = () => {
     $('#tableColumnLabel').text($('#mainColumnLabel').text());
@@ -158,14 +156,14 @@ const construct2x2Table = () => {
     const lower95CI = Math.exp(Math.log(irr) - ci);
     const upper95CI = Math.exp(Math.log(irr) + ci);
 
-    $('#r1c3').text(roundTo(r1c3, decimalPlace));
-    $('#r2c3').text(roundTo(r2c3, decimalPlace));
-    $('#r2c4').text(`${roundTo(irr, decimalPlace)} (${roundTo(lower95CI, decimalPlace)}-${roundTo(upper95CI, decimalPlace)})`);
+    $('#r1c3').text(roundToThree(r1c3));
+    $('#r2c3').text(roundToThree(r2c3));
+    $('#r2c4').text(`${roundToThree(irr)} (${roundToThree(lower95CI)}-${roundToThree(upper95CI)})`);
 
-    $('#stderr').text(roundTo(stderr, decimalPlace));
-    $('#irr').text(roundTo(irr, decimalPlace));
-    $('#ci_lower').text(roundTo(lower95CI, decimalPlace));
-    $('#ci_upper').text(roundTo(upper95CI, decimalPlace));
+    $('#stderr').text(roundToThree(stderr));
+    $('#irr').text(roundToThree(irr));
+    $('#ci_lower').text(roundToThree(lower95CI));
+    $('#ci_upper').text(roundToThree(upper95CI));
 
     loadSiteNames(document.getElementById('realSiteNames').checked);
 };
@@ -197,11 +195,11 @@ const saveInputData = (fileId, csvFile) => {
 
 const generateTable = () => {
     if (!$('#label_inputs').valid()) {
-        return false;
+        return;
     }
     if (mapFiles.size < 4) {
         fileRequiredModal.show();
-        return false;
+        return;
     }
 
     validSites.clear();
@@ -228,8 +226,6 @@ const generateTable = () => {
 //    totalCounts.set('r2c1', 9165);
 //    totalCounts.set('r2c2', 1185);
 //    construct2x2Table();
-
-    return true;
 };
 
 /**
@@ -368,9 +364,6 @@ const handlePatientCountChange = (event) => {
 };
 
 const resetData = () => {
-    validSites.clear();
-    validSiteMap.clear();
-
     // clear data
     $('#siteCounts').text(0);
 
@@ -401,27 +394,11 @@ const resetData = () => {
     updateColumn4Label();
 };
 
-const handleNextStep = () => {
-    if (generateTable()) {
-        const activeTab = document.querySelector(".nav-link.active");
-        const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
-
-        nextTab.classList.remove("disabled"); // Enable next step
-        (new bootstrap.Tab(nextTab)).show();
-    }
-};
-const handlePreviousStep = () => {
-    const activeTab = document.querySelector(".nav-link.active");
-    const prevTab = activeTab.parentElement.previousElementSibling.querySelector("button");
-
-    (new bootstrap.Tab(prevTab)).show();
-};
-
 $(document).ready(function () {
-    $('#generate_table').on('click', generateTable);
+    validSites.clear();
+    validSiteMap.clear();
 
-    $('#nextStep').on('click', handleNextStep);
-    $('#prevStep').on('click', handlePreviousStep);
+    $('#generate_table').on('click', generateTable);
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
     exportSiteNames.addEventListener('click', handleExportSiteNames, false);
