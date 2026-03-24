@@ -3,13 +3,36 @@ const fileSelectors = document.getElementsByClassName('file_select');
 const fileRequiredModal = new bootstrap.Modal('#fileRequired');
 
 const patientCountsSelect = document.getElementById('selectPatientCounts');
+const exportSiteNames = document.getElementById('exportSiteNames');
 
 const mapFiles = new Map();
 const fileRawData = new Map();
 
 const validSites = new Set();
+const validSiteMap = new Map();
 
 const totalCounts = new Map();
+
+/**
+ * Fisher-Yates Shuffle
+ * 
+ * @param {type} array
+ * @returns {shuffled array}
+ */
+const shuffle = (array) => {
+    let randomIndex;
+    let currentIndex = array.length;
+    while (currentIndex !== 0) {
+        // pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // swap it with the current element
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+};
 
 const readIn2ColumnData = (csvFile, label, map) => {
     return new Promise((resolve, reject) => {
@@ -99,10 +122,15 @@ const computeCounts = () => {
     });
 };
 
+const roundToThree = (number) => {
+    return Number(number.toFixed(3));
+};
 const construct2x2Table = () => {
     $('#tableColumnLabel').text($('#mainColumnLabel').text());
     $('#tableColumn1Label').text($('#column1Label').text());
     $('#tableColumn2Label').text($('#column2Label').text());
+    $('#tableColumn3Label').text($('#column3Label').text());
+    $('#tableColumn4Label').text($('#column4Label').text());
 
     $('#tableRowLabel').text($('#mainRowLabel').text());
     $('#tableRow1Label').text($('#row1Label').text());
@@ -114,20 +142,42 @@ const construct2x2Table = () => {
 
     const r1c1 = totalCounts.get('r1c1');
     const r1c2 = totalCounts.get('r1c2');
+    const r1c3 = (r1c2 / r1c1) * 100;
     const r2c1 = totalCounts.get('r2c1');
     const r2c2 = totalCounts.get('r2c2');
+    const r2c3 = (r2c2 / r2c1) * 100;
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    const irr = (r2c2 / r2c1) / (r1c2 / r1c1);
+    const irr = r2c3 / r1c3;
 
     const stderr = Math.sqrt((1.0 / r1c2) + (1.0 / r2c2));
-    $('#stderr').text(stderr);
-    $('#ci_lower').text(Math.exp(Math.log(irr) - (1.96 * stderr)));
-    $('#ci_upper').text(Math.exp(Math.log(irr) + (1.96 * stderr)));
+    const ci = 1.96 * stderr;
+    const lower95CI = Math.exp(Math.log(irr) - ci);
+    const upper95CI = Math.exp(Math.log(irr) + ci);
 
-    $('#siteList').val(Array.from(validSites).join('\n'));
+    $('#r1c3').text(roundToThree(r1c3));
+    $('#r2c3').text(roundToThree(r2c3));
+    $('#r2c4').text(`${roundToThree(irr)} (${roundToThree(lower95CI)}-${roundToThree(upper95CI)})`);
+
+    $('#stderr').text(roundToThree(stderr));
+    $('#irr').text(roundToThree(irr));
+    $('#ci_lower').text(roundToThree(lower95CI));
+    $('#ci_upper').text(roundToThree(upper95CI));
+
+    loadSiteNames(document.getElementById('realSiteNames').checked);
+};
+
+const loadSiteNames = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
+
+    $('#siteNames tbody').empty();
+    const siteNamesTbody = document.querySelector('#siteNames tbody');
+    const names = showSiteNames ? [...validSiteMap.keys()] : [...validSiteMap.values()];
+    names.sort().forEach(name => {
+        const row = siteNamesTbody.insertRow(-1);
+        row.insertCell(0).innerHTML = name;
+    });
 };
 
 const saveInputData = (fileId, csvFile) => {
@@ -153,6 +203,7 @@ const generateTable = () => {
     }
 
     validSites.clear();
+    validSiteMap.clear();
     fileRawData.clear();
     Promise.all(getValidSiteTasks()).then((results) => {
         let sites = new Set();
@@ -160,13 +211,20 @@ const generateTable = () => {
             sites = sites.size > 0 ? sites.intersection(results[i]) : sites.union(results[i]);
         }
         sites.forEach(e => validSites.add(e));
+
+        // map all valid site names to generic site names
+        const shuffledIndexes = shuffle([...Array(validSites.size).keys()]);
+        Array.from(validSites).forEach((site, index) => {
+            validSiteMap.set(site, `Site ${shuffledIndexes[index]}`);
+        });
+
         loadData(construct2x2Table);
     });
 
-//    totalCounts.set('r1c1', 78675);
-//    totalCounts.set('r1c2', 8300);
-//    totalCounts.set('r2c1', 14530);
-//    totalCounts.set('r2c2', 1600);
+//    totalCounts.set('r1c1', 46575);
+//    totalCounts.set('r1c2', 5640);
+//    totalCounts.set('r2c1', 9165);
+//    totalCounts.set('r2c2', 1185);
 //    construct2x2Table();
 };
 
@@ -203,6 +261,28 @@ const unhighlight = (event) => event.target.classList.remove('highlight');
     }
 });
 
+const getSiteNameContents = () => {
+    const content = [];
+
+    content.push('"Site Name","Generic Site Name"');
+    [...validSiteMap.keys()].sort().forEach(name => {
+        content.push(`"${name}","${validSiteMap.get(name)}"`);
+    });
+
+    return content.join('\r\n');
+};
+
+const handleExportSiteNames = (event) => {
+    event.preventDefault();
+
+    const content = getSiteNameContents();
+    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+    const downloadLink = document.createElement("a");
+    downloadLink.download = 'table1_sites.csv';
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.click();
+};
 const handleDrop = (event) => {
     if (event.dataTransfer.items) {
         // use DataTransferItemList interface to access the file(s)
@@ -266,6 +346,15 @@ const updateColumn2Label = () => {
     const inputValue = $('#column2LabelInput').val();
     $('#column2Label').text(inputValue);
 };
+const updateColumn3Label = () => {
+    const inputValue = $('#column3LabelInput').val();
+    $('#column3Label').text(inputValue);
+};
+
+const updateColumn4Label = () => {
+    const inputValue = $('#column4LabelInput').val();
+    $('#column4Label').text(inputValue);
+};
 
 const handlePatientCountChange = (event) => {
     if (totalCounts.size >= 4) {
@@ -276,8 +365,9 @@ const handlePatientCountChange = (event) => {
 
 const resetData = () => {
     // clear data
-    $('#siteList').val('');
     $('#siteCounts').text(0);
+
+    $('#siteNames tbody').empty();
 
     // bind the side-label input event to update the display dynamically
     $('#mainRowLabelInput').on('input', updateMainRowLabel);
@@ -288,6 +378,8 @@ const resetData = () => {
     $('#mainColumnLabelInput').on('input', updateMainColumnLabel);
     $('#column1LabelInput').on('input', updateColumn1Label);
     $('#column2LabelInput').on('input', updateColumn2Label);
+    $('#column3LabelInput').on('input', updateColumn3Label);
+    $('#column4LabelInput').on('input', updateColumn4Label);
 
     // update side labels
     updateMainRowLabel();
@@ -298,12 +390,22 @@ const resetData = () => {
     updateMainColumnLabel();
     updateColumn1Label();
     updateColumn2Label();
+    updateColumn3Label();
+    updateColumn4Label();
 };
 
 $(document).ready(function () {
+    validSites.clear();
+    validSiteMap.clear();
+
     $('#generate_table').on('click', generateTable);
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
+    exportSiteNames.addEventListener('click', handleExportSiteNames, false);
+
+    $('input[id="realSiteNames"]').on('change', function () {
+        loadSiteNames(document.getElementById('realSiteNames').checked);
+    });
 
     $('#label_inputs').validate({
         errorElement: "em",
