@@ -9,6 +9,9 @@ const exportSiteNames = document.getElementById('exportSiteNames');
 const mapFiles = new Map();
 const fileRawData = new Map();
 
+const tableSiteRawCounts = new Map();
+const tableSiteCounts = new Map();
+
 const validSites = new Set();
 const validSiteMap = new Map();
 
@@ -53,10 +56,11 @@ const shuffle = (array) => {
     return array;
 };
 
-const readIn2ColumnData = (csvFile, label, map) => {
+const readIn2ColumnData = (csvFile, label, fileRawDataMap, tableSiteRawCountsMap) => {
     return new Promise((resolve, reject) => {
         Papa.parse(csvFile, {
             complete: function (results) {
+                const siteCounts = new Map();
                 const counts = [];
                 const lines = results.data;
                 for (let i = 1; i < lines.length; i++) {
@@ -66,10 +70,12 @@ const readIn2ColumnData = (csvFile, label, map) => {
                         const count = data[1].trim();
                         if (validSites.has(site)) {
                             counts.push(count);
+                            siteCounts.set(site, count);
                         }
                     }
                 }
-                map.set(label, counts);
+                fileRawDataMap.set(label, counts);
+                tableSiteRawCountsMap.set(label, siteCounts);
 
                 resolve();
             }
@@ -78,9 +84,15 @@ const readIn2ColumnData = (csvFile, label, map) => {
 };
 const loadData = (callback) => {
     fileRawData.clear();
+    tableSiteRawCounts.clear();
+
     const tasks = [];
     mapFiles.forEach((file, id) => {
-        tasks.push(readIn2ColumnData(file, id, fileRawData));
+        // initialize table-site counts
+        tableSiteRawCounts.set(id, new Map());
+
+        // add tasks
+        tasks.push(readIn2ColumnData(file, id, fileRawData, tableSiteRawCounts));
     });
 
     Promise.all(tasks).then(() => {
@@ -134,9 +146,17 @@ const tallyCounts = (rawData, countsForTenOrLess) => {
 };
 const computeCounts = () => {
     totalCounts.clear();
+    tableSiteCounts.clear();
 
     const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
     fileRawData.forEach((rawData, id) => {
+        // get the counts for the table sites
+        const rawCountsMap = new Map();
+        for (const [site, rawCounts] of tableSiteRawCounts.get(id)) {
+            rawCountsMap.set(site, (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts));
+        }
+        tableSiteCounts.set(id, rawCountsMap);
+
         totalCounts.set(id, tallyCounts(rawData, countsForTenOrLess));
     });
 };
@@ -382,7 +402,7 @@ const updateColumn4Label = () => {
     $('#column4Label').text(inputValue);
 };
 
-const handlePatientCountChange = (event) => {
+const handlePatientCountChange = () => {
     if (totalCounts.size >= 4) {
         computeCounts();
         construct2x2Table();
@@ -424,11 +444,6 @@ const resetData = () => {
 };
 
 const handleNextStep = () => {
-//    const activeTab = document.querySelector(".nav-link.active");
-//    const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
-//
-//    nextTab.classList.remove("disabled"); // Enable next step
-//    (new bootstrap.Tab(nextTab)).show();
     if (generateTable()) {
         const activeTab = document.querySelector(".nav-link.active");
         const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
