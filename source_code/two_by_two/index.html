@@ -211,99 +211,113 @@
                                             </a>
                                         </div>
                                         <div class="card-body">
-                                            <!-- set patient counts for 10 or less -->
-                                            <div class="col-12 text-bg-light">
-                                                <div class="row g-2 align-items-center p-2">
-                                                    <div class="col-auto">
-                                                        <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
-                                                    </div>
-                                                    <div class="col-auto">
-                                                        <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
-                                                            <option value="0">0</option>
-                                                            <option value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10" selected="selected">10</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- end of set patient counts for 10 or less -->
-                                            <!-- incidence rate ratio table -->
-                                            <div class="col-12">
-                                                <div class="row">
-                                                    <div class="col-sm-12 col-md-12 col-lg-8">
-                                                        <div class="table-responsive">
-                                                            <table class="table table-borderless">
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td class="h5 text-center" colspan="2" id="tableColumnLabel">Outcome</td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td class="h6 text-center" id="tableColumn1Label">Yes</td>
-                                                                        <td class="h6 text-center" id="tableColumn2Label">No</td>
-                                                                        <td class="h6 text-center" id="tableColumn3Label">Total # per 100 persons</td>
-                                                                        <td class="h6 text-center" id="tableColumn4Label">Incidence rate ratio (95% CI)*</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
-                                                                        <td class="h6 align-middle text-center" id="tableRow1Label">Yes</td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
-                                                                        <td class="align-middle text-center border border-black border-2">Reference</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="h6 align-middle text-center" id="tableRow2Label">No</td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
-                                                                        <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
+                                            <div class="container">
+                                                <div class="row gy-4">
+                                                    <!-- set patient counts for 10 or less -->
+                                                    <div class="col-12 text-bg-light p-2">
+                                                        <div class="d-flex justify-content-between">
+                                                            <div class="row g-2 align-items-center">
+                                                                <div class="col-auto">
+                                                                    <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                                                </div>
+                                                                <div class="col-auto">
+                                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
+                                                                        <option value="0">0</option>
+                                                                        <option value="1">1</option>
+                                                                        <option value="2">2</option>
+                                                                        <option value="3">3</option>
+                                                                        <option value="4">4</option>
+                                                                        <option value="5">5</option>
+                                                                        <option value="6">6</option>
+                                                                        <option value="7">7</option>
+                                                                        <option value="8">8</option>
+                                                                        <option value="9">9</option>
+                                                                        <option value="10" selected="selected">10</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row g-2 align-items-center">
+                                                                <div class="col-auto">
+                                                                    <label for="decimal" class="form-label m-0">Decimal:</label>
+                                                                </div>
+                                                                <div class="col-auto">
+                                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
-                                                        <div class="table-responsive">
-                                                            <table class="table table-sm caption-top">
-                                                                <caption class="h5">Statistics</caption>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td class="h6">SE for ln(IRR)</td>
-                                                                        <td id="stderr"></td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="h6">Incidence rate ratio</td>
-                                                                        <td id="irr"></td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="h6">Lower bound 95% CI</td>
-                                                                        <td id="ci_lower"></td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td class="h6">Upper bound 95% CI</td>
-                                                                        <td id="ci_upper"></td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
+                                                    <!-- end of set patient counts for 10 or less -->
+                                                    <!-- incidence rate ratio table -->
+                                                    <div class="col-12">
+                                                        <div class="row">
+                                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-borderless">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td></td>
+                                                                                <td></td>
+                                                                                <td class="h5 text-center" colspan="2" id="tableColumnLabel">Outcome</td>
+                                                                                <td></td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td></td>
+                                                                                <td></td>
+                                                                                <td class="h6 text-center" id="tableColumn1Label">Yes</td>
+                                                                                <td class="h6 text-center" id="tableColumn2Label">No</td>
+                                                                                <td class="h6 text-center" id="tableColumn3Label">Total # per 100 persons</td>
+                                                                                <td class="h6 text-center" id="tableColumn4Label">Incidence rate ratio (95% CI)*</td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
+                                                                                <td class="h6 align-middle text-center" id="tableRow1Label">Yes</td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
+                                                                                <td class="align-middle text-center border border-black border-2">Reference</td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="h6 align-middle text-center" id="tableRow2Label">No</td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
+                                                                                <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-sm caption-top">
+                                                                        <caption class="h5">Statistics</caption>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td class="h6">SE for ln(IRR)</td>
+                                                                                <td id="stderr"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="h6">Incidence rate ratio</td>
+                                                                                <td id="irr"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="h6">Lower bound 95% CI</td>
+                                                                                <td id="ci_lower"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td class="h6">Upper bound 95% CI</td>
+                                                                                <td id="ci_upper"></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <!-- end of incidence rate ratio table -->
                                                 </div>
                                             </div>
-                                            <!-- end of incidence rate ratio table -->
                                         </div>
                                     </div>
                                 </div>
@@ -314,7 +328,7 @@
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <h6 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h6>
                                             <div class="d-flex align-items-center">
-                                                <div class="pe-2 flex-grow-1">
+                                                <div class="pe-4 flex-grow-1">
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="realSiteNames" />
                                                         <label class="form-check-label" for="realSiteNames">Show Site Names</label>
@@ -331,13 +345,6 @@
                                         <div class="card-body">
                                             <div class="overflow-scroll" style="max-height: 200px;">
                                                 <table class="table table-sm table-striped w-100" id="siteNames">
-                                                    <!--
-                                                    <thead class="sticky-top top-0">
-                                                        <tr>
-                                                            <th>Site Name</th>
-                                                        </tr>
-                                                    </thead>
-                                                    -->
                                                     <tbody></tbody>
                                                 </table>
                                             </div>

@@ -3,6 +3,7 @@ const fileSelectors = document.getElementsByClassName('file_select');
 const fileRequiredModal = new bootstrap.Modal('#fileRequired');
 
 const patientCountsSelect = document.getElementById('selectPatientCounts');
+const decimalInput = document.getElementById('decimal');
 const exportSiteNames = document.getElementById('exportSiteNames');
 
 const mapFiles = new Map();
@@ -13,7 +14,23 @@ const validSiteMap = new Map();
 
 const totalCounts = new Map();
 
-const decimalPlace = 2;
+const data = {
+    table: {
+        r1c1: 0,
+        r1c2: 0,
+        r1c3: 0,
+        r2c1: 0,
+        r2c2: 0,
+        r2c3: 0
+    },
+    stats: {
+        irr: 0,
+        stderr: 0,
+        ci: 0,
+        lower95CI: 0,
+        upper95CI: 0
+    }
+};
 
 /**
  * Fisher-Yates Shuffle
@@ -124,8 +141,8 @@ const computeCounts = () => {
     });
 };
 
-const roundTo = (number, decimalPlace) => {
-    return Number(number.toFixed(decimalPlace));
+const roundTo = (number, decimal) => {
+    return Number(number.toFixed(decimal));
 };
 const construct2x2Table = () => {
     $('#tableColumnLabel').text($('#mainColumnLabel').text());
@@ -138,38 +155,43 @@ const construct2x2Table = () => {
     $('#tableRow1Label').text($('#row1Label').text());
     $('#tableRow2Label').text($('#row2Label').text());
 
+    // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => {
         $(`#${id}`).text(counts);
     });
 
-    const r1c1 = totalCounts.get('r1c1');
-    const r1c2 = totalCounts.get('r1c2');
-    const r1c3 = (r1c2 / r1c1) * 100;
-    const r2c1 = totalCounts.get('r2c1');
-    const r2c2 = totalCounts.get('r2c2');
-    const r2c3 = (r2c2 / r2c1) * 100;
+    data.table.r1c1 = totalCounts.get('r1c1');
+    data.table.r1c2 = totalCounts.get('r1c2');
+    data.table.r1c3 = (data.table.r1c2 / data.table.r1c1) * 100;
+    data.table.r2c1 = totalCounts.get('r2c1');
+    data.table.r2c2 = totalCounts.get('r2c2');
+    data.table.r2c3 = (data.table.r2c2 / data.table.r2c1) * 100;
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    const irr = r2c3 / r1c3;
+    data.stats.irr = data.table.r2c3 / data.table.r1c3;
 
-    const stderr = Math.sqrt((1.0 / r1c2) + (1.0 / r2c2));
-    const ci = 1.96 * stderr;
-    const lower95CI = Math.exp(Math.log(irr) - ci);
-    const upper95CI = Math.exp(Math.log(irr) + ci);
+    data.stats.stderr = Math.sqrt((1.0 / data.table.r1c2) + (1.0 / data.table.r2c2));
+    data.stats.ci = 1.96 * data.stats.stderr;
+    data.stats.lower95CI = Math.exp(Math.log(data.stats.irr) - data.stats.ci);
+    data.stats.upper95CI = Math.exp(Math.log(data.stats.irr) + data.stats.ci);
 
-    $('#r1c3').text(roundTo(r1c3, decimalPlace));
-    $('#r2c3').text(roundTo(r2c3, decimalPlace));
-    $('#r2c4').text(`${roundTo(irr, decimalPlace)} (${roundTo(lower95CI, decimalPlace)}-${roundTo(upper95CI, decimalPlace)})`);
-
-    $('#stderr').text(roundTo(stderr, decimalPlace));
-    $('#irr').text(roundTo(irr, decimalPlace));
-    $('#ci_lower').text(roundTo(lower95CI, decimalPlace));
-    $('#ci_upper').text(roundTo(upper95CI, decimalPlace));
-
+    loadTableData();
     loadSiteNames(document.getElementById('realSiteNames').checked);
 };
 
+const loadTableData = () => {
+    const decimal = parseInt(decimalInput.value);
+
+    $('#r1c3').text(roundTo(data.table.r1c3, decimal));
+    $('#r2c3').text(roundTo(data.table.r2c3, decimal));
+    $('#r2c4').text(`${roundTo(data.stats.irr, decimal)} (${roundTo(data.stats.lower95CI, decimal)}-${roundTo(data.stats.upper95CI, decimal)})`);
+
+    $('#stderr').text(roundTo(data.stats.stderr, decimal));
+    $('#irr').text(roundTo(data.stats.irr, decimal));
+    $('#ci_lower').text(roundTo(data.stats.lower95CI, decimal));
+    $('#ci_upper').text(roundTo(data.stats.upper95CI, decimal));
+};
 const loadSiteNames = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
 
@@ -402,6 +424,11 @@ const resetData = () => {
 };
 
 const handleNextStep = () => {
+//    const activeTab = document.querySelector(".nav-link.active");
+//    const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
+//
+//    nextTab.classList.remove("disabled"); // Enable next step
+//    (new bootstrap.Tab(nextTab)).show();
     if (generateTable()) {
         const activeTab = document.querySelector(".nav-link.active");
         const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
@@ -424,6 +451,7 @@ $(document).ready(function () {
     $('#prevStep').on('click', handlePreviousStep);
 
     patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
+    decimalInput.addEventListener('change', loadTableData, false);
     exportSiteNames.addEventListener('click', handleExportSiteNames, false);
 
     $('input[id="realSiteNames"]').on('change', function () {
