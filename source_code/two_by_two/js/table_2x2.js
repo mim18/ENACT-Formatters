@@ -6,14 +6,20 @@ const validSites = new Map();
 const totalCounts = new Map();
 const siteGroupCounts = new Map();
 
+/**
+ * r1c1 = group A count
+ * r1c2 = group A total count
+ * r1c3 = group A rate
+ * r2c1 = group B count
+ * r2c2 = group B total count
+ * r2c3 = group B rate
+ * 
+ * @type type
+ */
 const stats = {
     total: {
-        r1c1: 0,
-        r1c2: 0,
-        r1c3: 0,
-        r2c1: 0,
-        r2c2: 0,
-        r2c3: 0,
+        r1c1: 0, r1c2: 0, r1c3: 0,
+        r2c1: 0, r2c2: 0, r2c3: 0,
         irr: 0,
         stderr: 0,
         ci: 0,
@@ -125,11 +131,11 @@ const computeCounts = () => {
 const computeTotalSiteStats = () => {
     const total = stats.total;
 
-    total.r1c1 = totalCounts.get('r1c1');
-    total.r1c2 = totalCounts.get('r1c2');
+    // set the counts for r1c1,r1c2,r2c1,r2c2
+    totalCounts.forEach((counts, id) => total[id] = counts);
+
+    // calculate the rate for group A and group B
     total.r1c3 = (total.r1c2 / total.r1c1) * 100;
-    total.r2c1 = totalCounts.get('r2c1');
-    total.r2c2 = totalCounts.get('r2c2');
     total.r2c3 = (total.r2c2 / total.r2c1) * 100;
 
     // incidence rate ratio
@@ -145,25 +151,41 @@ const computeIndividualSiteStats = () => {
     const indiv = stats.indiv;
     [...validSites.keys()].forEach(site => {
         indiv.set(site, {
-            groupA: 0,
-            groupATotal: 0,
-            groupB: 0,
-            groupBTotal: 0
+            r1c1: 0, r1c2: 0, r1c3: 0,
+            r2c1: 0, r2c2: 0, r2c3: 0,
+            rr: 0, lnrr: 0, varlnrr: 0
         });
     });
 
-    for (const [key, value] of dataFileRawData.get('r1c1')) {
-        indiv.get(key).groupA = value;
-    }
-    for (const [key, value] of dataFileRawData.get('r1c2')) {
-        indiv.get(key).groupATotal = value;
-    }
-    for (const [key, value] of dataFileRawData.get('r2c1')) {
-        indiv.get(key).groupB = value;
-    }
-    for (const [key, value] of dataFileRawData.get('r2c2')) {
-        indiv.get(key).groupBTotal = value;
-    }
+    // set the counts for r1c1,r1c2,r2c1,r2c2
+    dataFileRawData.forEach((siteCounts, id) => {
+        siteCounts.forEach((counts, site) => {
+            indiv.get(site)[id] = counts;
+        });
+    });
+
+    // calculate the rate for group A and group B
+    indiv.values().forEach(data => {
+        data.r1c3 = data.r1c1 / data.r1c2;
+        data.r2c3 = data.r2c1 / data.r2c2;
+
+        data.rr = data.r1c3 / data.r2c3;
+        data.lnrr = Math.log(data.rr);
+        data.varlnrr = (1 / data.r1c1) + (1 / data.r2c1);
+    });
+
+
+    console.info("================================================================================");
+    const data = [];
+    indiv.forEach((value, site) => {
+        const col1 = `${site}|${value.r1c1},${value.r1c2},${value.r2c1},${value.r2c2}`;
+        const col2 = `${roundTo(value.r1c3, 6)},${roundTo(value.r2c3, 6)}`;
+        const col3 = `${roundTo(value.rr, 6)},${roundTo(value.lnrr, 6)},${roundTo(value.varlnrr, 6)}`;
+
+        data.push(`${col1}|${col2}|${col3}`);
+    });
+    console.info(data.join('\n'));
+    console.info("================================================================================");
 };
 const computeStats = () => {
     computeTotalSiteStats();
