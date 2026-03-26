@@ -4,23 +4,23 @@ const dataFileRawData = new Map();
 const validSites = new Map();
 
 const totalCounts = new Map();
+const siteGroupCounts = new Map();
 
-const dataObj = {
-    table: {
+const stats = {
+    total: {
         r1c1: 0,
         r1c2: 0,
         r1c3: 0,
         r2c1: 0,
         r2c2: 0,
-        r2c3: 0
-    },
-    stats: {
+        r2c3: 0,
         irr: 0,
         stderr: 0,
         ci: 0,
         lower95CI: 0,
         upper95CI: 0
-    }
+    },
+    indiv: new Map()
 };
 
 /**
@@ -122,22 +122,52 @@ const computeCounts = () => {
     });
 };
 
-const initializeDataObject = () => {
-    dataObj.table.r1c1 = totalCounts.get('r1c1');
-    dataObj.table.r1c2 = totalCounts.get('r1c2');
-    dataObj.table.r1c3 = (dataObj.table.r1c2 / dataObj.table.r1c1) * 100;
-    dataObj.table.r2c1 = totalCounts.get('r2c1');
-    dataObj.table.r2c2 = totalCounts.get('r2c2');
-    dataObj.table.r2c3 = (dataObj.table.r2c2 / dataObj.table.r2c1) * 100;
+const computeTotalSiteStats = () => {
+    const total = stats.total;
+
+    total.r1c1 = totalCounts.get('r1c1');
+    total.r1c2 = totalCounts.get('r1c2');
+    total.r1c3 = (total.r1c2 / total.r1c1) * 100;
+    total.r2c1 = totalCounts.get('r2c1');
+    total.r2c2 = totalCounts.get('r2c2');
+    total.r2c3 = (total.r2c2 / total.r2c1) * 100;
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    dataObj.stats.irr = dataObj.table.r2c3 / dataObj.table.r1c3;
+    total.irr = total.r2c3 / total.r1c3;
 
-    dataObj.stats.stderr = Math.sqrt((1.0 / dataObj.table.r1c2) + (1.0 / dataObj.table.r2c2));
-    dataObj.stats.ci = 1.96 * dataObj.stats.stderr;
-    dataObj.stats.lower95CI = Math.exp(Math.log(dataObj.stats.irr) - dataObj.stats.ci);
-    dataObj.stats.upper95CI = Math.exp(Math.log(dataObj.stats.irr) + dataObj.stats.ci);
+    total.stderr = Math.sqrt((1.0 / total.r1c2) + (1.0 / total.r2c2));
+    total.ci = 1.96 * total.stderr;
+    total.lower95CI = Math.exp(Math.log(total.irr) - total.ci);
+    total.upper95CI = Math.exp(Math.log(total.irr) + total.ci);
+};
+const computeIndividualSiteStats = () => {
+    const indiv = stats.indiv;
+    [...validSites.keys()].forEach(site => {
+        indiv.set(site, {
+            groupA: 0,
+            groupATotal: 0,
+            groupB: 0,
+            groupBTotal: 0
+        });
+    });
+
+    for (const [key, value] of dataFileRawData.get('r1c1')) {
+        indiv.get(key).groupA = value;
+    }
+    for (const [key, value] of dataFileRawData.get('r1c2')) {
+        indiv.get(key).groupATotal = value;
+    }
+    for (const [key, value] of dataFileRawData.get('r2c1')) {
+        indiv.get(key).groupB = value;
+    }
+    for (const [key, value] of dataFileRawData.get('r2c2')) {
+        indiv.get(key).groupBTotal = value;
+    }
+};
+const computeStats = () => {
+    computeTotalSiteStats();
+    computeIndividualSiteStats();
 };
 
 const roundTo = (number, decimal) => {
@@ -146,14 +176,14 @@ const roundTo = (number, decimal) => {
 const populateTableProbabilities = () => {
     const decimal = parseInt($('#decimal').val());
     if (decimal >= 1 && decimal <= 6) {
-        $('#r1c3').text(roundTo(dataObj.table.r1c3, decimal));
-        $('#r2c3').text(roundTo(dataObj.table.r2c3, decimal));
-        $('#r2c4').text(`${roundTo(dataObj.stats.irr, decimal)} (${roundTo(dataObj.stats.lower95CI, decimal)}-${roundTo(dataObj.stats.upper95CI, decimal)})`);
+        $('#r1c3').text(roundTo(stats.total.r1c3, decimal));
+        $('#r2c3').text(roundTo(stats.total.r2c3, decimal));
+        $('#r2c4').text(`${roundTo(stats.total.irr, decimal)} (${roundTo(stats.total.lower95CI, decimal)}-${roundTo(stats.total.upper95CI, decimal)})`);
 
-        $('#stderr').text(roundTo(dataObj.stats.stderr, decimal));
-        $('#irr').text(roundTo(dataObj.stats.irr, decimal));
-        $('#ci_lower').text(roundTo(dataObj.stats.lower95CI, decimal));
-        $('#ci_upper').text(roundTo(dataObj.stats.upper95CI, decimal));
+        $('#stderr').text(roundTo(stats.total.stderr, decimal));
+        $('#irr').text(roundTo(stats.total.irr, decimal));
+        $('#ci_lower').text(roundTo(stats.total.lower95CI, decimal));
+        $('#ci_upper').text(roundTo(stats.total.upper95CI, decimal));
     }
 };
 const populateTableCounts = () => {
@@ -172,7 +202,7 @@ const populateSiteTable = (showSiteNames) => {
     });
 };
 const constructTableAndPlot = () => {
-    initializeDataObject();
+    computeStats();
 
     applyInputLabels();
     populateTableCounts();
