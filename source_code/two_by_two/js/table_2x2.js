@@ -1,23 +1,11 @@
-const dropAreas = document.getElementsByClassName('dropArea');
-const fileSelectors = document.getElementsByClassName('file_select');
-const fileRequiredModal = new bootstrap.Modal('#fileRequired');
+const dataFiles = new Map();
+const dataFileRawData = new Map();
 
-const patientCountsSelect = document.getElementById('selectPatientCounts');
-const decimalInput = document.getElementById('decimal');
-const exportSiteNames = document.getElementById('exportSiteNames');
-
-const mapFiles = new Map();
-const fileRawData = new Map();
-
-const tableSiteRawCounts = new Map();
-const tableSiteCounts = new Map();
-
-const validSites = new Set();
-const validSiteMap = new Map();
+const validSites = new Map();
 
 const totalCounts = new Map();
 
-const data = {
+const dataObj = {
     table: {
         r1c1: 0,
         r1c2: 0,
@@ -56,52 +44,18 @@ const shuffle = (array) => {
     return array;
 };
 
-const readIn2ColumnData = (csvFile, label, fileRawDataMap, tableSiteRawCountsMap) => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(csvFile, {
-            complete: function (results) {
-                const siteCounts = new Map();
-                const counts = [];
-                const lines = results.data;
-                for (let i = 1; i < lines.length; i++) {
-                    const data = lines[i];
-                    if (data.length > 1) {
-                        const site = data[0].trim();
-                        const count = data[1].trim();
-                        if (validSites.has(site)) {
-                            counts.push(count);
-                            siteCounts.set(site, count);
-                        }
-                    }
-                }
-                fileRawDataMap.set(label, counts);
-                tableSiteRawCountsMap.set(label, siteCounts);
-
-                resolve();
-            }
-        });
-    });
-};
-const loadData = (callback) => {
-    fileRawData.clear();
-    tableSiteRawCounts.clear();
-
-    const tasks = [];
-    mapFiles.forEach((file, id) => {
-        // initialize table-site counts
-        tableSiteRawCounts.set(id, new Map());
-
-        // add tasks
-        tasks.push(readIn2ColumnData(file, id, fileRawData, tableSiteRawCounts));
-    });
-
-    Promise.all(tasks).then(() => {
-        computeCounts();
-        callback();
-    });
+const clearDataStructures = () => {
+    dataFiles.clear();
+    validSites.clear();
 };
 
-const getColumnDataValidSiteTask = (csvFile) => {
+/**
+ * A site is valid if it has data (counts).
+ * 
+ * @param {type} csvFile
+ * @returns {Promise}
+ */
+const getRowDataValidSiteTask = (csvFile) => {
     return new Promise((resolve, reject) => {
         Papa.parse(csvFile, {
             complete: function (results) {
@@ -123,13 +77,28 @@ const getColumnDataValidSiteTask = (csvFile) => {
         });
     });
 };
-const getValidSiteTasks = () => {
-    const tasks = [];
-    mapFiles.forEach((file, id) => {
-        tasks.push(getColumnDataValidSiteTask(file));
-    });
+const readIn2ColumnRowDataTask = (csvFile, id, map) => {
+    return new Promise((resolve, reject) => {
+        Papa.parse(csvFile, {
+            complete: function (results) {
+                const rawSiteCounts = new Map();
+                const lines = results.data;
+                for (let i = 1; i < lines.length; i++) {
+                    const data = lines[i];
+                    if (data.length > 1) {
+                        const site = data[0].trim();
+                        const count = data[1].trim();
+                        if (validSites.has(site)) {
+                            rawSiteCounts.set(site, count);
+                        }
+                    }
+                }
+                map.set(id, rawSiteCounts);
 
-    return tasks;
+                resolve();
+            }
+        });
+    });
 };
 
 const tallyCounts = (rawData, countsForTenOrLess) => {
@@ -146,334 +115,280 @@ const tallyCounts = (rawData, countsForTenOrLess) => {
 };
 const computeCounts = () => {
     totalCounts.clear();
-    tableSiteCounts.clear();
 
-    const countsForTenOrLess = parseInt(patientCountsSelect.options[patientCountsSelect.selectedIndex].value);
-    fileRawData.forEach((rawData, id) => {
-        // get the counts for the table sites
-        const rawCountsMap = new Map();
-        for (const [site, rawCounts] of tableSiteRawCounts.get(id)) {
-            rawCountsMap.set(site, (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts));
-        }
-        tableSiteCounts.set(id, rawCountsMap);
-
-        totalCounts.set(id, tallyCounts(rawData, countsForTenOrLess));
+    const countsForTenOrLess = parseInt($('#selectPatientCounts').val());
+    dataFileRawData.forEach((rawSiteCounts, id) => {
+        totalCounts.set(id, tallyCounts([...rawSiteCounts.values()], countsForTenOrLess));
     });
+};
+
+const initializeDataObject = () => {
+    dataObj.table.r1c1 = totalCounts.get('r1c1');
+    dataObj.table.r1c2 = totalCounts.get('r1c2');
+    dataObj.table.r1c3 = (dataObj.table.r1c2 / dataObj.table.r1c1) * 100;
+    dataObj.table.r2c1 = totalCounts.get('r2c1');
+    dataObj.table.r2c2 = totalCounts.get('r2c2');
+    dataObj.table.r2c3 = (dataObj.table.r2c2 / dataObj.table.r2c1) * 100;
+
+    // incidence rate ratio
+    // (num of no exposure) / (num of exposure)
+    dataObj.stats.irr = dataObj.table.r2c3 / dataObj.table.r1c3;
+
+    dataObj.stats.stderr = Math.sqrt((1.0 / dataObj.table.r1c2) + (1.0 / dataObj.table.r2c2));
+    dataObj.stats.ci = 1.96 * dataObj.stats.stderr;
+    dataObj.stats.lower95CI = Math.exp(Math.log(dataObj.stats.irr) - dataObj.stats.ci);
+    dataObj.stats.upper95CI = Math.exp(Math.log(dataObj.stats.irr) + dataObj.stats.ci);
 };
 
 const roundTo = (number, decimal) => {
     return Number(number.toFixed(decimal));
 };
-const construct2x2Table = () => {
-    $('#tableColumnLabel').text($('#mainColumnLabel').text());
-    $('#tableColumn1Label').text($('#column1Label').text());
-    $('#tableColumn2Label').text($('#column2Label').text());
-    $('#tableColumn3Label').text($('#column3Label').text());
-    $('#tableColumn4Label').text($('#column4Label').text());
+const populateTableProbabilities = () => {
+    const decimal = parseInt($('#decimal').val());
+    if (decimal >= 1 && decimal <= 6) {
+        $('#r1c3').text(roundTo(dataObj.table.r1c3, decimal));
+        $('#r2c3').text(roundTo(dataObj.table.r2c3, decimal));
+        $('#r2c4').text(`${roundTo(dataObj.stats.irr, decimal)} (${roundTo(dataObj.stats.lower95CI, decimal)}-${roundTo(dataObj.stats.upper95CI, decimal)})`);
 
-    $('#tableRowLabel').text($('#mainRowLabel').text());
-    $('#tableRow1Label').text($('#row1Label').text());
-    $('#tableRow2Label').text($('#row2Label').text());
-
+        $('#stderr').text(roundTo(dataObj.stats.stderr, decimal));
+        $('#irr').text(roundTo(dataObj.stats.irr, decimal));
+        $('#ci_lower').text(roundTo(dataObj.stats.lower95CI, decimal));
+        $('#ci_upper').text(roundTo(dataObj.stats.upper95CI, decimal));
+    }
+};
+const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
-    totalCounts.forEach((counts, id) => {
-        $(`#${id}`).text(counts);
-    });
-
-    data.table.r1c1 = totalCounts.get('r1c1');
-    data.table.r1c2 = totalCounts.get('r1c2');
-    data.table.r1c3 = (data.table.r1c2 / data.table.r1c1) * 100;
-    data.table.r2c1 = totalCounts.get('r2c1');
-    data.table.r2c2 = totalCounts.get('r2c2');
-    data.table.r2c3 = (data.table.r2c2 / data.table.r2c1) * 100;
-
-    // incidence rate ratio
-    // (num of no exposure) / (num of exposure)
-    data.stats.irr = data.table.r2c3 / data.table.r1c3;
-
-    data.stats.stderr = Math.sqrt((1.0 / data.table.r1c2) + (1.0 / data.table.r2c2));
-    data.stats.ci = 1.96 * data.stats.stderr;
-    data.stats.lower95CI = Math.exp(Math.log(data.stats.irr) - data.stats.ci);
-    data.stats.upper95CI = Math.exp(Math.log(data.stats.irr) + data.stats.ci);
-
-    loadTableData();
-    loadSiteNames(document.getElementById('realSiteNames').checked);
+    totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-
-const loadTableData = () => {
-    const decimal = parseInt(decimalInput.value);
-
-    $('#r1c3').text(roundTo(data.table.r1c3, decimal));
-    $('#r2c3').text(roundTo(data.table.r2c3, decimal));
-    $('#r2c4').text(`${roundTo(data.stats.irr, decimal)} (${roundTo(data.stats.lower95CI, decimal)}-${roundTo(data.stats.upper95CI, decimal)})`);
-
-    $('#stderr').text(roundTo(data.stats.stderr, decimal));
-    $('#irr').text(roundTo(data.stats.irr, decimal));
-    $('#ci_lower').text(roundTo(data.stats.lower95CI, decimal));
-    $('#ci_upper').text(roundTo(data.stats.upper95CI, decimal));
-};
-const loadSiteNames = (showSiteNames) => {
+const populateSiteTable = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
 
-    $('#siteNames tbody').empty();
-    const siteNamesTbody = document.querySelector('#siteNames tbody');
-    const names = showSiteNames ? [...validSiteMap.keys()] : [...validSiteMap.values()];
-    names.sort().forEach(name => {
-        const row = siteNamesTbody.insertRow(-1);
-        row.insertCell(0).innerHTML = name;
+    const tbody = document.querySelector('#siteNames tbody');
+    tbody.innerHTML = '';
+
+    const sites = showSiteNames ? [...validSites.keys()] : [...validSites.values()];
+    sites.sort().forEach(name => {
+        tbody.insertRow(-1).insertCell(0).innerHTML = name;
     });
+};
+const constructTableAndPlot = () => {
+    initializeDataObject();
+
+    applyInputLabels();
+    populateTableCounts();
+    populateTableProbabilities();
+    populateSiteTable($('#showSiteNames').prop('checked'));
+};
+
+const readInData = (callback) => {
+    dataFileRawData.clear();
+
+    const tasks = [];
+    dataFiles.forEach((file, id) => {
+        tasks.push(readIn2ColumnRowDataTask(file, id, dataFileRawData));
+    });
+
+    Promise.all(tasks).then(() => {
+        computeCounts();
+        callback();
+    });
+};
+
+/**
+ * A task for getting all sites that contain data (counts).
+ * 
+ * @returns {Array|getValidSiteTasks.tasks}
+ */
+const getValidSiteTasks = () => {
+    const tasks = [];
+    for (const file of dataFiles.values()) {
+        tasks.push(getRowDataValidSiteTask(file));
+    }
+
+    return tasks;
 };
 
 const saveInputData = (fileId, csvFile) => {
-    fileId = fileId.trim();
     if (fileId && csvFile) {
-        mapFiles.set(fileId, csvFile);
+        dataFiles.set(fileId, csvFile);
 
-        const htmlCode = `<div class="alert alert-success" role="alert">
-        <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
-</div>`;
-
+        const htmlCode = `<div class="alert alert-success p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
         $(`#filename_${fileId}`).html(htmlCode);
     }
 };
 
-const generateTable = () => {
-    if (!$('#label_inputs').valid()) {
+const generateTableAndPlot = () => {
+    if (!$('#inputLabels').valid()) {
         return false;
     }
-    if (mapFiles.size < 4) {
-        fileRequiredModal.show();
+    if (dataFiles.size < 4) {
+        (new bootstrap.Modal('#fileRequired')).show();
         return false;
     }
 
     validSites.clear();
-    validSiteMap.clear();
-    fileRawData.clear();
-    Promise.all(getValidSiteTasks()).then((results) => {
+    Promise.all(getValidSiteTasks()).then((siteNames) => {
         let sites = new Set();
-        for (let i = 0; i < results.length; i++) {
-            sites = sites.size > 0 ? sites.intersection(results[i]) : sites.union(results[i]);
-        }
-        sites.forEach(e => validSites.add(e));
-
-        // map all valid site names to generic site names
-        const shuffledIndexes = shuffle([...Array(validSites.size).keys()]);
-        Array.from(validSites).forEach((site, index) => {
-            validSiteMap.set(site, `Site ${shuffledIndexes[index]}`);
+        siteNames.forEach(siteName => {
+            sites = sites.size > 0 ? sites.intersection(siteName) : sites.union(siteName);
         });
 
-        loadData(construct2x2Table);
-    });
+        const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
+        Array.from(sites).forEach((site, index) => validSites.set(site, `Site ${shuffledIndexes[index]}`));
 
-//    totalCounts.set('r1c1', 46575);
-//    totalCounts.set('r1c2', 5640);
-//    totalCounts.set('r2c1', 9165);
-//    totalCounts.set('r2c2', 1185);
-//    construct2x2Table();
+        readInData(constructTableAndPlot);
+    });
 
     return true;
 };
-
-/**
- * Prevent default drag behaviors.
- */
-const preventDefaults = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-};
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-    for (const dropArea of dropAreas) {
-        dropArea.addEventListener(event, preventDefaults, false);
-    }
-});
-
-/**
- * Highlighting drop area when item is dragged over it.
- */
-const highlight = (event) => event.target.classList.add('highlight');
-['dragenter', 'dragover'].forEach(event => {
-    for (const dropArea of dropAreas) {
-        dropArea.addEventListener(event, highlight, false);
-    }
-});
-
-/**
- * Remove highlighting from drop area when item is dropped.
- */
-const unhighlight = (event) => event.target.classList.remove('highlight');
-['dragleave'].forEach(event => {
-    for (const dropArea of dropAreas) {
-        dropArea.addEventListener(event, unhighlight, false);
-    }
-});
 
 const getSiteNameContents = () => {
     const content = [];
 
     content.push('"Site Name","Generic Site Name"');
-    [...validSiteMap.keys()].sort().forEach(name => {
-        content.push(`"${name}","${validSiteMap.get(name)}"`);
+    [...validSites.keys()].sort().forEach(site => {
+        content.push(`"${site}","${validSites.get(site)}"`);
     });
 
     return content.join('\r\n');
 };
 
-const handleExportSiteNames = (event) => {
-    event.preventDefault();
+const addFileDrapDropEventListeners = () => {
+    // prevent default drag behaviors
+    const preventDefaults = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => $('.dropArea').on(event, preventDefaults));
 
-    const content = getSiteNameContents();
-    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+    // highlighting drop area when item is dragged over it
+    const highlight = (event) => event.target.classList.add('highlight');
+    ['dragenter', 'dragover'].forEach(event => $('.dropArea').on(event, highlight));
 
-    const downloadLink = document.createElement("a");
-    downloadLink.download = 'table1_sites.csv';
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.click();
-};
-const handleDrop = (event) => {
-    if (event.dataTransfer.items) {
-        // use DataTransferItemList interface to access the file(s)
-        [...event.dataTransfer.items].forEach((item, i) => {
-            // If dropped items aren't files, reject them
-            if (item.kind === 'file') {
-                const file = item.getAsFile();
-                if (file.type === 'text/csv') {
-                    const fileId = event.target.id.replace('droparea_', '');
-                    saveInputData(fileId, file);
+    // remove highlighting from drop area when item is dropped
+    const unhighlight = (event) => event.target.classList.remove('highlight');
+    $('.dropArea').on('dragleave', unhighlight);
+
+    // file drop action
+    const handleFileDrop = (event) => {
+        if (event.originalEvent.dataTransfer.items) {
+            // use DataTransferItemList interface to access the file(s)
+            [...event.originalEvent.dataTransfer.items].forEach(item => {
+                // If dropped items aren't files, reject them
+                if (item.kind === 'file') {
+                    const file = item.getAsFile();
+                    if (file.type === 'text/csv') {
+                        const fileId = event.target.id.replace('droparea_', '');
+                        saveInputData(fileId, file);
+                    }
                 }
-            }
-        });
-    } else {
-        // use DataTransfer interface to access the file(s)
-        [...event.dataTransfer.files].forEach((file, i) => {
-            const fileId = event.target.id.replace('droparea_', '');
-            saveInputData(fileId, file);
-        });
-    }
+            });
+        } else {
+            // use DataTransfer interface to access the file(s)
+            [...event.originalEvent.dataTransfer.files].forEach(file => {
+                const fileId = event.target.id.replace('droparea_', '');
+                saveInputData(fileId, file);
+            });
+        }
+    };
+    $('.dropArea').on('drop', handleFileDrop);
 };
-['drop'].forEach(event => {
-    for (const dropArea of dropAreas) {
-        dropArea.addEventListener(event, handleDrop, false);
-    }
-});
+const addFileSelectEventListeners = () => {
+    const handleFileSelect = (event) => {
+        if (event.target.files.length > 0) {
+            const fileId = event.target.id.replace('file_', '').trim();
+            $(`#droparea_${fileId}`).addClass('highlight');
+            saveInputData(fileId, event.target.files[0]);
+        }
+        event.target.value = "";
+    };
+    $('.file_select').on('change', handleFileSelect);
+};
+const addLabelEventListeners = () => {
+    // bind the side-label input event to update the display dynamically
+    $('#mainRowLabelInput').on('input', () => $('#mainRowLabel').text($('#mainRowLabelInput').val()));
+    $('#row1LabelInput').on('input', () => $('#row1Label').text($('#row1LabelInput').val()));
+    $('#row2LabelInput').on('input', () => $('#row2Label').text($('#row2LabelInput').val()));
 
-const handleFileSelect = (event) => {
-    if (event.target.files.length > 0) {
-        const fileId = event.target.id.replace('file_', '');
-        saveInputData(fileId, event.target.files[0]);
-    }
-    event.target.value = "";
+    // bind the top-label input event to update the display dynamically
+    $('#mainColumnLabelInput').on('input', () => $('#mainColumnLabel').text($('#mainColumnLabelInput').val()));
+    $('#column1LabelInput').on('input', () => $('#column1Label').text($('#column1LabelInput').val()));
+    $('#column2LabelInput').on('input', () => $('#column2Label').text($('#column2LabelInput').val()));
+    $('#column3LabelInput').on('input', () => $('#column3Label').text($('#column3LabelInput').val()));
+    $('#column4LabelInput').on('input', () => $('#column4Label').text($('#column4LabelInput').val()));
 };
-for (const fileSelector of fileSelectors) {
-    fileSelector.addEventListener('change', handleFileSelect, false);
-}
+const addWizardEventListeners = () => {
+    $('#nextStep').on('click', () => {
+        if (generateTableAndPlot()) {
+            const nextTab = $('.nav-link.active').parent().next().find('button');
+            nextTab.removeClass('disabled');
 
-const updateMainRowLabel = () => {
-    const inputValue = $('#mainRowLabelInput').val();
-    $('#mainRowLabel').text(inputValue);
+            (new bootstrap.Tab(nextTab)).show();
+        }
+    });
+
+    $('#prevStep').on('click', () => {
+        const prevTab = $('.nav-link.active').parent().prev().find('button');
+
+        (new bootstrap.Tab(prevTab)).show();
+    });
 };
-const updateRow1Label = () => {
-    const inputValue = $('#row1LabelInput').val();
-    $('#row1Label').text(inputValue);
+const addIncidenceRateRatioEventListeners = () => {
+    $('#selectPatientCounts').on('change', () => {
+        if (totalCounts.size >= 4) {
+            computeCounts();
+            constructTableAndPlot();
+        }
+    });
+    $('#decimal').on('change', populateTableProbabilities);
 };
-const updateRow2Label = () => {
-    const inputValue = $('#row2LabelInput').val();
-    $('#row2Label').text(inputValue);
+const addSiteNameEventListeners = () => {
+    $('#showSiteNames').on('change', () => populateSiteTable($('#showSiteNames').prop('checked')));
+
+    $('#exportSiteNames').on('click', (event) => {
+        event.preventDefault();
+
+        const content = getSiteNameContents();
+        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+        const downloadLink = document.createElement("a");
+        downloadLink.download = 'table1_sites.csv';
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.click();
+    });
+};
+const addEventListeners = () => {
+    addFileDrapDropEventListeners();
+    addFileSelectEventListeners();
+    addLabelEventListeners();
+    addWizardEventListeners();
+    addIncidenceRateRatioEventListeners();
+    addSiteNameEventListeners();
 };
 
-const updateMainColumnLabel = () => {
-    const inputValue = $('#mainColumnLabelInput').val();
-    $('#mainColumnLabel').text(inputValue);
-};
-const updateColumn1Label = () => {
-    const inputValue = $('#column1LabelInput').val();
-    $('#column1Label').text(inputValue);
-};
-const updateColumn2Label = () => {
-    const inputValue = $('#column2LabelInput').val();
-    $('#column2Label').text(inputValue);
-};
-const updateColumn3Label = () => {
-    const inputValue = $('#column3LabelInput').val();
-    $('#column3Label').text(inputValue);
-};
+const applyInputLabels = () => {
+    // side-label
+    $('#mainRowLabel').text($('#mainRowLabelInput').val());
+    $('#row1Label').text($('#row1LabelInput').val());
+    $('#row2Label').text($('#row2LabelInput').val());
 
-const updateColumn4Label = () => {
-    const inputValue = $('#column4LabelInput').val();
-    $('#column4Label').text(inputValue);
-};
-
-const handlePatientCountChange = () => {
-    if (totalCounts.size >= 4) {
-        computeCounts();
-        construct2x2Table();
-    }
+    // top-label
+    $('#mainColumnLabel').text($('#mainColumnLabelInput').val());
+    $('#column1Label').text($('#column1LabelInput').val());
+    $('#column2Label').text($('#column2LabelInput').val());
+    $('#column3Label').text($('#column3LabelInput').val());
+    $('#column4Label').text($('#column4LabelInput').val());
 };
 
 const resetData = () => {
-    validSites.clear();
-    validSiteMap.clear();
-
-    // clear data
-    $('#siteCounts').text(0);
-
-    $('#siteNames tbody').empty();
-
-    // bind the side-label input event to update the display dynamically
-    $('#mainRowLabelInput').on('input', updateMainRowLabel);
-    $('#row1LabelInput').on('input', updateRow1Label);
-    $('#row2LabelInput').on('input', updateRow2Label);
-
-    // bind the top-label input event to update the display dynamically
-    $('#mainColumnLabelInput').on('input', updateMainColumnLabel);
-    $('#column1LabelInput').on('input', updateColumn1Label);
-    $('#column2LabelInput').on('input', updateColumn2Label);
-    $('#column3LabelInput').on('input', updateColumn3Label);
-    $('#column4LabelInput').on('input', updateColumn4Label);
-
-    // update side labels
-    updateMainRowLabel();
-    updateRow1Label();
-    updateRow2Label();
-
-    // update top labels
-    updateMainColumnLabel();
-    updateColumn1Label();
-    updateColumn2Label();
-    updateColumn3Label();
-    updateColumn4Label();
-};
-
-const handleNextStep = () => {
-    if (generateTable()) {
-        const activeTab = document.querySelector(".nav-link.active");
-        const nextTab = activeTab.parentElement.nextElementSibling.querySelector("button");
-
-        nextTab.classList.remove("disabled"); // Enable next step
-        (new bootstrap.Tab(nextTab)).show();
-    }
-};
-const handlePreviousStep = () => {
-    const activeTab = document.querySelector(".nav-link.active");
-    const prevTab = activeTab.parentElement.previousElementSibling.querySelector("button");
-
-    (new bootstrap.Tab(prevTab)).show();
+    clearDataStructures();
+    applyInputLabels();
 };
 
 $(document).ready(function () {
-    $('#generate_table').on('click', generateTable);
+    addEventListeners();
 
-    $('#nextStep').on('click', handleNextStep);
-    $('#prevStep').on('click', handlePreviousStep);
-
-    patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
-    decimalInput.addEventListener('change', loadTableData, false);
-    exportSiteNames.addEventListener('click', handleExportSiteNames, false);
-
-    $('input[id="realSiteNames"]').on('change', function () {
-        loadSiteNames(document.getElementById('realSiteNames').checked);
-    });
-
-    $('#label_inputs').validate({
+    $('#inputLabels').validate({
         errorElement: "em",
         errorClass: 'text-danger',
         errorPlacement: function (error, element) {

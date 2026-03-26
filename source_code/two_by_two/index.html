@@ -49,7 +49,7 @@
                                     <div class="card border-secondary">
                                         <div class="card-header text-bg-secondary">Labels</div>
                                         <div class="card-body">
-                                            <form id="label_inputs">
+                                            <form id="inputLabels">
                                                 <div class="row">
                                                     <!-- side labels -->
                                                     <div class="col-sm-12 col-md-12 col-lg-6 mb-4">
@@ -238,7 +238,7 @@
                                                             </div>
                                                             <div class="row g-2 align-items-center">
                                                                 <div class="col-auto">
-                                                                    <label for="decimal" class="form-label m-0">Decimal:</label>
+                                                                    <label for="decimal" class="form-label m-0">Round Decimal:</label>
                                                                 </div>
                                                                 <div class="col-auto">
                                                                     <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
@@ -335,8 +335,8 @@
                                             <div class="d-flex align-items-center">
                                                 <div class="pe-4 flex-grow-1">
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="realSiteNames" />
-                                                        <label class="form-check-label" for="realSiteNames">Show Site Names</label>
+                                                        <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" />
+                                                        <label class="form-check-label" for="showSiteNames">Show Site Names</label>
                                                     </div>
                                                 </div>
                                                 <div class="ps-2">
@@ -389,7 +389,6 @@
         <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../vendor/jquery-validation/jquery.validate.min.js"></script>
         <script src="../vendor/papaparse/papaparse.min.js"></script>
-        <script src="../vendor/d3/d3.v7.min.js"></script>
         <script src="js/table_2x2.js"></script>
     </body>
 </html>
