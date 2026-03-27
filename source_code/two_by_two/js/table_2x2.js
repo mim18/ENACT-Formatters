@@ -153,7 +153,8 @@ const computeIndividualSiteStats = () => {
         indiv.set(site, {
             r1c1: 0, r1c2: 0, r1c3: 0,
             r2c1: 0, r2c2: 0, r2c3: 0,
-            rr: 0, lnrr: 0, varlnrr: 0
+            rr: 0, lnrr: 0, varlnrr: 0,
+            stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0
         });
     });
 
@@ -172,20 +173,13 @@ const computeIndividualSiteStats = () => {
         data.rr = data.r1c3 / data.r2c3;
         data.lnrr = Math.log(data.rr);
         data.varlnrr = (1 / data.r1c1) + (1 / data.r2c1);
+        
+        data.stderr = Math.sqrt((1.0 / data.r1c2) + (1.0 / data.r2c2));
+        data.ci = 1.96 * data.stderr;
+        data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
+        data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
+        data.upper95CI = Math.exp(Math.log(data.irr) + data.ci);
     });
-
-
-    console.info("================================================================================");
-    const data = [];
-    indiv.forEach((value, site) => {
-        const col1 = `${site}|${value.r1c1},${value.r1c2},${value.r2c1},${value.r2c2}`;
-        const col2 = `${roundTo(value.r1c3, 6)},${roundTo(value.r2c3, 6)}`;
-        const col3 = `${roundTo(value.rr, 6)},${roundTo(value.lnrr, 6)},${roundTo(value.varlnrr, 6)}`;
-
-        data.push(`${col1}|${col2}|${col3}`);
-    });
-    console.info(data.join('\n'));
-    console.info("================================================================================");
 };
 const computeStats = () => {
     computeTotalSiteStats();
