@@ -56,7 +56,7 @@
                                                         <div class="card-title h5 mb-3">Side Labels</div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Row Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="mainRowLabelInput" name="mainRowLabelInput" value="Exposure" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="rowLabelInput" name="rowLabelInput" value="Exposure" required="required" />
                                                         </div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Row 1 Label</span>
@@ -73,23 +73,23 @@
                                                         <div class="card-title h5 mb-3">Top Labels</div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Column Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="mainColumnLabelInput" name="mainColumnLabelInput" value="Outcome" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="colLabelInput" name="colLabelInput" value="Outcome" required="required" />
                                                         </div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Column 1 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column1LabelInput" name="column1LabelInput" value="Yes" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="col1LabelInput" name="col1LabelInput" value="Yes" required="required" />
                                                         </div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Column 2 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column2LabelInput" name="column2LabelInput" value="No" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="col2LabelInput" name="col2LabelInput" value="No" required="required" />
                                                         </div>
                                                         <div class="input-group mb-3">
                                                             <span class="input-group-text">Column 3 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column3LabelInput" name="column3LabelInput" value="Total # per 100 persons" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="col3LabelInput" name="col3LabelInput" value="Total # per 100 persons" required="required" />
                                                         </div>
                                                         <div class="input-group">
                                                             <span class="input-group-text">Column 4 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column4LabelInput" name="column4LabelInput" value="Incidence rate ratio (95% CI)*" required="required" />
+                                                            <input type="text" aria-label="Row group" class="form-control" id="col4LabelInput" name="col4LabelInput" value="Incidence rate ratio (95% CI)*" required="required" />
                                                         </div>
                                                     </div>
                                                     <!-- end of top labels -->
@@ -113,21 +113,21 @@
                                                                 <tr>
                                                                     <td></td>
                                                                     <td></td>
-                                                                    <td class="h5 text-center" colspan="2" id="mainColumnLabel">Outcome</td>
+                                                                    <td class="h5 text-center colLabel" colspan="2">Outcome</td>
                                                                     <td></td>
                                                                     <td></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td></td>
                                                                     <td></td>
-                                                                    <td class="h6 text-center" id="column1Label">Yes</td>
-                                                                    <td class="h6 text-center" id="column2Label">No</td>
-                                                                    <td class="h6 text-center" id="column3Label">Total # per 100 persons</td>
-                                                                    <td class="h6 text-center" id="column4Label">Incidence rate ratio (95% CI)*</td>
+                                                                    <td class="h6 text-center col1Label">Yes</td>
+                                                                    <td class="h6 text-center col2Label">No</td>
+                                                                    <td class="h6 text-center col3Label">Total # per 100 persons</td>
+                                                                    <td class="h6 text-center col4Label">Incidence rate ratio (95% CI)*</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td class="h5 align-middle text-center p-0" rowspan="2"><span class="rotate-text" id="mainRowLabel">Exposure</span></td>
-                                                                    <td class="h6 align-middle text-center" id="row1Label">Yes</td>
+                                                                    <td class="h5 align-middle text-center p-0" rowspan="2"><span class="rotate-text rowLabel">Exposure</span></td>
+                                                                    <td class="h6 align-middle text-center row1Label">Yes</td>
                                                                     <td class="border border-black border-2">
                                                                         <div class="text-center p-4 dropArea" id="droparea_r1c1">
                                                                             <p>
@@ -154,7 +154,7 @@
                                                                     <td class="align-middle text-center border border-2">Reference</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td class="h6 align-middle text-center" id="row2Label">No</td>
+                                                                    <td class="h6 align-middle text-center row2Label">No</td>
                                                                     <td class="border border-black border-2">
                                                                         <div class="text-center p-4 dropArea" id="droparea_r2c1">
                                                                             <p>
@@ -238,7 +238,7 @@
                                                             </div>
                                                             <div class="row g-2 align-items-center">
                                                                 <div class="col-auto">
-                                                                    <label for="decimal" class="form-label m-0">Round Decimal:</label>
+                                                                    <label for="decimal" class="form-label m-0">Round Decimals:</label>
                                                                 </div>
                                                                 <div class="col-auto">
                                                                     <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
@@ -257,28 +257,28 @@
                                                                             <tr>
                                                                                 <td></td>
                                                                                 <td></td>
-                                                                                <td class="h5 text-center" colspan="2" id="tableColumnLabel">Outcome</td>
+                                                                                <td class="h5 text-center colLabel" colspan="2">Outcome</td>
                                                                                 <td></td>
                                                                                 <td></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td></td>
                                                                                 <td></td>
-                                                                                <td class="h6 text-center" id="tableColumn1Label">Yes</td>
-                                                                                <td class="h6 text-center" id="tableColumn2Label">No</td>
-                                                                                <td class="h6 text-center" id="tableColumn3Label">Total # per 100 persons</td>
-                                                                                <td class="h6 text-center" id="tableColumn4Label">Incidence rate ratio (95% CI)*</td>
+                                                                                <td class="h6 text-center col1Label">Yes</td>
+                                                                                <td class="h6 text-center col2Label">No</td>
+                                                                                <td class="h6 text-center col3Label">Total # per 100 persons</td>
+                                                                                <td class="h6 text-center col4Label">Incidence rate ratio (95% CI)*</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
-                                                                                <td class="h6 align-middle text-center" id="tableRow1Label">Yes</td>
+                                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text rowLabel">Exposure</span></td>
+                                                                                <td class="h6 align-middle text-center row1Label">Yes</td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
                                                                                 <td class="align-middle text-center border border-black border-2">Reference</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td class="h6 align-middle text-center" id="tableRow2Label">No</td>
+                                                                                <td class="h6 align-middle text-center row2Label">No</td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
                                                                                 <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
@@ -316,6 +316,38 @@
                                                         </div>
                                                     </div>
                                                     <!-- end of incidence rate ratio table -->
+                                                    <div class="col-12">
+                                                        <table class="table table-bordered table-striped table-sm" id="stats">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th></th>
+                                                                    <th colspan="2" class="text-center row1Label"></th>
+                                                                    <th colspan="2" class="text-center row2Label"></th>
+                                                                    <th class="text-center row1Label"></th>
+                                                                    <th class="text-center row2Label"></th>
+                                                                    <th></th>
+                                                                    <th></th>
+                                                                    <th></th>
+                                                                    <th class="text-center" colspan="2">95% CI</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Site</th>
+                                                                    <th class="col1Label">A</th>
+                                                                    <th class="col2Label">TA</th>
+                                                                    <th class="col1Label">B</th>
+                                                                    <th class="col2Label">TB</th>
+                                                                    <th>Rate <span class="col1Label">A</span></th>
+                                                                    <th>Rate <span class="col2Label">B</span></th>
+                                                                    <th>IRR</th>
+                                                                    <th>ln(IRR)</th>
+                                                                    <th>Var ln(IRR)</th>
+                                                                    <th>Low ln(IRR)</th>
+                                                                    <th>High ln(IRR)</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
                                                     <!-- plot -->
                                                     <div class="col-12">
                                                         <div class="chart-container"></div>

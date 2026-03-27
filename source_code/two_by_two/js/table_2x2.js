@@ -153,7 +153,7 @@ const computeIndividualSiteStats = () => {
         indiv.set(site, {
             r1c1: 0, r1c2: 0, r1c3: 0,
             r2c1: 0, r2c2: 0, r2c3: 0,
-            rr: 0, lnrr: 0, varlnrr: 0,
+            irr: 0, lnirr: 0, varlnirr: 0,
             stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0
         });
     });
@@ -170,10 +170,10 @@ const computeIndividualSiteStats = () => {
         data.r1c3 = data.r1c1 / data.r1c2;
         data.r2c3 = data.r2c1 / data.r2c2;
 
-        data.rr = data.r1c3 / data.r2c3;
-        data.lnrr = Math.log(data.rr);
-        data.varlnrr = (1 / data.r1c1) + (1 / data.r2c1);
-        
+        data.irr = data.r1c3 / data.r2c3;
+        data.lnirr = Math.log(data.irr);
+        data.varlnirr = (1 / data.r1c1) + (1 / data.r2c1);
+
         data.stderr = Math.sqrt((1.0 / data.r1c2) + (1.0 / data.r2c2));
         data.ci = 1.96 * data.stderr;
         data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
@@ -189,22 +189,38 @@ const computeStats = () => {
 const roundTo = (number, decimal) => {
     return Number(number.toFixed(decimal));
 };
-const populateTableProbabilities = () => {
-    const decimal = parseInt($('#decimal').val());
-    if (decimal >= 1 && decimal <= 6) {
-        $('#r1c3').text(roundTo(stats.total.r1c3, decimal));
-        $('#r2c3').text(roundTo(stats.total.r2c3, decimal));
-        $('#r2c4').text(`${roundTo(stats.total.irr, decimal)} (${roundTo(stats.total.lower95CI, decimal)}-${roundTo(stats.total.upper95CI, decimal)})`);
+const populateTableProbabilities = (decimal) => {
+    $('#r1c3').text(roundTo(stats.total.r1c3, decimal));
+    $('#r2c3').text(roundTo(stats.total.r2c3, decimal));
+    $('#r2c4').text(`${roundTo(stats.total.irr, decimal)} (${roundTo(stats.total.lower95CI, decimal)}-${roundTo(stats.total.upper95CI, decimal)})`);
 
-        $('#stderr').text(roundTo(stats.total.stderr, decimal));
-        $('#irr').text(roundTo(stats.total.irr, decimal));
-        $('#ci_lower').text(roundTo(stats.total.lower95CI, decimal));
-        $('#ci_upper').text(roundTo(stats.total.upper95CI, decimal));
-    }
+    $('#stderr').text(roundTo(stats.total.stderr, decimal));
+    $('#irr').text(roundTo(stats.total.irr, decimal));
+    $('#ci_lower').text(roundTo(stats.total.lower95CI, decimal));
+    $('#ci_upper').text(roundTo(stats.total.upper95CI, decimal));
 };
 const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
+};
+const populateStatsTable = (decimal) => {
+    const tbody = document.querySelector('#stats tbody');
+    tbody.innerHTML = '';
+
+    const indiv = stats.indiv;
+    indiv.forEach((stats, site) => {
+        const row = tbody.insertRow(-1);
+        const data = [
+            site,
+            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
+            roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
+            roundTo(stats.irr, decimal), roundTo(stats.lnirr, decimal), roundTo(stats.varlnirr, decimal),
+            roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal)
+        ];
+        data.forEach((value, index) => {
+            row.insertCell(index).innerHTML = value;
+        });
+    });
 };
 const populateSiteTable = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
@@ -221,9 +237,14 @@ const constructTableAndPlot = () => {
     computeStats();
 
     applyInputLabels();
+
     populateTableCounts();
-    populateTableProbabilities();
     populateSiteTable($('#showSiteNames').prop('checked'));
+
+    let decimal = parseInt($('#decimal').val());
+    decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+    populateTableProbabilities(decimal);
+    populateStatsTable(decimal);
 };
 
 const readInData = (callback) => {
@@ -352,16 +373,16 @@ const addFileSelectEventListeners = () => {
 };
 const addLabelEventListeners = () => {
     // bind the side-label input event to update the display dynamically
-    $('#mainRowLabelInput').on('input', () => $('#mainRowLabel').text($('#mainRowLabelInput').val()));
-    $('#row1LabelInput').on('input', () => $('#row1Label').text($('#row1LabelInput').val()));
-    $('#row2LabelInput').on('input', () => $('#row2Label').text($('#row2LabelInput').val()));
+    $('#rowLabelInput').on('input', () => $('.rowLabel').text($('#rowLabelInput').val()));
+    $('#row1LabelInput').on('input', () => $('.row1Label').text($('#row1LabelInput').val()));
+    $('#row2LabelInput').on('input', () => $('.row2Label').text($('#row2LabelInput').val()));
 
     // bind the top-label input event to update the display dynamically
-    $('#mainColumnLabelInput').on('input', () => $('#mainColumnLabel').text($('#mainColumnLabelInput').val()));
-    $('#column1LabelInput').on('input', () => $('#column1Label').text($('#column1LabelInput').val()));
-    $('#column2LabelInput').on('input', () => $('#column2Label').text($('#column2LabelInput').val()));
-    $('#column3LabelInput').on('input', () => $('#column3Label').text($('#column3LabelInput').val()));
-    $('#column4LabelInput').on('input', () => $('#column4Label').text($('#column4LabelInput').val()));
+    $('#colLabelInput').on('input', () => $('.colLabel').text($('#colLabelInput').val()));
+    $('#col1LabelInput').on('input', () => $('.col1Label').text($('#col1LabelInput').val()));
+    $('#col2LabelInput').on('input', () => $('.col2Label').text($('#col2LabelInput').val()));
+    $('#col3LabelInput').on('input', () => $('.col3Label').text($('#col3LabelInput').val()));
+    $('#col4LabelInput').on('input', () => $('.col4Label').text($('#col4LabelInput').val()));
 };
 const addWizardEventListeners = () => {
     $('#nextStep').on('click', () => {
@@ -386,7 +407,12 @@ const addIncidenceRateRatioEventListeners = () => {
             constructTableAndPlot();
         }
     });
-    $('#decimal').on('change', populateTableProbabilities);
+    $('#decimal').on('change', () => {
+        let decimal = parseInt($('#decimal').val());
+        decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+        populateTableProbabilities(decimal);
+        populateStatsTable(decimal);
+    });
 };
 const addSiteNameEventListeners = () => {
     $('#showSiteNames').on('change', () => populateSiteTable($('#showSiteNames').prop('checked')));
@@ -414,16 +440,16 @@ const addEventListeners = () => {
 
 const applyInputLabels = () => {
     // side-label
-    $('#mainRowLabel').text($('#mainRowLabelInput').val());
-    $('#row1Label').text($('#row1LabelInput').val());
-    $('#row2Label').text($('#row2LabelInput').val());
+    $('.rowLabel').text($('#rowLabelInput').val());
+    $('.row1Label').text($('#row1LabelInput').val());
+    $('.row2Label').text($('#row2LabelInput').val());
 
     // top-label
-    $('#mainColumnLabel').text($('#mainColumnLabelInput').val());
-    $('#column1Label').text($('#column1LabelInput').val());
-    $('#column2Label').text($('#column2LabelInput').val());
-    $('#column3Label').text($('#column3LabelInput').val());
-    $('#column4Label').text($('#column4LabelInput').val());
+    $('.colLabel').text($('#colLabelInput').val());
+    $('.col1Label').text($('#col1LabelInput').val());
+    $('.col2Label').text($('#col2LabelInput').val());
+    $('.col3Label').text($('#col3LabelInput').val());
+    $('.col4Label').text($('#col4LabelInput').val());
 };
 
 const resetData = () => {
