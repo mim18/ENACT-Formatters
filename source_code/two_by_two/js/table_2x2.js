@@ -149,16 +149,21 @@ const computeTotalSiteStats = () => {
 };
 const computeIndividualSiteStats = () => {
     const indiv = stats.indiv;
+    indiv.clear();
+
     [...validSites.keys()].forEach(site => {
         indiv.set(site, {
             r1c1: 0, r1c2: 0, r1c3: 0,
             r2c1: 0, r2c2: 0, r2c3: 0,
-            irr: 0, lnirr: 0, varlnirr: 0,
-            stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0
+            irr: 0, lnIrr: 0, varlnIrr: 0,
+            stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+            w1: 0, w1Percentage: 0,
+            w2: 0, w2Percentage: 0,
+            q: 0
         });
     });
 
-    // set the counts for r1c1,r1c2,r2c1,r2c2
+    // set the counts for r1c1,r1c2,r2c1,r2c2 for individual site
     dataFileRawData.forEach((siteCounts, id) => {
         siteCounts.forEach((counts, site) => {
             indiv.get(site)[id] = counts;
@@ -166,19 +171,53 @@ const computeIndividualSiteStats = () => {
     });
 
     // calculate the rate for group A and group B
+    let sumW1 = 0; // sum(w1)
+    let sumW1Sq = 0; // sum(w1^2)
     indiv.values().forEach(data => {
         data.r1c3 = data.r1c1 / data.r1c2;
         data.r2c3 = data.r2c1 / data.r2c2;
 
         data.irr = data.r1c3 / data.r2c3;
-        data.lnirr = Math.log(data.irr);
-        data.varlnirr = (1 / data.r1c1) + (1 / data.r2c1);
+        data.lnIrr = Math.log(data.irr);
+        data.varlnIrr = (1 / data.r1c1) + (1 / data.r2c1);
 
         data.stderr = Math.sqrt((1.0 / data.r1c2) + (1.0 / data.r2c2));
         data.ci = 1.96 * data.stderr;
         data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
         data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
         data.upper95CI = Math.exp(Math.log(data.irr) + data.ci);
+        data.w1 = 1 / data.varlnIrr;
+
+        sumW1 += data.w1;
+        sumW1Sq += data.w1 * data.w1;
+    });
+
+    let sumW1LnIrr = 0; // sum(lnIRR*w1Percentage)
+    indiv.values().forEach(data => {
+        data.w1Percentage = data.w1 / sumW1;
+
+        sumW1LnIrr += data.lnIrr * data.w1Percentage;
+    });
+
+    let sumQ = 0;
+    indiv.values().forEach(data => {
+        data.q = data.w1 * Math.pow((data.lnIrr - sumW1LnIrr), 2); // w1*(lnRR-weighted lnRR)^2
+
+        sumQ += data.q;
+    });
+
+    const tauSq1 = sumQ - (indiv.size - 1);
+    const tauSq2 = sumW1 - (sumW1Sq / sumW1);
+    const tau = tauSq1 / tauSq2;
+    let sumW2 = 0;
+    indiv.values().forEach(data => {
+        data.w2 = 1 / (data.varlnIrr + tau);
+
+        sumW2 += data.w2;
+    });
+
+    indiv.values().forEach(data => {
+        data.w2Percentage = data.w2 / sumW2;
     });
 };
 const computeStats = () => {
@@ -214,8 +253,10 @@ const populateStatsTable = (decimal) => {
             site,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
             roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
-            roundTo(stats.irr, decimal), roundTo(stats.lnirr, decimal), roundTo(stats.varlnirr, decimal),
-            roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal)
+            roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal), roundTo(stats.varlnIrr, decimal),
+            roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal),
+            roundTo(stats.w1, decimal), roundTo(stats.w1Percentage, decimal),
+            roundTo(stats.w2, decimal), roundTo(stats.w2Percentage, decimal)
         ];
         data.forEach((value, index) => {
             row.insertCell(index).innerHTML = value;
