@@ -158,8 +158,7 @@ const computeIndividualSiteStats = () => {
             irr: 0, lnIrr: 0, varlnIrr: 0,
             stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
             w1: 0, w1Percentage: 0,
-            w2: 0, w2Percentage: 0,
-            q: 0
+            w2: 0, w2Percentage: 0
         });
     });
 
@@ -201,9 +200,7 @@ const computeIndividualSiteStats = () => {
 
     let sumQ = 0;
     indiv.values().forEach(data => {
-        data.q = data.w1 * Math.pow((data.lnIrr - sumW1LnIrr), 2); // w1*(lnRR-weighted lnRR)^2
-
-        sumQ += data.q;
+        sumQ += data.w1 * Math.pow((data.lnIrr - sumW1LnIrr), 2); // w1*(lnRR-weighted lnRR)^2
     });
 
     const tauSq1 = sumQ - (indiv.size - 1);
@@ -261,6 +258,20 @@ const populateStatsTable = (decimal) => {
         data.forEach((value, index) => {
             row.insertCell(index).innerHTML = value;
         });
+
+        // add backgroud color to columns
+        row.cells[1].classList.add('table-success');
+        row.cells[2].classList.add('table-success');
+        row.cells[3].classList.add('table-warning');
+        row.cells[4].classList.add('table-warning');
+        row.cells[5].classList.add('table-success');
+        row.cells[6].classList.add('table-warning');
+        row.cells[10].classList.add('table-info');
+        row.cells[11].classList.add('table-info');
+        row.cells[12].classList.add('table-secondary');
+        row.cells[13].classList.add('table-secondary');
+        row.cells[14].classList.add('table-light');
+        row.cells[15].classList.add('table-light');
     });
 };
 const populateSiteTable = (showSiteNames) => {
