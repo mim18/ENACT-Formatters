@@ -83,7 +83,7 @@ const getRowDataValidSiteTask = (csvFile) => {
         });
     });
 };
-const readIn2ColumnRowDataTask = (csvFile, id, map) => {
+const readIn2ColumnRowDataTask = (csvFile, group, map) => {
     return new Promise((resolve, reject) => {
         Papa.parse(csvFile, {
             complete: function (results) {
@@ -99,7 +99,7 @@ const readIn2ColumnRowDataTask = (csvFile, id, map) => {
                         }
                     }
                 }
-                map.set(id, rawSiteCounts);
+                map.set(group, rawSiteCounts);
 
                 resolve();
             }
@@ -121,11 +121,23 @@ const tallyCounts = (rawData, countsForTenOrLess) => {
 };
 const computeCounts = () => {
     totalCounts.clear();
+    siteGroupCounts.clear();
 
     const countsForTenOrLess = parseInt($('#selectPatientCounts').val());
-    dataFileRawData.forEach((rawSiteCounts, id) => {
-        totalCounts.set(id, tallyCounts([...rawSiteCounts.values()], countsForTenOrLess));
-    });
+    if (countsForTenOrLess >= 1 && countsForTenOrLess <= 10) {
+        for (const [group, rawSiteCounts] of dataFileRawData) {
+            let sumCounts = 0;
+            const siteCounts = new Map();
+            for (const [site, rawCounts] of rawSiteCounts) {
+                const counts = (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts);
+                siteCounts.set(site, counts);
+                sumCounts += counts;
+            }
+
+            totalCounts.set(group, sumCounts);
+            siteGroupCounts.set(group, siteCounts);
+        }
+    }
 };
 
 const computeTotalSiteStats = () => {
@@ -163,9 +175,9 @@ const computeIndividualSiteStats = () => {
     });
 
     // set the counts for r1c1,r1c2,r2c1,r2c2 for individual site
-    dataFileRawData.forEach((siteCounts, id) => {
+    siteGroupCounts.forEach((siteCounts, group) => {
         siteCounts.forEach((counts, site) => {
-            indiv.get(site)[id] = counts;
+            indiv.get(site)[group] = counts;
         });
     });
 
@@ -303,8 +315,8 @@ const readInData = (callback) => {
     dataFileRawData.clear();
 
     const tasks = [];
-    dataFiles.forEach((file, id) => {
-        tasks.push(readIn2ColumnRowDataTask(file, id, dataFileRawData));
+    dataFiles.forEach((file, group) => {
+        tasks.push(readIn2ColumnRowDataTask(file, group, dataFileRawData));
     });
 
     Promise.all(tasks).then(() => {
