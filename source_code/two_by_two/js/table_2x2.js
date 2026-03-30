@@ -228,6 +228,12 @@ const computeIndividualSiteStats = () => {
     indiv.values().forEach(data => {
         data.w2Percentage = data.w2 / sumW2;
     });
+
+    // convert to percentage from decimal
+    indiv.values().forEach(data => {
+        data.w1Percentage *= 100;
+        data.w2Percentage *= 100;
+    });
 };
 const computeStats = () => {
     computeTotalSiteStats();
