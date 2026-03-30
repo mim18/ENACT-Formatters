@@ -199,215 +199,200 @@
                 </div>
                 <div class="tab-pane fade" id="step2">
                     <!-- generated table -->
-                    <div class="container p-4 mb-4 bg-body-tertiary">
-                        <div class="row gy-4">
-                            <!-- table and plot -->
-                            <div class="col-12">
-                                <div class="card border-secondary">
-                                    <div class="card-header text-bg-secondary">Incidence Rate Ratio</div>
-                                    <div class="card-body">
-                                        <div class="container">
-                                            <div class="row gy-5">
-                                                <!-- set patient counts for 10 or less -->
-                                                <div class="col-12 text-bg-light p-2">
-                                                    <div class="d-flex justify-content-between">
-                                                        <div class="row g-2 align-items-center">
-                                                            <div class="col-auto">
-                                                                <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
-                                                            </div>
-                                                            <div class="col-auto">
-                                                                <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
-                                                                    <option value="1">1</option>
-                                                                    <option value="2">2</option>
-                                                                    <option value="3">3</option>
-                                                                    <option value="4">4</option>
-                                                                    <option value="5">5</option>
-                                                                    <option value="6">6</option>
-                                                                    <option value="7">7</option>
-                                                                    <option value="8">8</option>
-                                                                    <option value="9">9</option>
-                                                                    <option value="10" selected="selected">10</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row g-2 align-items-center">
-                                                            <div class="col-auto">
-                                                                <label for="decimal" class="form-label m-0">Round Decimals:</label>
-                                                            </div>
-                                                            <div class="col-auto">
-                                                                <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                    <div class="card border-secondary mb-4">
+                        <div class="card-header text-bg-secondary">Incidence Rate Ratio</div>
+                        <div class="card-body">
+                            <div class="container">
+                                <div class="row gy-5">
+                                    <!-- set patient counts for 10 or less -->
+                                    <div class="col-12 text-bg-light p-2">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-auto">
+                                                    <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
                                                 </div>
-                                                <!-- end of set patient counts for 10 or less -->
-                                                <!-- incidence rate ratio table -->
-                                                <div class="col-12">
-                                                    <div class="d-flex align-items-center justify-content-between p-0">
-                                                        <h5 class="m-0">Aggregate Site Counts</h5>
-                                                        <a class="nav-link" id="exportAggregateData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
-                                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                        </a>
-                                                    </div>
-                                                    <hr class="mt-0" />
-                                                    <div class="row">
-                                                        <div class="col-sm-12 col-md-12 col-lg-8">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-borderless">
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td></td>
-                                                                            <td></td>
-                                                                            <td class="h5 text-center colLabel" colspan="2">Outcome</td>
-                                                                            <td></td>
-                                                                            <td></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td></td>
-                                                                            <td></td>
-                                                                            <td class="h6 text-center col1Label">Yes</td>
-                                                                            <td class="h6 text-center col2Label">No</td>
-                                                                            <td class="h6 text-center col3Label">Total # per 100 persons</td>
-                                                                            <td class="h6 text-center col4Label">Incidence rate ratio (95% CI)*</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text rowLabel">Exposure</span></td>
-                                                                            <td class="h6 align-middle text-center row1Label">Yes</td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
-                                                                            <td class="align-middle text-center border border-black border-2">Reference</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="h6 align-middle text-center row2Label">No</td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
-                                                                            <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm caption-top">
-                                                                    <caption class="h5">Statistics</caption>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td class="h6">SE for ln(IRR)</td>
-                                                                            <td id="stderr"></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="h6">Incidence rate ratio</td>
-                                                                            <td id="irr"></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="h6">Lower bound 95% CI</td>
-                                                                            <td id="ci_lower"></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="h6">Upper bound 95% CI</td>
-                                                                            <td id="ci_upper"></td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <div class="col-auto">
+                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                        <option value="7">7</option>
+                                                        <option value="8">8</option>
+                                                        <option value="9">9</option>
+                                                        <option value="10" selected="selected">10</option>
+                                                    </select>
                                                 </div>
-                                                <!-- end of incidence rate ratio table -->
-                                                <!-- forest plot stats -->
-                                                <div class="col-12">
-                                                    <div class="d-flex align-items-center justify-content-between p-0">
-                                                        <h5 class="m-0">Individual Site Counts</h5>
-                                                        <a class="nav-link" id="exportIndividualData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
-                                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                        </a>
-                                                    </div>
-                                                    <hr class="mt-0" />
-                                                    <div class="overflow-scroll" style="max-height: 300px;">
-                                                        <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
-                                                            <thead class="sticky-top">
-                                                                <tr>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col" colspan="2" class="text-center table-success"><span class="row1Label">A</span></th>
-                                                                    <th scope="col" colspan="2" class="text-center table-warning"><span class="row2Label">B</span></th>
-                                                                    <th scope="col" class="text-center table-success"><span class="row1Label">A</span></th>
-                                                                    <th scope="col" class="text-center table-warning"><span class="row2Label">B</span></th>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
-                                                                    <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
-                                                                    <th scope="col" colspan="2" class="text-center table-light">Random</th>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th scope="col">Site</th>
-                                                                    <th scope="col" class="table-success"><span class="col1Label">A</span></th>
-                                                                    <th scope="col" class="table-success"><span class="col2Label">TA</span></th>
-                                                                    <th scope="col" class="table-warning"><span class="col1Label">B</span></th>
-                                                                    <th scope="col" class="table-warning"><span class="col2Label">TB</span></th>
-                                                                    <th scope="col" class="table-success">Rate <span class="col1Label"><span>A Rate</span></span></th>
-                                                                    <th scope="col" class="table-warning">Rate <span class="col2Label"><span>B Rate</span></span></th>
-                                                                    <th scope="col">IRR</th>
-                                                                    <th scope="col">ln(IRR)</th>
-                                                                    <th scope="col">Var ln(IRR)</th>
-                                                                    <th scope="col" class="table-info">Low ln(IRR)</th>
-                                                                    <th scope="col" class="table-info">High ln(IRR)</th>
-                                                                    <th scope="col" class="table-secondary">W1</th>
-                                                                    <th scope="col" class="table-secondary">W1 %</th>
-                                                                    <th scope="col" class="table-light">W2</th>
-                                                                    <th scope="col" class="table-light">W2 %</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
+                                            </div>
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-auto">
+                                                    <label for="decimal" class="form-label m-0">Round Decimals:</label>
                                                 </div>
-                                                <!-- end of forest plot stats -->
-                                                <!-- plot -->
-                                                <!--
-                                                <div class="col-12">
-                                                    <div class="chart-container"></div>
+                                                <div class="col-auto">
+                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
                                                 </div>
-                                                -->
-                                                <!-- end of plot -->
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" />
+                                                <label class="form-check-label" for="showSiteNames">Show Site Names</label>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <!-- end of table and plot -->
-                            <!-- site names -->
-                            <div class="col-sm-12 col-md-12 col-lg-6">
-                                <div class="card border-secondary">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h6>
-                                        <div class="d-flex align-items-center">
-                                            <div class="pe-4 flex-grow-1">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" />
-                                                    <label class="form-check-label" for="showSiteNames">Show Site Names</label>
+                                    <!-- end of set patient counts for 10 or less -->
+                                    <!-- incidence rate ratio table -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Aggregate Site Counts</h5>
+                                            <a class="nav-link" id="exportAggregateData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" />
+                                        <div class="row">
+                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                                <div class="table-responsive">
+                                                    <table class="table table-borderless">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td class="h5 text-center colLabel" colspan="2">Outcome</td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td class="h6 text-center col1Label">Yes</td>
+                                                                <td class="h6 text-center col2Label">No</td>
+                                                                <td class="h6 text-center col3Label">Total # per 100 persons</td>
+                                                                <td class="h6 text-center col4Label">Incidence rate ratio (95% CI)*</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text rowLabel">Exposure</span></td>
+                                                                <td class="h6 align-middle text-center row1Label">Yes</td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
+                                                                <td class="align-middle text-center border border-black border-2">Reference</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6 align-middle text-center row2Label">No</td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-                                            <div class="ps-2">
-                                                <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
-                                                    <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                </a>
+                                            <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm caption-top">
+                                                        <caption class="h5">Statistics</caption>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="h6">SE for ln(IRR)</td>
+                                                                <td id="stderr"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Incidence rate ratio</td>
+                                                                <td id="irr"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Lower bound 95% CI</td>
+                                                                <td id="ci_lower"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Upper bound 95% CI</td>
+                                                                <td id="ci_upper"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="overflow-scroll" style="max-height: 200px;">
-                                            <table class="table table-sm table-striped w-100" id="siteNames">
+                                    <!-- end of incidence rate ratio table -->
+                                    <!-- forest plot stats -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Individual Site Counts</h5>
+                                            <a class="nav-link" id="exportIndividualData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" />
+                                        <div class="overflow-scroll" style="max-height: 300px;">
+                                            <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
+                                                <thead class="sticky-top">
+                                                    <tr>
+                                                        <th scope="col"></th>
+                                                        <th scope="col" colspan="2" class="text-center table-success"><span class="row1Label">A</span></th>
+                                                        <th scope="col" colspan="2" class="text-center table-warning"><span class="row2Label">B</span></th>
+                                                        <th scope="col" class="text-center table-success"><span class="row1Label">A</span></th>
+                                                        <th scope="col" class="text-center table-warning"><span class="row2Label">B</span></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
+                                                        <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
+                                                        <th scope="col" colspan="2" class="text-center table-light">Random</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="col">Site</th>
+                                                        <th scope="col" class="table-success"><span class="col1Label">A</span></th>
+                                                        <th scope="col" class="table-success"><span class="col2Label">TA</span></th>
+                                                        <th scope="col" class="table-warning"><span class="col1Label">B</span></th>
+                                                        <th scope="col" class="table-warning"><span class="col2Label">TB</span></th>
+                                                        <th scope="col" class="table-success">Rate <span class="col1Label"><span>A Rate</span></span></th>
+                                                        <th scope="col" class="table-warning">Rate <span class="col2Label"><span>B Rate</span></span></th>
+                                                        <th scope="col">IRR</th>
+                                                        <th scope="col">ln(IRR)</th>
+                                                        <th scope="col">Var ln(IRR)</th>
+                                                        <th scope="col" class="table-info">Low ln(IRR)</th>
+                                                        <th scope="col" class="table-info">High ln(IRR)</th>
+                                                        <th scope="col" class="table-secondary">W1</th>
+                                                        <th scope="col" class="table-secondary">W1 %</th>
+                                                        <th scope="col" class="table-light">W2</th>
+                                                        <th scope="col" class="table-light">W2 %</th>
+                                                    </tr>
+                                                </thead>
                                                 <tbody></tbody>
                                             </table>
                                         </div>
                                     </div>
+                                    <!-- end of forest plot stats -->
+                                    <!-- show included sites -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
+                                            <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" />
+                                        <div class="col-sm-12 col-md-12 col-lg-6">
+                                            <div class="overflow-scroll" style="max-height: 200px;">
+                                                <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end of show included sites -->
+                                    <!-- plot -->
+                                    <!--
+                                    <div class="col-12">
+                                        <div class="chart-container"></div>
+                                    </div>
+                                    -->
+                                    <!-- end of plot -->
                                 </div>
                             </div>
-                            <!-- end of site names -->
                         </div>
                     </div>
                     <!-- end of generated table -->

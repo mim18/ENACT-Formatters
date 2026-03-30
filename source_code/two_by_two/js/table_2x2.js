@@ -251,7 +251,7 @@ const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-const populateStatsTable = (decimal) => {
+const populateStatsTable = (decimal, showSiteNames) => {
     const tbody = document.querySelector('#stats tbody');
     tbody.innerHTML = '';
 
@@ -259,7 +259,7 @@ const populateStatsTable = (decimal) => {
     indiv.forEach((stats, site) => {
         const row = tbody.insertRow(-1);
         const data = [
-            site,
+            site = showSiteNames ? site : validSites.get(site),
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
             roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
             roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal), roundTo(stats.varlnIrr, decimal),
@@ -298,17 +298,17 @@ const populateSiteTable = (showSiteNames) => {
     });
 };
 const constructTableAndPlot = () => {
-    computeStats();
-
-    applyInputLabels();
-
-    populateTableCounts();
-    populateSiteTable($('#showSiteNames').prop('checked'));
-
     let decimal = parseInt($('#decimal').val());
     decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+
+    const showSiteNames = $('#showSiteNames').prop('checked');
+
+    computeStats();
+    applyInputLabels();
+    populateTableCounts();
+    populateSiteTable(showSiteNames);
     populateTableProbabilities(decimal);
-    populateStatsTable(decimal);
+    populateStatsTable(decimal, showSiteNames);
 };
 
 const readInData = (callback) => {
@@ -347,7 +347,6 @@ const saveInputData = (fileId, csvFile) => {
         $(`#filename_${fileId}`).html(htmlCode);
     }
 };
-
 const generateTableAndPlot = () => {
     if (!$('#inputLabels').valid()) {
         return false;
@@ -479,7 +478,15 @@ const addIncidenceRateRatioEventListeners = () => {
     });
 };
 const addSiteNameEventListeners = () => {
-    $('#showSiteNames').on('change', () => populateSiteTable($('#showSiteNames').prop('checked')));
+    $('#showSiteNames').on('change', () => {
+        let decimal = parseInt($('#decimal').val());
+        decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+
+        const showSiteNames = $('#showSiteNames').prop('checked');
+
+        populateSiteTable(showSiteNames);
+        populateStatsTable(decimal, showSiteNames);
+    });
 
     $('#exportSiteNames').on('click', (event) => {
         event.preventDefault();
