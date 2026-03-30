@@ -353,10 +353,8 @@ const saveInputData = (fileId, csvFile) => {
         $(`#filename_${fileId}`).html(htmlCode);
     }
 };
+
 const generateTableAndPlot = () => {
-    if (!$('#inputLabels').valid()) {
-        return false;
-    }
     if (dataFiles.size < 4) {
         (new bootstrap.Modal('#fileRequired')).show();
         return false;
@@ -387,6 +385,73 @@ const getSiteNameContents = () => {
     });
 
     return content.join('\r\n');
+};
+
+const switchToEditMode = (name) => {
+    const labelElement = $(`#${name}`);
+    const inputElement = $(`#${name}Input`);
+
+    // Set the input's value to the label's current text
+    inputElement.val(labelElement.text().trim());
+
+    // Hide the label and show the input
+    labelElement.hide();
+    inputElement.show();
+
+    // Focus the input field and select all its text
+    inputElement.focus();
+};
+const switchToLabelMode = (name) => {
+    const labelElement = $(`#${name}`);
+    const inputElement = $(`#${name}Input`);
+    const textElement = $(`.${name}Text`);
+
+    // Update the label's text with the input's value
+    labelElement.text(inputElement.val().trim());
+    textElement.text(inputElement.val().trim());
+
+    // Hide the input and show the label
+    inputElement.hide();
+    labelElement.show();
+};
+const addLabelEventListeners = () => {
+    const saveOnEnter = (event, name) => {
+        if (event.key === 'Enter') {
+            switchToLabelMode(name);
+        }
+    };
+
+    $('#rowLabel').on('dblclick', () => switchToEditMode('rowLabel'));
+    $('#rowLabelInput').on('focusout', () => switchToLabelMode('rowLabel'));
+    $('#rowLabelInput').on('keypress', event => saveOnEnter(event, 'rowLabel'));
+
+    $('#row1Label').on('dblclick', () => switchToEditMode('row1Label'));
+    $('#row1LabelInput').on('focusout', () => switchToLabelMode('row1Label'));
+    $('#row1LabelInput').on('keypress', event => saveOnEnter(event, 'row1Label'));
+
+    $('#row2Label').on('dblclick', () => switchToEditMode('row2Label'));
+    $('#row2LabelInput').on('focusout', () => switchToLabelMode('row2Label'));
+    $('#row2LabelInput').on('keypress', event => saveOnEnter(event, 'row2Label'));
+
+    $('#colLabel').on('dblclick', () => switchToEditMode('colLabel'));
+    $('#colLabelInput').on('focusout', () => switchToLabelMode('colLabel'));
+    $('#colLabelInput').on('keypress', event => saveOnEnter(event, 'colLabel'));
+
+    $('#col1Label').on('dblclick', () => switchToEditMode('col1Label'));
+    $('#col1LabelInput').on('focusout', () => switchToLabelMode('col1Label'));
+    $('#col1LabelInput').on('keypress', event => saveOnEnter(event, 'col1Label'));
+
+    $('#col2Label').on('dblclick', () => switchToEditMode('col2Label'));
+    $('#col2LabelInput').on('focusout', () => switchToLabelMode('col2Label'));
+    $('#col2LabelInput').on('keypress', event => saveOnEnter(event, 'col2Label'));
+
+    $('#col3Label').on('dblclick', () => switchToEditMode('col3Label'));
+    $('#col3LabelInput').on('focusout', () => switchToLabelMode('col3Label'));
+    $('#col3LabelInput').on('keypress', event => saveOnEnter(event, 'col3Label'));
+
+    $('#col4Label').on('dblclick', () => switchToEditMode('col4Label'));
+    $('#col4LabelInput').on('focusout', () => switchToLabelMode('col4Label'));
+    $('#col4LabelInput').on('keypress', event => saveOnEnter(event, 'col4Label'));
 };
 
 const addFileDrapDropEventListeners = () => {
@@ -439,19 +504,6 @@ const addFileSelectEventListeners = () => {
         event.target.value = "";
     };
     $('.file_select').on('change', handleFileSelect);
-};
-const addLabelEventListeners = () => {
-    // bind the side-label input event to update the display dynamically
-    $('#rowLabelInput').on('input', () => $('.rowLabel').text($('#rowLabelInput').val()));
-    $('#row1LabelInput').on('input', () => $('.row1Label').text($('#row1LabelInput').val()));
-    $('#row2LabelInput').on('input', () => $('.row2Label').text($('#row2LabelInput').val()));
-
-    // bind the top-label input event to update the display dynamically
-    $('#colLabelInput').on('input', () => $('.colLabel').text($('#colLabelInput').val()));
-    $('#col1LabelInput').on('input', () => $('.col1Label').text($('#col1LabelInput').val()));
-    $('#col2LabelInput').on('input', () => $('.col2Label').text($('#col2LabelInput').val()));
-    $('#col3LabelInput').on('input', () => $('.col3Label').text($('#col3LabelInput').val()));
-    $('#col4LabelInput').on('input', () => $('.col4Label').text($('#col4LabelInput').val()));
 };
 const addWizardEventListeners = () => {
     $('#nextStep').on('click', () => {
@@ -507,9 +559,9 @@ const addSiteNameEventListeners = () => {
     });
 };
 const addEventListeners = () => {
+    addLabelEventListeners();
     addFileDrapDropEventListeners();
     addFileSelectEventListeners();
-    addLabelEventListeners();
     addWizardEventListeners();
     addIncidenceRateRatioEventListeners();
     addSiteNameEventListeners();
@@ -536,21 +588,5 @@ const resetData = () => {
 
 $(document).ready(function () {
     addEventListeners();
-
-    $('#inputLabels').validate({
-        errorElement: "em",
-        errorClass: 'text-danger',
-        errorPlacement: function (error, element) {
-            error.addClass("invalid-feedback");
-            error.insertAfter(element);
-        },
-        highlight: function (element) {
-            $(element).addClass("is-invalid").removeClass("is-valid");
-        },
-        unhighlight: function (element) {
-            $(element).addClass("is-valid").removeClass("is-invalid");
-        }
-    });
-
     resetData();
 });
