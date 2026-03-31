@@ -540,8 +540,9 @@ const addIncidenceRateRatioEventListeners = () => {
     $('#decimal').on('change', () => {
         let decimal = parseInt($('#decimal').val());
         decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+
         populateTableProbabilities(decimal);
-        populateStatsTable(decimal);
+        populateStatsTable(decimal, $('#showSiteNames').prop('checked'));
     });
 };
 const addSiteNameEventListeners = () => {
