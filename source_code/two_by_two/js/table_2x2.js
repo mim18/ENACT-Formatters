@@ -396,7 +396,7 @@ const switchToLabelMode = (name) => {
     const textElement = $(`.${name}Text`);
 
     // Update the label's text with the input's value
-    labelElement.text(inputElement.val().trim());
+    labelElement.html(`${inputElement.val().trim()} <i class="bi bi-pencil"></i>`);
     textElement.text(inputElement.val().trim());
 
     if ($('#inputLabels').valid()) {
