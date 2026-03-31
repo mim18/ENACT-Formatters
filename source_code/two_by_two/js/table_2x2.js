@@ -107,18 +107,6 @@ const readIn2ColumnRowDataTask = (csvFile, group, map) => {
     });
 };
 
-const tallyCounts = (rawData, countsForTenOrLess) => {
-    let total = 0;
-    rawData.forEach(count => {
-        if (count === '10 patients or fewer') {
-            total += countsForTenOrLess;
-        } else {
-            total += parseInt(count);
-        }
-    });
-
-    return total;
-};
 const computeCounts = () => {
     totalCounts.clear();
     siteGroupCounts.clear();
@@ -304,10 +292,8 @@ const populateSiteTable = (showSiteNames) => {
     });
 };
 const constructTableAndPlot = () => {
-    let decimal = parseInt($('#decimal').val());
-    decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
-
     const showSiteNames = $('#showSiteNames').prop('checked');
+    const decimal = parseInt($('#decimal').val());
 
     computeStats();
     applyInputLabels();
@@ -538,8 +524,7 @@ const addIncidenceRateRatioEventListeners = () => {
         }
     });
     $('#decimal').on('change', () => {
-        let decimal = parseInt($('#decimal').val());
-        decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
+        const decimal = parseInt($('#decimal').val());
 
         populateTableProbabilities(decimal);
         populateStatsTable(decimal, $('#showSiteNames').prop('checked'));
@@ -547,10 +532,8 @@ const addIncidenceRateRatioEventListeners = () => {
 };
 const addSiteNameEventListeners = () => {
     $('#showSiteNames').on('change', () => {
-        let decimal = parseInt($('#decimal').val());
-        decimal = (decimal >= 1 && decimal <= 6) ? decimal : 2;
-
         const showSiteNames = $('#showSiteNames').prop('checked');
+        const decimal = parseInt($('#decimal').val());
 
         populateSiteTable(showSiteNames);
         populateStatsTable(decimal, showSiteNames);

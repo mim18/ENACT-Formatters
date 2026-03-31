@@ -183,7 +183,7 @@
                                                     <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
                                                 </div>
                                                 <div class="col-auto">
-                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts" required="required">
+                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
                                                         <option value="1">1</option>
                                                         <option value="2">2</option>
                                                         <option value="3">3</option>
@@ -202,7 +202,14 @@
                                                     <label for="decimal" class="form-label m-0">Round Decimals:</label>
                                                 </div>
                                                 <div class="col-auto">
-                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" required="required" />
+                                                    <select class="form-select" id="decimal" aria-label="Round decimal">
+                                                        <option value="1">1</option>
+                                                        <option value="2" selected="selected">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch">
