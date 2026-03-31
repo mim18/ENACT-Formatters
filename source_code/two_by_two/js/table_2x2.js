@@ -337,18 +337,25 @@ const saveInputData = (fileId, csvFile) => {
 
         const htmlCode = `<div class="alert alert-success p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
         $(`#filename_${fileId}`).html(htmlCode);
+
+        // remove error alerts
+        $(`#droparea_${fileId}`).removeClass('bg-danger-subtle');
+        if (dataFiles.size >= 4) {
+            $('#dataErrorMsg').hide();
+        }
     }
 };
 
-const generateTableAndPlot = () => {
-    if (!$('#inputLabels').valid()) {
-        return false;
-    }
-    if (dataFiles.size < 4) {
-        (new bootstrap.Modal('#fileRequired')).show();
-        return false;
-    }
+const advanceToNextTab = () => {
+    constructTableAndPlot();
 
+    const nextTab = $('.nav-link.active').parent().next().find('button');
+    nextTab.removeClass('disabled');
+
+    (new bootstrap.Tab(nextTab)).show();
+};
+
+const generateTableAndPlot = () => {
     validSites.clear();
     Promise.all(getValidSiteTasks()).then((siteNames) => {
         let sites = new Set();
@@ -359,7 +366,7 @@ const generateTableAndPlot = () => {
         const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
         Array.from(sites).forEach((site, index) => validSites.set(site, `Site ${shuffledIndexes[index]}`));
 
-        readInData(constructTableAndPlot);
+        readInData(advanceToNextTab);
     });
 
     return true;
@@ -374,6 +381,29 @@ const getSiteNameContents = () => {
     });
 
     return content.join('\r\n');
+};
+
+const validInputFiles = () => {
+    if (dataFiles.size < 4) {
+        for (const rc of ['r1c1', 'r1c2', 'r2c1', 'r2c2']) {
+            if (dataFiles.has(rc)) {
+                continue;
+            }
+
+            $(`#droparea_${rc}`).addClass('bg-danger-subtle');
+            $('#dataErrorMsg').show();
+        }
+
+        return false;
+    }
+
+    $('.dropArea').removeClass('bg-danger-subtle');
+    $('#dataErrorMsg').hide();
+
+    return true;
+};
+const isValidInput = () => {
+    return $('#inputLabels').valid() && validInputFiles();
 };
 
 const switchToEditMode = (name) => {
@@ -502,11 +532,8 @@ const addFileSelectEventListeners = () => {
 };
 const addWizardEventListeners = () => {
     $('#nextStep').on('click', () => {
-        if (generateTableAndPlot()) {
-            const nextTab = $('.nav-link.active').parent().next().find('button');
-            nextTab.removeClass('disabled');
-
-            (new bootstrap.Tab(nextTab)).show();
+        if (isValidInput()) {
+            generateTableAndPlot();
         }
     });
 
