@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-        <style>.rotate-text{writing-mode:sideways-lr;padding-right:10px}.dropArea{color:#0f3c4b;background-color:#f9f9fa;transition:outline-offset 0.2s ease-out,outline-color 0.3s ease-in-out,background-color 0.2s ease-out}.dropArea.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#f3f5f7}</style>
+        <style>.rotate-text{writing-mode:sideways-lr;padding-right:10px}.dropArea{color:#0f3c4b;background-color:#f9f9fa;transition:outline-offset 0.2s ease-out,outline-color 0.3s ease-in-out,background-color 0.2s ease-out}.dropArea.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#f3f5f7}table#stats tbody tr:hover td{background-color:#ff0}</style>
     </head>
     <body>
         <div class="container my-5">
@@ -17,332 +17,335 @@
                     <button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#step1">Input Data</button>
                 </li>
                 <li class="nav-item flex-fill">
-                    <button class="nav-link w-100 disabled" data-bs-toggle="pill" data-bs-target="#step2">Table &amp; Plot</button>
+                    <button class="nav-link w-100 disabled" id="step2btn" data-bs-toggle="pill" data-bs-target="#step2">Table &amp; Plot</button>
                 </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
                 <div class="tab-pane fade show active" id="step1">
-                    <!-- user's input -->
-                    <div class="p-4 bg-body-tertiary">
-                        <div class="container">
-                            <div class="row gy-4">
-                                <!-- label inputs -->
-                                <div class="col-12">
-                                    <div class="card border-secondary">
-                                        <div class="card-header text-bg-secondary">Labels</div>
-                                        <div class="card-body">
-                                            <form id="inputLabels">
-                                                <div class="row">
-                                                    <!-- side labels -->
-                                                    <div class="col-sm-12 col-md-12 col-lg-6 mb-4">
-                                                        <div class="card-title h5 mb-3">Side Labels</div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Row Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="mainRowLabelInput" name="mainRowLabelInput" value="Exposure" required="required" />
-                                                        </div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Row 1 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="row1LabelInput" name="row1LabelInput" value="Yes" required="required" />
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text">Row 2 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="row2LabelInput" name="row2LabelInput" value="No" required="required" />
-                                                        </div>
-                                                    </div>
-                                                    <!-- end of side labels -->
-                                                    <!-- top labels -->
-                                                    <div class="col-sm-12 col-md-12 col-lg-6">
-                                                        <div class="card-title h5 mb-3">Top Labels</div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Column Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="mainColumnLabelInput" name="mainColumnLabelInput" value="Outcome" required="required" />
-                                                        </div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Column 1 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column1LabelInput" name="column1LabelInput" value="Yes" required="required" />
-                                                        </div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Column 2 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column2LabelInput" name="column2LabelInput" value="No" required="required" />
-                                                        </div>
-                                                        <div class="input-group mb-3">
-                                                            <span class="input-group-text">Column 3 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column3LabelInput" name="column3LabelInput" value="Total # per 100 persons" required="required" />
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text">Column 4 Label</span>
-                                                            <input type="text" aria-label="Row group" class="form-control" id="column4LabelInput" name="column4LabelInput" value="Incidence rate ratio (95% CI)*" required="required" />
-                                                        </div>
-                                                    </div>
-                                                    <!-- end of top labels -->
+                    <div class="card border-secondary mb-4">
+                        <div class="card-header text-bg-secondary">Input Data</div>
+                        <div class="card-body">
+                            <p></p>
+                            <div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill"></i> Double click on the <span class="text-success fw-bolder">green label</span> to edit.</div>
+                            <form id="inputLabels">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-center" colspan="2">
+                                                <label for="colLabelInput">
+                                                    <span class="h5 text-success fw-bolder" id="colLabel">Outcome</span>
+                                                    <input type="text" aria-label="Column input label" class="form-control" id="colLabelInput" name="colLabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-center">
+                                                <label for="col1LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col1Label">Yes</span>
+                                                    <input type="text" aria-label="Column 1 input label" class="form-control" id="col1LabelInput" name="col1LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col2LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col2Label">No</span>
+                                                    <input type="text" aria-label="Column 2 input label" class="form-control" id="col2LabelInput" name="col2LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col3LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col3Label">Total # per 100 persons</span>
+                                                    <input type="text" aria-label="Column 3 input label" class="form-control" id="col3LabelInput" name="col3LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col4LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col4Label">Incidence rate ratio (95% CI)*</span>
+                                                    <input type="text" aria-label="Column 4 input label" class="form-control" id="col4LabelInput" name="col4LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="align-middle text-center p-0" rowspan="2">
+                                                <label for="rowLabelInput">
+                                                    <span class="h5 rotate-text text-success fw-bolder" id="rowLabel">Exposure</span>
+                                                    <input type="text" aria-label="Row input label" class="form-control" id="rowLabelInput" name="rowLabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <label for="row1LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="row1Label">Yes</span>
+                                                    <input type="text" aria-label="Row 1 input label" class="form-control" id="row1LabelInput" name="row1LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r1c1">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r1c1">Choose CSV file</label>
+                                                    </p>
+                                                    <p>(Reference Data)</p>
+                                                    <div id="filename_r1c1"></div>
                                                 </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- end of label inputs -->
-                                <!-- data inputs -->
-                                <div class="col-12">
-                                    <div class="card border-secondary">
-                                        <div class="card-header text-bg-secondary">Data</div>
-                                        <div class="card-body">
-                                            <div class="container">
-                                                <div class="row gy-4">
-                                                    <!-- input files -->
-                                                    <div class="col-12">
-                                                        <table class="table table-borderless">
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td></td>
-                                                                    <td></td>
-                                                                    <td class="h5 text-center" colspan="2" id="mainColumnLabel">Outcome</td>
-                                                                    <td></td>
-                                                                    <td></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td></td>
-                                                                    <td></td>
-                                                                    <td class="h6 text-center" id="column1Label">Yes</td>
-                                                                    <td class="h6 text-center" id="column2Label">No</td>
-                                                                    <td class="h6 text-center" id="column3Label">Total # per 100 persons</td>
-                                                                    <td class="h6 text-center" id="column4Label">Incidence rate ratio (95% CI)*</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="h5 align-middle text-center p-0" rowspan="2"><span class="rotate-text" id="mainRowLabel">Exposure</span></td>
-                                                                    <td class="h6 align-middle text-center" id="row1Label">Yes</td>
-                                                                    <td class="border border-black border-2">
-                                                                        <div class="text-center p-4 dropArea" id="droparea_r1c1">
-                                                                            <p>
-                                                                                Drag &amp; Drop or
-                                                                                <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                                                <label class="btn btn-secondary" for="file_r1c1">Choose CSV file</label>
-                                                                            </p>
-                                                                            <p>(Reference Data)</p>
-                                                                            <div id="filename_r1c1"></div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="border border-black border-2">
-                                                                        <div class="text-center p-4 dropArea" id="droparea_r1c2">
-                                                                            <p>
-                                                                                Drag &amp; Drop or
-                                                                                <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                                                <label class="btn btn-secondary" for="file_r1c2">Choose CSV file</label>
-                                                                            </p>
-                                                                            <p>(Reference Data)</p>
-                                                                            <div id="filename_r1c2"></div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="border border-2"></td>
-                                                                    <td class="align-middle text-center border border-2">Reference</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td class="h6 align-middle text-center" id="row2Label">No</td>
-                                                                    <td class="border border-black border-2">
-                                                                        <div class="text-center p-4 dropArea" id="droparea_r2c1">
-                                                                            <p>
-                                                                                Drag &amp; Drop or
-                                                                                <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                                                <label class="btn btn-secondary" for="file_r2c1">Choose CSV file</label>
-                                                                            </p>
-                                                                            <div id="filename_r2c1"></div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="border border-black border-2">
-                                                                        <div class="text-center p-4 dropArea" id="droparea_r2c2">
-                                                                            <p>
-                                                                                Drag &amp; Drop or
-                                                                                <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                                                <label class="btn btn-secondary" for="file_r2c2">Choose CSV file</label>
-                                                                            </p>
-                                                                            <div id="filename_r2c2"></div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="border border-2"></td>
-                                                                    <td class="border border-2"></td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <!-- end of input files -->
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r1c2">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r1c2">Choose CSV file</label>
+                                                    </p>
+                                                    <p>(Reference Data)</p>
+                                                    <div id="filename_r1c2"></div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- end of data inputs -->
-                            </div>
+                                            </td>
+                                            <td class="border border-2"></td>
+                                            <td class="align-middle text-center border border-2">Reference</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="align-middle text-center">
+                                                <label for="row2LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="row2Label">No</span>
+                                                    <input type="text" aria-label="Row 2 input label" class="form-control" id="row2LabelInput" name="row2LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r2c1">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r2c1">Choose CSV file</label>
+                                                    </p>
+                                                    <div id="filename_r2c1"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r2c2">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r2c2">Choose CSV file</label>
+                                                    </p>
+                                                    <div id="filename_r2c2"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-2"></td>
+                                            <td class="border border-2"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
                         </div>
                     </div>
-                    <!-- end of user's input -->
                     <div class="d-grid gap-0 col-4 mx-auto">
                         <button type="button" class="btn btn-primary" id="nextStep"><i class="bi bi-arrow-right"></i> Next</button>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="step2">
                     <!-- generated table -->
-                    <div class="p-4 mb-4 bg-body-tertiary">
-                        <div class="container">
-                            <div class="row gy-4">
-                                <!-- table and plot -->
-                                <div class="col-12">
-                                    <div class="card border-secondary">
-                                        <div class="card-header text-bg-secondary d-flex align-items-center justify-content-between">
-                                            <h6 class="m-0">Incidence Rate Ratio</h6>
-                                            <a class="nav-link" id="exportData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
+                    <div class="card border-secondary mb-4">
+                        <div class="card-header text-bg-secondary">Incidence Rate Ratio</div>
+                        <div class="card-body">
+                            <div class="container">
+                                <div class="row gy-5">
+                                    <!-- set patient counts for 10 or less -->
+                                    <div class="col-12 text-bg-light p-2">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-auto">
+                                                    <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts" required="required">
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                        <option value="7">7</option>
+                                                        <option value="8">8</option>
+                                                        <option value="9">9</option>
+                                                        <option value="10" selected="selected">10</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-auto">
+                                                    <label for="decimal" class="form-label m-0">Round Decimals:</label>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" required="required" />
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" required="required" />
+                                                <label class="form-check-label" for="showSiteNames">Show Site Names</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end of set patient counts for 10 or less -->
+                                    <!-- incidence rate ratio table -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Aggregate Site Counts</h5>
+                                            <a class="nav-link" id="exportAggregateData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
                                                 <i class="bi bi-file-earmark-arrow-down fs-4"></i>
                                             </a>
                                         </div>
-                                        <div class="card-body">
-                                            <div class="container">
-                                                <div class="row gy-4">
-                                                    <!-- set patient counts for 10 or less -->
-                                                    <div class="col-12 text-bg-light p-2">
-                                                        <div class="d-flex justify-content-between">
-                                                            <div class="row g-2 align-items-center">
-                                                                <div class="col-auto">
-                                                                    <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
-                                                                </div>
-                                                                <div class="col-auto">
-                                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
-                                                                        <option value="0">0</option>
-                                                                        <option value="1">1</option>
-                                                                        <option value="2">2</option>
-                                                                        <option value="3">3</option>
-                                                                        <option value="4">4</option>
-                                                                        <option value="5">5</option>
-                                                                        <option value="6">6</option>
-                                                                        <option value="7">7</option>
-                                                                        <option value="8">8</option>
-                                                                        <option value="9">9</option>
-                                                                        <option value="10" selected="selected">10</option>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="row g-2 align-items-center">
-                                                                <div class="col-auto">
-                                                                    <label for="decimal" class="form-label m-0">Round Decimal:</label>
-                                                                </div>
-                                                                <div class="col-auto">
-                                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <!-- end of set patient counts for 10 or less -->
-                                                    <!-- incidence rate ratio table -->
-                                                    <div class="col-12">
-                                                        <div class="row">
-                                                            <div class="col-sm-12 col-md-12 col-lg-8">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-borderless">
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td></td>
-                                                                                <td></td>
-                                                                                <td class="h5 text-center" colspan="2" id="tableColumnLabel">Outcome</td>
-                                                                                <td></td>
-                                                                                <td></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td></td>
-                                                                                <td></td>
-                                                                                <td class="h6 text-center" id="tableColumn1Label">Yes</td>
-                                                                                <td class="h6 text-center" id="tableColumn2Label">No</td>
-                                                                                <td class="h6 text-center" id="tableColumn3Label">Total # per 100 persons</td>
-                                                                                <td class="h6 text-center" id="tableColumn4Label">Incidence rate ratio (95% CI)*</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text" id="tableRowLabel">Exposure</span></td>
-                                                                                <td class="h6 align-middle text-center" id="tableRow1Label">Yes</td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
-                                                                                <td class="align-middle text-center border border-black border-2">Reference</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="h6 align-middle text-center" id="tableRow2Label">No</td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
-                                                                                <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-sm caption-top">
-                                                                        <caption class="h5">Statistics</caption>
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td class="h6">SE for ln(IRR)</td>
-                                                                                <td id="stderr"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="h6">Incidence rate ratio</td>
-                                                                                <td id="irr"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="h6">Lower bound 95% CI</td>
-                                                                                <td id="ci_lower"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="h6">Upper bound 95% CI</td>
-                                                                                <td id="ci_upper"></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <!-- end of incidence rate ratio table -->
-                                                    <!-- plot -->
-                                                    <div class="col-12">
-                                                        <div class="chart-container"></div>
-                                                    </div>
-                                                    <!-- end of plot -->
+                                        <hr class="mt-0" />
+                                        <div class="row">
+                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                                <div class="table-responsive">
+                                                    <table class="table table-borderless">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td colspan="2" class="h5 text-center colLabelText">Outcome</td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td class="h6 text-center col1LabelText">Yes</td>
+                                                                <td class="h6 text-center col2LabelText">No</td>
+                                                                <td class="h6 text-center col3LabelText">Total # per 100 persons</td>
+                                                                <td class="h6 text-center col4LabelText">Incidence rate ratio (95% CI)*</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h5 align-middle text-center" rowspan="2"><span class="rotate-text rowLabelText">Exposure</span></td>
+                                                                <td class="h6 align-middle text-center row1LabelText">Yes</td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c1"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c2"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r1c3"></td>
+                                                                <td class="align-middle text-center border border-black border-2">Reference</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6 align-middle text-center row2LabelText">No</td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c1"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c2"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c3"></td>
+                                                                <td class="align-middle text-center border border-black border-2" id="r2c4"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12 col-md-12 col-lg-4 text-bg-light">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm caption-top">
+                                                        <caption class="h5">Statistics</caption>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="h6">SE for ln(IRR)</td>
+                                                                <td id="stderr"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Incidence rate ratio</td>
+                                                                <td id="irr"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Lower bound 95% CI</td>
+                                                                <td id="ci_lower"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="h6">Upper bound 95% CI</td>
+                                                                <td id="ci_upper"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <!-- end of table and plot -->
-                                <!-- site names -->
-                                <div class="col-sm-12 col-md-12 col-lg-6">
-                                    <div class="card border-secondary">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <h6 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h6>
-                                            <div class="d-flex align-items-center">
-                                                <div class="pe-4 flex-grow-1">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" />
-                                                        <label class="form-check-label" for="showSiteNames">Show Site Names</label>
-                                                    </div>
-                                                </div>
-                                                <div class="ps-2">
-                                                    <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
-                                                        <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
+                                    <!-- end of incidence rate ratio table -->
+                                    <!-- forest plot stats -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Individual Site Counts</h5>
+                                            <a class="nav-link" id="exportIndividualData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export data">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
                                         </div>
-                                        <!--<div class="card-header text-bg-success"></div>-->
-                                        <div class="card-body">
+                                        <hr class="mt-0" />
+                                        <div class="overflow-scroll" style="max-height: 300px;">
+                                            <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
+                                                <thead class="sticky-top">
+                                                    <tr>
+                                                        <th scope="col"></th>
+                                                        <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                        <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                        <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                        <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col"></th>
+                                                        <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
+                                                        <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
+                                                        <th scope="col" colspan="2" class="text-center table-light">Random</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="col">Site</th>
+                                                        <th scope="col" class="table-success"><span class="col1LabelText">A</span></th>
+                                                        <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
+                                                        <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
+                                                        <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
+                                                        <th scope="col" class="table-success">Rate <span class="col1LabelText">A</span></th>
+                                                        <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
+                                                        <th scope="col">IRR</th>
+                                                        <th scope="col">ln(IRR)</th>
+                                                        <th scope="col">Var ln(IRR)</th>
+                                                        <th scope="col" class="table-info">Low ln(IRR)</th>
+                                                        <th scope="col" class="table-info">High ln(IRR)</th>
+                                                        <th scope="col" class="table-secondary">W1</th>
+                                                        <th scope="col" class="table-secondary">W1 %</th>
+                                                        <th scope="col" class="table-light">W2</th>
+                                                        <th scope="col" class="table-light">W2 %</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- end of forest plot stats -->
+                                    <!-- show included sites -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
+                                            <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" />
+                                        <div class="col-sm-12 col-md-12 col-lg-6">
                                             <div class="overflow-scroll" style="max-height: 200px;">
-                                                <table class="table table-sm table-striped w-100" id="siteNames">
+                                                <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
                                                     <tbody></tbody>
                                                 </table>
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- end of show included sites -->
+                                    <!-- plot -->
+                                    <!--
+                                    <div class="col-12">
+                                        <div class="chart-container"></div>
+                                    </div>
+                                    -->
+                                    <!-- end of plot -->
                                 </div>
-                                <!-- end of site names -->
                             </div>
                         </div>
                     </div>
-                    <!-- generated table -->
+                    <!-- end of generated table -->
                     <div class="d-grid gap-0 col-4 mx-auto">
                         <button type="button" class="btn btn-primary" id="prevStep"><i class="bi bi-arrow-left"></i> Back</button>
                     </div>
@@ -371,13 +374,14 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-        <script>const dataFiles=new Map();const dataFileRawData=new Map();const validSites=new Map();const totalCounts=new Map();const dataObj={table:{r1c1:0,r1c2:0,r1c3:0,r2c1:0,r2c2:0,r2c3:0},stats:{irr:0,stderr:0,ci:0,lower95CI:0,upper95CI:0}};const shuffle=(array)=>{let randomIndex;let currentIndex=array.length;while(currentIndex!==0){randomIndex=Math.floor(Math.random()*currentIndex);currentIndex--;[array[currentIndex],array[randomIndex]]=[array[randomIndex],array[currentIndex]]}
+        <script>const dataFiles=new Map();const dataFileRawData=new Map();const validSites=new Map();const totalCounts=new Map();const siteGroupCounts=new Map();const stats={total:{r1c1:0,r1c2:0,r1c3:0,r2c1:0,r2c2:0,r2c3:0,irr:0,stderr:0,ci:0,lower95CI:0,upper95CI:0},indiv:new Map()};const shuffle=(array)=>{let randomIndex;let currentIndex=array.length;while(currentIndex!==0){randomIndex=Math.floor(Math.random()*currentIndex);currentIndex--;[array[currentIndex],array[randomIndex]]=[array[randomIndex],array[currentIndex]]}
 return array};const clearDataStructures=()=>{dataFiles.clear();validSites.clear()};const getRowDataValidSiteTask=(csvFile)=>{return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const sites=new Set();const lines=results.data;for(let i=1;i<lines.length;i++){const data=lines[i];if(data.length>1){const site=data[0].trim();const count=data[1].trim();if(count==='10 patients or fewer'||!isNaN(count)){sites.add(site)}}}
-resolve(sites)}})})};const readIn2ColumnRowDataTask=(csvFile,id,map)=>{return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const rawSiteCounts=new Map();const lines=results.data;for(let i=1;i<lines.length;i++){const data=lines[i];if(data.length>1){const site=data[0].trim();const count=data[1].trim();if(validSites.has(site)){rawSiteCounts.set(site,count)}}}
-map.set(id,rawSiteCounts);resolve()}})})};const tallyCounts=(rawData,countsForTenOrLess)=>{let total=0;rawData.forEach(count=>{if(count==='10 patients or fewer'){total+=countsForTenOrLess}else{total+=parseInt(count)}});return total};const computeCounts=()=>{totalCounts.clear();const countsForTenOrLess=parseInt($('#selectPatientCounts').val());dataFileRawData.forEach((rawSiteCounts,id)=>{totalCounts.set(id,tallyCounts([...rawSiteCounts.values()],countsForTenOrLess))})};const initializeDataObject=()=>{dataObj.table.r1c1=totalCounts.get('r1c1');dataObj.table.r1c2=totalCounts.get('r1c2');dataObj.table.r1c3=(dataObj.table.r1c2/dataObj.table.r1c1)*100;dataObj.table.r2c1=totalCounts.get('r2c1');dataObj.table.r2c2=totalCounts.get('r2c2');dataObj.table.r2c3=(dataObj.table.r2c2/dataObj.table.r2c1)*100;dataObj.stats.irr=dataObj.table.r2c3/dataObj.table.r1c3;dataObj.stats.stderr=Math.sqrt((1.0/dataObj.table.r1c2)+(1.0/dataObj.table.r2c2));dataObj.stats.ci=1.96*dataObj.stats.stderr;dataObj.stats.lower95CI=Math.exp(Math.log(dataObj.stats.irr)-dataObj.stats.ci);dataObj.stats.upper95CI=Math.exp(Math.log(dataObj.stats.irr)+dataObj.stats.ci)};const roundTo=(number,decimal)=>{return Number(number.toFixed(decimal))};const populateTableProbabilities=()=>{const decimal=parseInt($('#decimal').val());if(decimal>=1&&decimal<=6){$('#r1c3').text(roundTo(dataObj.table.r1c3,decimal));$('#r2c3').text(roundTo(dataObj.table.r2c3,decimal));$('#r2c4').text(`${roundTo(dataObj.stats.irr, decimal)} (${roundTo(dataObj.stats.lower95CI, decimal)}-${roundTo(dataObj.stats.upper95CI, decimal)})`);$('#stderr').text(roundTo(dataObj.stats.stderr,decimal));$('#irr').text(roundTo(dataObj.stats.irr,decimal));$('#ci_lower').text(roundTo(dataObj.stats.lower95CI,decimal));$('#ci_upper').text(roundTo(dataObj.stats.upper95CI,decimal))}};const populateTableCounts=()=>{totalCounts.forEach((counts,id)=>$(`#${id}`).text(counts))};const populateSiteTable=(showSiteNames)=>{$('#siteCounts').text(validSites.size);const tbody=document.querySelector('#siteNames tbody');tbody.innerHTML='';const sites=showSiteNames?[...validSites.keys()]:[...validSites.values()];sites.sort().forEach(name=>{tbody.insertRow(-1).insertCell(0).innerHTML=name})};const constructTableAndPlot=()=>{initializeDataObject();applyInputLabels();populateTableCounts();populateTableProbabilities();populateSiteTable($('#showSiteNames').prop('checked'))};const readInData=(callback)=>{dataFileRawData.clear();const tasks=[];dataFiles.forEach((file,id)=>{tasks.push(readIn2ColumnRowDataTask(file,id,dataFileRawData))});Promise.all(tasks).then(()=>{computeCounts();callback()})};const getValidSiteTasks=()=>{const tasks=[];for(const file of dataFiles.values()){tasks.push(getRowDataValidSiteTask(file))}
+resolve(sites)}})})};const readIn2ColumnRowDataTask=(csvFile,group,map)=>{return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const rawSiteCounts=new Map();const lines=results.data;for(let i=1;i<lines.length;i++){const data=lines[i];if(data.length>1){const site=data[0].trim();const count=data[1].trim();if(validSites.has(site)){rawSiteCounts.set(site,count)}}}
+map.set(group,rawSiteCounts);resolve()}})})};const tallyCounts=(rawData,countsForTenOrLess)=>{let total=0;rawData.forEach(count=>{if(count==='10 patients or fewer'){total+=countsForTenOrLess}else{total+=parseInt(count)}});return total};const computeCounts=()=>{totalCounts.clear();siteGroupCounts.clear();const countsForTenOrLess=parseInt($('#selectPatientCounts').val());if(countsForTenOrLess>=1&&countsForTenOrLess<=10){for(const[group,rawSiteCounts]of dataFileRawData){let sumCounts=0;const siteCounts=new Map();for(const[site,rawCounts]of rawSiteCounts){const counts=(rawCounts==='10 patients or fewer')?countsForTenOrLess:parseInt(rawCounts);siteCounts.set(site,counts);sumCounts+=counts}
+totalCounts.set(group,sumCounts);siteGroupCounts.set(group,siteCounts)}}};const computeTotalSiteStats=()=>{const total=stats.total;totalCounts.forEach((counts,id)=>total[id]=counts);total.r1c3=(total.r1c2/total.r1c1)*100;total.r2c3=(total.r2c2/total.r2c1)*100;total.irr=total.r2c3/total.r1c3;total.stderr=Math.sqrt((1.0/total.r1c2)+(1.0/total.r2c2));total.ci=1.96*total.stderr;total.lower95CI=Math.exp(Math.log(total.irr)-total.ci);total.upper95CI=Math.exp(Math.log(total.irr)+total.ci)};const computeIndividualSiteStats=()=>{const indiv=stats.indiv;indiv.clear();[...validSites.keys()].forEach(site=>{indiv.set(site,{r1c1:0,r1c2:0,r1c3:0,r2c1:0,r2c2:0,r2c3:0,irr:0,lnIrr:0,varlnIrr:0,stderr:0,ci:0,lower95CI:0,upper95CI:0,w1:0,w1Percentage:0,w2:0,w2Percentage:0})});siteGroupCounts.forEach((siteCounts,group)=>{siteCounts.forEach((counts,site)=>{indiv.get(site)[group]=counts})});let sumW1=0;let sumW1Sq=0;indiv.values().forEach(data=>{data.r1c3=data.r1c1/data.r1c2;data.r2c3=data.r2c1/data.r2c2;data.irr=data.r1c3/data.r2c3;data.lnIrr=Math.log(data.irr);data.varlnIrr=(1/data.r1c1)+(1/data.r2c1);data.stderr=Math.sqrt((1.0/data.r1c2)+(1.0/data.r2c2));data.ci=1.96*data.stderr;data.lower95CI=Math.exp(Math.log(data.irr)-data.ci);data.lower95CI=Math.exp(Math.log(data.irr)-data.ci);data.upper95CI=Math.exp(Math.log(data.irr)+data.ci);data.w1=1/data.varlnIrr;sumW1+=data.w1;sumW1Sq+=data.w1*data.w1});let sumW1LnIrr=0;indiv.values().forEach(data=>{data.w1Percentage=data.w1/sumW1;sumW1LnIrr+=data.lnIrr*data.w1Percentage});let sumQ=0;indiv.values().forEach(data=>{sumQ+=data.w1*Math.pow((data.lnIrr-sumW1LnIrr),2)});const tauSq1=sumQ-(indiv.size-1);const tauSq2=sumW1-(sumW1Sq/sumW1);const tau=tauSq1/tauSq2;let sumW2=0;indiv.values().forEach(data=>{data.w2=1/(data.varlnIrr+tau);sumW2+=data.w2});indiv.values().forEach(data=>{data.w2Percentage=data.w2/sumW2});indiv.values().forEach(data=>{data.w1Percentage*=100;data.w2Percentage*=100})};const computeStats=()=>{computeTotalSiteStats();computeIndividualSiteStats()};const roundTo=(number,decimal)=>{return Number(number.toFixed(decimal))};const populateTableProbabilities=(decimal)=>{$('#r1c3').text(roundTo(stats.total.r1c3,decimal));$('#r2c3').text(roundTo(stats.total.r2c3,decimal));$('#r2c4').text(`${roundTo(stats.total.irr, decimal)} (${roundTo(stats.total.lower95CI, decimal)}-${roundTo(stats.total.upper95CI, decimal)})`);$('#stderr').text(roundTo(stats.total.stderr,decimal));$('#irr').text(roundTo(stats.total.irr,decimal));$('#ci_lower').text(roundTo(stats.total.lower95CI,decimal));$('#ci_upper').text(roundTo(stats.total.upper95CI,decimal))};const populateTableCounts=()=>{totalCounts.forEach((counts,id)=>$(`#${id}`).text(counts))};const populateStatsTable=(decimal,showSiteNames)=>{const tbody=document.querySelector('#stats tbody');tbody.innerHTML='';const indiv=stats.indiv;indiv.forEach((stats,site)=>{const row=tbody.insertRow(-1);const data=[site=showSiteNames?site:validSites.get(site),stats.r1c1,stats.r1c2,stats.r2c1,stats.r2c2,roundTo(stats.r1c3,decimal),roundTo(stats.r2c3,decimal),roundTo(stats.irr,decimal),roundTo(stats.lnIrr,decimal),roundTo(stats.varlnIrr,decimal),roundTo(stats.lower95CI,decimal),roundTo(stats.upper95CI,decimal),roundTo(stats.w1,decimal),roundTo(stats.w1Percentage,decimal),roundTo(stats.w2,decimal),roundTo(stats.w2Percentage,decimal)];data.forEach((value,index)=>{row.insertCell(index).innerHTML=value});row.cells[1].classList.add('table-success');row.cells[2].classList.add('table-success');row.cells[3].classList.add('table-warning');row.cells[4].classList.add('table-warning');row.cells[5].classList.add('table-success');row.cells[6].classList.add('table-warning');row.cells[10].classList.add('table-info');row.cells[11].classList.add('table-info');row.cells[12].classList.add('table-secondary');row.cells[13].classList.add('table-secondary');row.cells[14].classList.add('table-light');row.cells[15].classList.add('table-light')})};const populateSiteTable=(showSiteNames)=>{$('#siteCounts').text(validSites.size);const tbody=document.querySelector('#siteNames tbody');tbody.innerHTML='';const sites=showSiteNames?[...validSites.keys()]:[...validSites.values()];sites.sort().forEach(name=>{tbody.insertRow(-1).insertCell(0).innerHTML=name})};const constructTableAndPlot=()=>{let decimal=parseInt($('#decimal').val());decimal=(decimal>=1&&decimal<=6)?decimal:2;const showSiteNames=$('#showSiteNames').prop('checked');computeStats();applyInputLabels();populateTableCounts();populateSiteTable(showSiteNames);populateTableProbabilities(decimal);populateStatsTable(decimal,showSiteNames)};const readInData=(callback)=>{dataFileRawData.clear();const tasks=[];dataFiles.forEach((file,group)=>{tasks.push(readIn2ColumnRowDataTask(file,group,dataFileRawData))});Promise.all(tasks).then(()=>{computeCounts();callback()})};const getValidSiteTasks=()=>{const tasks=[];for(const file of dataFiles.values()){tasks.push(getRowDataValidSiteTask(file))}
 return tasks};const saveInputData=(fileId,csvFile)=>{if(fileId&&csvFile){dataFiles.set(fileId,csvFile);const htmlCode=`<div class="alert alert-success p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;$(`#filename_${fileId}`).html(htmlCode)}};const generateTableAndPlot=()=>{if(!$('#inputLabels').valid()){return!1}
 if(dataFiles.size<4){(new bootstrap.Modal('#fileRequired')).show();return!1}
-validSites.clear();Promise.all(getValidSiteTasks()).then((siteNames)=>{let sites=new Set();siteNames.forEach(siteName=>{sites=sites.size>0?sites.intersection(siteName):sites.union(siteName)});const shuffledIndexes=shuffle([...Array(sites.size).keys()]);Array.from(sites).forEach((site,index)=>validSites.set(site,`Site ${shuffledIndexes[index]}`));readInData(constructTableAndPlot)});return!0};const getSiteNameContents=()=>{const content=[];content.push('"Site Name","Generic Site Name"');[...validSites.keys()].sort().forEach(site=>{content.push(`"${site}","${validSites.get(site)}"`)});return content.join('\r\n')};const addFileDrapDropEventListeners=()=>{const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};['dragenter','dragover','dragleave','drop'].forEach(event=>$('.dropArea').on(event,preventDefaults));const highlight=(event)=>event.target.classList.add('highlight');['dragenter','dragover'].forEach(event=>$('.dropArea').on(event,highlight));const unhighlight=(event)=>event.target.classList.remove('highlight');$('.dropArea').on('dragleave',unhighlight);const handleFileDrop=(event)=>{if(event.originalEvent.dataTransfer.items){[...event.originalEvent.dataTransfer.items].forEach(item=>{if(item.kind==='file'){const file=item.getAsFile();if(file.type==='text/csv'){const fileId=event.target.id.replace('droparea_','');saveInputData(fileId,file)}}})}else{[...event.originalEvent.dataTransfer.files].forEach(file=>{const fileId=event.target.id.replace('droparea_','');saveInputData(fileId,file)})}};$('.dropArea').on('drop',handleFileDrop)};const addFileSelectEventListeners=()=>{const handleFileSelect=(event)=>{if(event.target.files.length>0){const fileId=event.target.id.replace('file_','').trim();$(`#droparea_${fileId}`).addClass('highlight');saveInputData(fileId,event.target.files[0])}
-event.target.value=""};$('.file_select').on('change',handleFileSelect)};const addLabelEventListeners=()=>{$('#mainRowLabelInput').on('input',()=>$('#mainRowLabel').text($('#mainRowLabelInput').val()));$('#row1LabelInput').on('input',()=>$('#row1Label').text($('#row1LabelInput').val()));$('#row2LabelInput').on('input',()=>$('#row2Label').text($('#row2LabelInput').val()));$('#mainColumnLabelInput').on('input',()=>$('#mainColumnLabel').text($('#mainColumnLabelInput').val()));$('#column1LabelInput').on('input',()=>$('#column1Label').text($('#column1LabelInput').val()));$('#column2LabelInput').on('input',()=>$('#column2Label').text($('#column2LabelInput').val()));$('#column3LabelInput').on('input',()=>$('#column3Label').text($('#column3LabelInput').val()));$('#column4LabelInput').on('input',()=>$('#column4Label').text($('#column4LabelInput').val()))};const addWizardEventListeners=()=>{$('#nextStep').on('click',()=>{if(generateTableAndPlot()){const nextTab=$('.nav-link.active').parent().next().find('button');nextTab.removeClass('disabled');(new bootstrap.Tab(nextTab)).show()}});$('#prevStep').on('click',()=>{const prevTab=$('.nav-link.active').parent().prev().find('button');(new bootstrap.Tab(prevTab)).show()})};const addIncidenceRateRatioEventListeners=()=>{$('#selectPatientCounts').on('change',()=>{if(totalCounts.size>=4){computeCounts();constructTableAndPlot()}});$('#decimal').on('change',populateTableProbabilities)};const addSiteNameEventListeners=()=>{$('#showSiteNames').on('change',()=>populateSiteTable($('#showSiteNames').prop('checked')));$('#exportSiteNames').on('click',(event)=>{event.preventDefault();const content=getSiteNameContents();const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const downloadLink=document.createElement("a");downloadLink.download='table1_sites.csv';downloadLink.href=URL.createObjectURL(blob);downloadLink.click()})};const addEventListeners=()=>{addFileDrapDropEventListeners();addFileSelectEventListeners();addLabelEventListeners();addWizardEventListeners();addIncidenceRateRatioEventListeners();addSiteNameEventListeners()};const applyInputLabels=()=>{$('#mainRowLabel').text($('#mainRowLabelInput').val());$('#row1Label').text($('#row1LabelInput').val());$('#row2Label').text($('#row2LabelInput').val());$('#mainColumnLabel').text($('#mainColumnLabelInput').val());$('#column1Label').text($('#column1LabelInput').val());$('#column2Label').text($('#column2LabelInput').val());$('#column3Label').text($('#column3LabelInput').val());$('#column4Label').text($('#column4LabelInput').val())};const resetData=()=>{clearDataStructures();applyInputLabels()};$(document).ready(function(){addEventListeners();$('#inputLabels').validate({errorElement:"em",errorClass:'text-danger',errorPlacement:function(error,element){error.addClass("invalid-feedback");error.insertAfter(element)},highlight:function(element){$(element).addClass("is-invalid").removeClass("is-valid")},unhighlight:function(element){$(element).addClass("is-valid").removeClass("is-invalid")}});resetData()})</script>
+validSites.clear();Promise.all(getValidSiteTasks()).then((siteNames)=>{let sites=new Set();siteNames.forEach(siteName=>{sites=sites.size>0?sites.intersection(siteName):sites.union(siteName)});const shuffledIndexes=shuffle([...Array(sites.size).keys()]);Array.from(sites).forEach((site,index)=>validSites.set(site,`Site ${shuffledIndexes[index]}`));readInData(constructTableAndPlot)});return!0};const getSiteNameContents=()=>{const content=[];content.push('"Site Name","Generic Site Name"');[...validSites.keys()].sort().forEach(site=>{content.push(`"${site}","${validSites.get(site)}"`)});return content.join('\r\n')};const switchToEditMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}Input`);inputElement.val(labelElement.text().trim());labelElement.hide();inputElement.show();inputElement.focus()};const switchToLabelMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}Input`);const textElement=$(`.${name}Text`);labelElement.text(inputElement.val().trim());textElement.text(inputElement.val().trim());if($('#inputLabels').valid()){inputElement.hide();labelElement.show();$('#step2btn').prop('disabled',!1)}else{$('#step2btn').prop('disabled',!0)}};const addLabelEventListeners=()=>{const saveOnEnter=(event,name)=>{if(event.key==='Enter'){switchToLabelMode(name)}};$('#rowLabel').on('dblclick',()=>switchToEditMode('rowLabel'));$('#rowLabelInput').on('focusout',()=>switchToLabelMode('rowLabel'));$('#rowLabelInput').on('keypress',event=>saveOnEnter(event,'rowLabel'));$('#row1Label').on('dblclick',()=>switchToEditMode('row1Label'));$('#row1LabelInput').on('focusout',()=>switchToLabelMode('row1Label'));$('#row1LabelInput').on('keypress',event=>saveOnEnter(event,'row1Label'));$('#row2Label').on('dblclick',()=>switchToEditMode('row2Label'));$('#row2LabelInput').on('focusout',()=>switchToLabelMode('row2Label'));$('#row2LabelInput').on('keypress',event=>saveOnEnter(event,'row2Label'));$('#colLabel').on('dblclick',()=>switchToEditMode('colLabel'));$('#colLabelInput').on('focusout',()=>switchToLabelMode('colLabel'));$('#colLabelInput').on('keypress',event=>saveOnEnter(event,'colLabel'));$('#col1Label').on('dblclick',()=>switchToEditMode('col1Label'));$('#col1LabelInput').on('focusout',()=>switchToLabelMode('col1Label'));$('#col1LabelInput').on('keypress',event=>saveOnEnter(event,'col1Label'));$('#col2Label').on('dblclick',()=>switchToEditMode('col2Label'));$('#col2LabelInput').on('focusout',()=>switchToLabelMode('col2Label'));$('#col2LabelInput').on('keypress',event=>saveOnEnter(event,'col2Label'));$('#col3Label').on('dblclick',()=>switchToEditMode('col3Label'));$('#col3LabelInput').on('focusout',()=>switchToLabelMode('col3Label'));$('#col3LabelInput').on('keypress',event=>saveOnEnter(event,'col3Label'));$('#col4Label').on('dblclick',()=>switchToEditMode('col4Label'));$('#col4LabelInput').on('focusout',()=>switchToLabelMode('col4Label'));$('#col4LabelInput').on('keypress',event=>saveOnEnter(event,'col4Label'))};const addFileDrapDropEventListeners=()=>{const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};['dragenter','dragover','dragleave','drop'].forEach(event=>$('.dropArea').on(event,preventDefaults));const highlight=(event)=>event.target.classList.add('highlight');['dragenter','dragover'].forEach(event=>$('.dropArea').on(event,highlight));const unhighlight=(event)=>event.target.classList.remove('highlight');$('.dropArea').on('dragleave',unhighlight);const handleFileDrop=(event)=>{if(event.originalEvent.dataTransfer.items){[...event.originalEvent.dataTransfer.items].forEach(item=>{if(item.kind==='file'){const file=item.getAsFile();if(file.type==='text/csv'){const fileId=event.target.id.replace('droparea_','');saveInputData(fileId,file)}}})}else{[...event.originalEvent.dataTransfer.files].forEach(file=>{const fileId=event.target.id.replace('droparea_','');saveInputData(fileId,file)})}};$('.dropArea').on('drop',handleFileDrop)};const addFileSelectEventListeners=()=>{const handleFileSelect=(event)=>{if(event.target.files.length>0){const fileId=event.target.id.replace('file_','').trim();$(`#droparea_${fileId}`).addClass('highlight');saveInputData(fileId,event.target.files[0])}
+event.target.value=""};$('.file_select').on('change',handleFileSelect)};const addWizardEventListeners=()=>{$('#nextStep').on('click',()=>{if(generateTableAndPlot()){const nextTab=$('.nav-link.active').parent().next().find('button');nextTab.removeClass('disabled');(new bootstrap.Tab(nextTab)).show()}});$('#prevStep').on('click',()=>{const prevTab=$('.nav-link.active').parent().prev().find('button');(new bootstrap.Tab(prevTab)).show()})};const addIncidenceRateRatioEventListeners=()=>{$('#selectPatientCounts').on('change',()=>{if(totalCounts.size>=4){computeCounts();constructTableAndPlot()}});$('#decimal').on('change',()=>{let decimal=parseInt($('#decimal').val());decimal=(decimal>=1&&decimal<=6)?decimal:2;populateTableProbabilities(decimal);populateStatsTable(decimal)})};const addSiteNameEventListeners=()=>{$('#showSiteNames').on('change',()=>{let decimal=parseInt($('#decimal').val());decimal=(decimal>=1&&decimal<=6)?decimal:2;const showSiteNames=$('#showSiteNames').prop('checked');populateSiteTable(showSiteNames);populateStatsTable(decimal,showSiteNames)});$('#exportSiteNames').on('click',(event)=>{event.preventDefault();const content=getSiteNameContents();const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const downloadLink=document.createElement("a");downloadLink.download='table1_sites.csv';downloadLink.href=URL.createObjectURL(blob);downloadLink.click()})};const addEventListeners=()=>{addLabelEventListeners();addFileDrapDropEventListeners();addFileSelectEventListeners();addWizardEventListeners();addIncidenceRateRatioEventListeners();addSiteNameEventListeners()};const applyInputLabels=()=>{$('.rowLabel').text($('#rowLabelInput').val());$('.row1Label').text($('#row1LabelInput').val());$('.row2Label').text($('#row2LabelInput').val());$('.colLabel').text($('#colLabelInput').val());$('.col1Label').text($('#col1LabelInput').val());$('.col2Label').text($('#col2LabelInput').val());$('.col3Label').text($('#col3LabelInput').val());$('.col4Label').text($('#col4LabelInput').val())};const resetData=()=>{clearDataStructures();applyInputLabels()};$(document).ready(function(){addEventListeners();$('#inputLabels').validate({errorElement:"em",errorClass:'text-danger',errorPlacement:function(error,element){error.addClass("invalid-feedback");error.insertAfter(element)},highlight:function(element){$(element).addClass("is-invalid").removeClass("is-valid")},unhighlight:function(element){$(element).addClass("is-valid").removeClass("is-invalid")}});resetData()})</script>
     </body>
 </html>

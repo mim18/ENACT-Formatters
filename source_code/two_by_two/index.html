@@ -38,7 +38,7 @@
                     <button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#step1">Input Data</button>
                 </li>
                 <li class="nav-item flex-fill">
-                    <button class="nav-link w-100 disabled" data-bs-toggle="pill" data-bs-target="#step2">Table &amp; Plot</button>
+                    <button class="nav-link w-100 disabled" id="step2btn" data-bs-toggle="pill" data-bs-target="#step2">Table &amp; Plot</button>
                 </li>
             </ul>
             <div class="tab-content" id="pills-tabContent">
@@ -46,118 +46,122 @@
                     <div class="card border-secondary mb-4">
                         <div class="card-header text-bg-secondary">Input Data</div>
                         <div class="card-body">
-                            <table class="table table-borderless">
-                                <tbody>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="text-center"colspan="2">
-                                            <label>
-                                                <span class="h5" id="colLabel">Outcome</span>
-                                                <input type="text" id="colLabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="text-center">
-                                            <label>
-                                                <span class="h6" id="col1Label">Yes</span>
-                                                <input type="text" id="col1LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="text-center">
-                                            <label>
-                                                <span class="h6" id="col2Label">No</span>
-                                                <input type="text" id="col2LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="text-center">
-                                            <label>
-                                                <span class="h6" id="col3Label">Total # per 100 persons</span>
-                                                <input type="text" id="col3LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="text-center">
-                                            <label>
-                                                <span class="h6" id="col4Label">Incidence rate ratio (95% CI)*</span>
-                                                <input type="text" id="col4LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="align-middle text-center p-0" rowspan="2">
-                                            <label>
-                                                <span class="h5 rotate-text" id="rowLabel">Exposure</span>
-                                                <input type="text" id="rowLabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="align-middle text-center">
-                                            <label>
-                                                <span class="h6" id="row1Label">Yes</span>
-                                                <input type="text" id="row1LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="border border-black border-2">
-                                            <div class="text-center p-4 dropArea" id="droparea_r1c1">
-                                                <p>
-                                                    Drag &amp; Drop or
-                                                    <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                    <label class="btn btn-secondary" for="file_r1c1">Choose CSV file</label>
-                                                </p>
-                                                <p>(Reference Data)</p>
-                                                <div id="filename_r1c1"></div>
-                                            </div>
-                                        </td>
-                                        <td class="border border-black border-2">
-                                            <div class="text-center p-4 dropArea" id="droparea_r1c2">
-                                                <p>
-                                                    Drag &amp; Drop or
-                                                    <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                    <label class="btn btn-secondary" for="file_r1c2">Choose CSV file</label>
-                                                </p>
-                                                <p>(Reference Data)</p>
-                                                <div id="filename_r1c2"></div>
-                                            </div>
-                                        </td>
-                                        <td class="border border-2"></td>
-                                        <td class="align-middle text-center border border-2">Reference</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="align-middle text-center">
-                                            <label>
-                                                <span class="h6" id="row2Label">No</span>
-                                                <input type="text" id="row2LabelInput" style="display: none;" />
-                                            </label>
-                                        </td>
-                                        <td class="border border-black border-2">
-                                            <div class="text-center p-4 dropArea" id="droparea_r2c1">
-                                                <p>
-                                                    Drag &amp; Drop or
-                                                    <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                    <label class="btn btn-secondary" for="file_r2c1">Choose CSV file</label>
-                                                </p>
-                                                <div id="filename_r2c1"></div>
-                                            </div>
-                                        </td>
-                                        <td class="border border-black border-2">
-                                            <div class="text-center p-4 dropArea" id="droparea_r2c2">
-                                                <p>
-                                                    Drag &amp; Drop or
-                                                    <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
-                                                    <label class="btn btn-secondary" for="file_r2c2">Choose CSV file</label>
-                                                </p>
-                                                <div id="filename_r2c2"></div>
-                                            </div>
-                                        </td>
-                                        <td class="border border-2"></td>
-                                        <td class="border border-2"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <p></p>
+                            <div class="alert alert-warning p-2" role="alert"><i class="bi bi-exclamation-triangle-fill"></i> Double click on the <span class="text-success fw-bolder">green label</span> to edit.</div>
+                            <form id="inputLabels">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-center" colspan="2">
+                                                <label for="colLabelInput">
+                                                    <span class="h5 text-success fw-bolder" id="colLabel">Outcome</span>
+                                                    <input type="text" aria-label="Column input label" class="form-control" id="colLabelInput" name="colLabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="text-center">
+                                                <label for="col1LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col1Label">Yes</span>
+                                                    <input type="text" aria-label="Column 1 input label" class="form-control" id="col1LabelInput" name="col1LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col2LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col2Label">No</span>
+                                                    <input type="text" aria-label="Column 2 input label" class="form-control" id="col2LabelInput" name="col2LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col3LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col3Label">Total # per 100 persons</span>
+                                                    <input type="text" aria-label="Column 3 input label" class="form-control" id="col3LabelInput" name="col3LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="text-center">
+                                                <label for="col4LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="col4Label">Incidence rate ratio (95% CI)*</span>
+                                                    <input type="text" aria-label="Column 4 input label" class="form-control" id="col4LabelInput" name="col4LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="align-middle text-center p-0" rowspan="2">
+                                                <label for="rowLabelInput">
+                                                    <span class="h5 rotate-text text-success fw-bolder" id="rowLabel">Exposure</span>
+                                                    <input type="text" aria-label="Row input label" class="form-control" id="rowLabelInput" name="rowLabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <label for="row1LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="row1Label">Yes</span>
+                                                    <input type="text" aria-label="Row 1 input label" class="form-control" id="row1LabelInput" name="row1LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r1c1">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r1c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r1c1">Choose CSV file</label>
+                                                    </p>
+                                                    <p>(Reference Data)</p>
+                                                    <div id="filename_r1c1"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r1c2">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r1c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r1c2">Choose CSV file</label>
+                                                    </p>
+                                                    <p>(Reference Data)</p>
+                                                    <div id="filename_r1c2"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-2"></td>
+                                            <td class="align-middle text-center border border-2">Reference</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="align-middle text-center">
+                                                <label for="row2LabelInput">
+                                                    <span class="h6 text-success fw-bolder" id="row2Label">No</span>
+                                                    <input type="text" aria-label="Row 2 input label" class="form-control" id="row2LabelInput" name="row2LabelInput" value="Exposure" required="required" style="display: none;" />
+                                                </label>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r2c1">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r2c1" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r2c1">Choose CSV file</label>
+                                                    </p>
+                                                    <div id="filename_r2c1"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-black border-2">
+                                                <div class="text-center p-4 dropArea" id="droparea_r2c2">
+                                                    <p>
+                                                        Drag &amp; Drop or
+                                                        <input id="file_r2c2" class="position-absolute invisible file_select" type="file" accept=".csv" />
+                                                        <label class="btn btn-secondary" for="file_r2c2">Choose CSV file</label>
+                                                    </p>
+                                                    <div id="filename_r2c2"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-2"></td>
+                                            <td class="border border-2"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
                         </div>
                     </div>
                     <div class="d-grid gap-0 col-4 mx-auto">
@@ -179,7 +183,7 @@
                                                     <label for="selectPatientCounts" class="form-label m-0">Select patient counts for <i>"10 patients or fewer"</i>:</label>
                                                 </div>
                                                 <div class="col-auto">
-                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts">
+                                                    <select class="form-select" id="selectPatientCounts" aria-label="Select custom counts" required="required">
                                                         <option value="1">1</option>
                                                         <option value="2">2</option>
                                                         <option value="3">3</option>
@@ -198,11 +202,11 @@
                                                     <label for="decimal" class="form-label m-0">Round Decimals:</label>
                                                 </div>
                                                 <div class="col-auto">
-                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" />
+                                                    <input type="number" class="form-control" id="decimal" min="1" max="6" value="2" required="required" />
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" />
+                                                <input class="form-check-input" type="checkbox" role="switch" aria-checked="false" id="showSiteNames" required="required" />
                                                 <label class="form-check-label" for="showSiteNames">Show Site Names</label>
                                             </div>
                                         </div>
@@ -389,6 +393,7 @@
         <!-- end of error-message modal -->
         <script src="../vendor/jquery/jquery-3.7.1.slim.min.js"></script>
         <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../vendor/jquery-validation/jquery.validate.min.js"></script>
         <script src="../vendor/papaparse/papaparse.min.js"></script>
         <script src="js/table_2x2.js"></script>
     </body>

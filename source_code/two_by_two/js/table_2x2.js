@@ -355,6 +355,9 @@ const saveInputData = (fileId, csvFile) => {
 };
 
 const generateTableAndPlot = () => {
+    if (!$('#inputLabels').valid()) {
+        return false;
+    }
     if (dataFiles.size < 4) {
         (new bootstrap.Modal('#fileRequired')).show();
         return false;
@@ -410,9 +413,15 @@ const switchToLabelMode = (name) => {
     labelElement.text(inputElement.val().trim());
     textElement.text(inputElement.val().trim());
 
-    // Hide the input and show the label
-    inputElement.hide();
-    labelElement.show();
+    if ($('#inputLabels').valid()) {
+        // Hide the input and show the label
+        inputElement.hide();
+        labelElement.show();
+
+        $('#step2btn').prop('disabled', false);
+    } else {
+        $('#step2btn').prop('disabled', true);
+    }
 };
 const addLabelEventListeners = () => {
     const saveOnEnter = (event, name) => {
@@ -588,5 +597,21 @@ const resetData = () => {
 
 $(document).ready(function () {
     addEventListeners();
+
+    $('#inputLabels').validate({
+        errorElement: "em",
+        errorClass: 'text-danger',
+        errorPlacement: function (error, element) {
+            error.addClass("invalid-feedback");
+            error.insertAfter(element);
+        },
+        highlight: function (element) {
+            $(element).addClass("is-invalid").removeClass("is-valid");
+        },
+        unhighlight: function (element) {
+            $(element).addClass("is-valid").removeClass("is-invalid");
+        }
+    });
+
     resetData();
 });
