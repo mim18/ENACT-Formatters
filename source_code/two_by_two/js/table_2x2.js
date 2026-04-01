@@ -246,14 +246,11 @@ const populateTableCounts = () => {
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
 const populateStatsTable = (decimal, showSiteNames) => {
-    const tbody = document.querySelector('#stats tbody');
-    tbody.innerHTML = '';
-
+    const tableData = new Map();
     const indiv = stats.indiv;
     indiv.forEach((stats, site) => {
-        const row = tbody.insertRow(-1);
         const data = [
-            site = showSiteNames ? site : validSites.get(site),
+            showSiteNames ? site : `Site ${validSites.get(site)}`,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
             roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
             roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal), roundTo(stats.varlnIrr, decimal),
@@ -261,7 +258,20 @@ const populateStatsTable = (decimal, showSiteNames) => {
             roundTo(stats.w1, decimal), roundTo(stats.w1Percentage, decimal),
             roundTo(stats.w2, decimal), roundTo(stats.w2Percentage, decimal)
         ];
-        data.forEach((value, index) => {
+
+        if (showSiteNames) {
+            tableData.set(site, data);
+        } else {
+            tableData.set(validSites.get(site), data);
+        }
+    });
+
+    const tbody = document.querySelector('#stats tbody');
+    tbody.innerHTML = '';
+    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
+    iterator.forEach(key => {
+        const row = tbody.insertRow(-1);
+        tableData.get(key).forEach((value, index) => {
             row.insertCell(index).innerHTML = value;
         });
 
@@ -285,11 +295,15 @@ const populateSiteTable = (showSiteNames) => {
 
     const tbody = document.querySelector('#siteNames tbody');
     tbody.innerHTML = '';
-
-    const sites = showSiteNames ? [...validSites.keys()] : [...validSites.values()];
-    sites.sort().forEach(name => {
-        tbody.insertRow(-1).insertCell(0).innerHTML = name;
-    });
+    if (showSiteNames) {
+        [...validSites.keys()].sort().forEach(name => {
+            tbody.insertRow(-1).insertCell(0).innerHTML = name;
+        });
+    } else {
+        [...validSites.values()].sort((a, b) => a - b).forEach(name => {
+            tbody.insertRow(-1).insertCell(0).innerHTML = `Site ${name}`;
+        });
+    }
 };
 const constructTableAndPlot = () => {
     const showSiteNames = $('#showSiteNames').prop('checked');
@@ -298,9 +312,9 @@ const constructTableAndPlot = () => {
     computeStats();
     applyInputLabels();
     populateTableCounts();
-    populateSiteTable(showSiteNames);
     populateTableProbabilities(decimal);
     populateStatsTable(decimal, showSiteNames);
+    populateSiteTable(showSiteNames);
 };
 
 const readInData = (callback) => {
@@ -364,7 +378,7 @@ const generateTableAndPlot = () => {
         });
 
         const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
-        Array.from(sites).forEach((site, index) => validSites.set(site, `Site ${shuffledIndexes[index]}`));
+        Array.from(sites).forEach((site, index) => validSites.set(site, shuffledIndexes[index]));
 
         readInData(advanceToNextTab);
     });
@@ -374,10 +388,11 @@ const generateTableAndPlot = () => {
 
 const getSiteNameContents = () => {
     const content = [];
+    content.push('"Generic Name","Site Name"');
 
-    content.push('"Site Name","Generic Site Name"');
-    [...validSites.keys()].sort().forEach(site => {
-        content.push(`"${site}","${validSites.get(site)}"`);
+    const sortedMapByValue = new Map([...validSites].sort((a, b) => a[1] - b[1]));
+    sortedMapByValue.forEach((number, name) => {
+        content.push(`"Site ${number}","${name}"`);
     });
 
     return content.join('\r\n');
@@ -530,6 +545,7 @@ const addFileSelectEventListeners = () => {
     };
     $('.file_select').on('change', handleFileSelect);
 };
+
 const addWizardEventListeners = () => {
     $('#nextStep').on('click', () => {
         if (isValidInput()) {
