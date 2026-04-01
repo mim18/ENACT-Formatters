@@ -142,8 +142,8 @@ const computeTotalSiteStats = () => {
     // (num of no exposure) / (num of exposure)
     total.irr = total.r2c3 / total.r1c3;
 
-    total.stderr = Math.sqrt((1.0 / total.r1c2) + (1.0 / total.r2c2));
-    total.ci = 1.96 * total.stderr;
+    total.stderr = Math.sqrt((1.0 / total.r1c1) + (1.0 / total.r2c1));
+    total.ci = 1.959964 * total.stderr;
     total.lower95CI = Math.exp(Math.log(total.irr) - total.ci);
     total.upper95CI = Math.exp(Math.log(total.irr) + total.ci);
 };
@@ -178,13 +178,13 @@ const computeIndividualSiteStats = () => {
 
         data.irr = data.r1c3 / data.r2c3;
         data.lnIrr = Math.log(data.irr);
-        data.varlnIrr = (1 / data.r1c1) + (1 / data.r2c1);
+        data.varlnIrr = (1.0 / data.r1c1) + (1.0 / data.r2c1);
 
-        data.stderr = Math.sqrt((1.0 / data.r1c2) + (1.0 / data.r2c2));
-        data.ci = 1.96 * data.stderr;
-        data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
-        data.lower95CI = Math.exp(Math.log(data.irr) - data.ci);
-        data.upper95CI = Math.exp(Math.log(data.irr) + data.ci);
+        data.stderr = Math.sqrt(data.varlnIrr);
+        data.ci = 1.959964 * data.stderr;
+        data.lower95CI = Math.exp(data.lnIrr - data.ci);
+        data.upper95CI = Math.exp(data.lnIrr + data.ci);
+
         data.w1 = 1 / data.varlnIrr;
 
         sumW1 += data.w1;
