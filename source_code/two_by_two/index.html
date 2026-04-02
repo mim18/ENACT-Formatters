@@ -27,6 +27,12 @@
             table#stats tbody tr:hover td {
                 background-color: yellow;
             }
+            .ci {
+                stroke-width: 2;
+            }
+            .point {
+                stroke: black;
+            }
         </style>
     </head>
     <body>
@@ -306,71 +312,74 @@
                                             </a>
                                         </div>
                                         <hr class="mt-0" />
-                                        <div class="overflow-scroll" style="max-height: 300px;">
-                                            <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
-                                                <thead class="sticky-top">
-                                                    <tr>
-                                                        <th scope="col"></th>
-                                                        <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
-                                                        <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
-                                                        <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
-                                                        <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
-                                                        <th scope="col"></th>
-                                                        <th scope="col"></th>
-                                                        <th scope="col"></th>
-                                                        <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
-                                                        <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
-                                                        <th scope="col" colspan="2" class="text-center table-light">Random</th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th scope="col">Site</th>
-                                                        <th scope="col" class="table-success"><span class="col1LabelText">A</span></th>
-                                                        <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
-                                                        <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
-                                                        <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
-                                                        <th scope="col" class="table-success">Rate <span class="col1LabelText">A</span></th>
-                                                        <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
-                                                        <th scope="col">IRR</th>
-                                                        <th scope="col">ln(IRR)</th>
-                                                        <th scope="col">Var ln(IRR)</th>
-                                                        <th scope="col" class="table-info">Low ln(IRR)</th>
-                                                        <th scope="col" class="table-info">High ln(IRR)</th>
-                                                        <th scope="col" class="table-secondary">W1</th>
-                                                        <th scope="col" class="table-secondary">W1 %</th>
-                                                        <th scope="col" class="table-light">W2</th>
-                                                        <th scope="col" class="table-light">W2 %</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                            </table>
+                                        <div class="row gy-4">
+                                            <!-- individual stats table -->
+                                            <div class="col-12">
+                                                <div class="overflow-scroll" style="max-height: 300px;">
+                                                    <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
+                                                        <thead class="sticky-top">
+                                                            <tr>
+                                                                <th scope="col"></th>
+                                                                <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                                <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                                <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                                <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                                <th scope="col"></th>
+                                                                <th scope="col"></th>
+                                                                <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
+                                                                <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
+                                                                <th scope="col" colspan="2" class="text-center table-light">Random</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th scope="col">Site</th>
+                                                                <th scope="col" class="table-success"><span class="col1LabelText">A</span></th>
+                                                                <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
+                                                                <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
+                                                                <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
+                                                                <th scope="col" class="table-success">Rate <span class="col1LabelText">A</span></th>
+                                                                <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
+                                                                <th scope="col">IRR</th>
+                                                                <th scope="col">ln(IRR)</th>
+                                                                <th scope="col" class="table-info">Low ln(IRR)</th>
+                                                                <th scope="col" class="table-info">High ln(IRR)</th>
+                                                                <th scope="col" class="table-secondary">W1</th>
+                                                                <th scope="col" class="table-secondary">W1 %</th>
+                                                                <th scope="col" class="table-light">W2</th>
+                                                                <th scope="col" class="table-light">W2 %</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <!-- end of individual stats table -->
+                                            <!-- forest plot -->
+                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                                <svg class="border" id="forestPlot"></svg>
+                                            </div>
+                                            <!-- end of forest plot -->
+                                            <!-- show included sites -->
+                                            <div class="col-sm-12 col-md-12 col-lg-4">
+                                                <div class="card">
+                                                    <div class="card-header d-flex align-items-center justify-content-between">
+                                                        <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
+                                                        <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
+                                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                                        </a>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="overflow-scroll">
+                                                            <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- end of show included sites -->
                                         </div>
                                     </div>
                                     <!-- end of forest plot stats -->
-                                    <!-- show included sites -->
-                                    <div class="col-12">
-                                        <div class="d-flex align-items-center justify-content-between p-0">
-                                            <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
-                                            <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
-                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                            </a>
-                                        </div>
-                                        <hr class="mt-0" />
-                                        <div class="col-sm-12 col-md-12 col-lg-6">
-                                            <div class="overflow-scroll" style="max-height: 200px;">
-                                                <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
-                                                    <tbody></tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- end of show included sites -->
-                                    <!-- plot -->
-                                    <!--
-                                    <div class="col-12">
-                                        <div class="chart-container"></div>
-                                    </div>
-                                    -->
-                                    <!-- end of plot -->
                                 </div>
                             </div>
                         </div>
@@ -387,6 +396,7 @@
         <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../vendor/jquery-validation/jquery.validate.min.js"></script>
         <script src="../vendor/papaparse/papaparse.min.js"></script>
+        <script src="../vendor/d3/d3.v7.min.js"></script>
         <script src="js/table_2x2.js"></script>
     </body>
 </html>

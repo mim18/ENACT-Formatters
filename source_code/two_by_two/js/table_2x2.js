@@ -153,6 +153,8 @@ const computeIndividualSiteStats = () => {
 
     [...validSites.keys()].forEach(site => {
         indiv.set(site, {
+            siteName: site,
+            siteNumber: validSites.get(site),
             r1c1: 0, r1c2: 0, r1c3: 0,
             r2c1: 0, r2c2: 0, r2c3: 0,
             irr: 0, lnIrr: 0, varlnIrr: 0,
@@ -231,6 +233,21 @@ const computeStats = () => {
 const roundTo = (number, decimal) => {
     return Number(number.toFixed(decimal));
 };
+/**
+ * Get the pixel with of a string given font size.
+ * 
+ * @param {type} text
+ * @param {type} font
+ * @returns {unresolved}
+ */
+const getStringWidth = (text, font = '12px Arial') => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = font;
+
+    return context.measureText(text).width;
+};
+
 const populateTableProbabilities = (decimal) => {
     $('#r1c3').text(roundTo(stats.total.r1c3, decimal));
     $('#r2c3').text(roundTo(stats.total.r2c3, decimal));
@@ -253,7 +270,7 @@ const populateStatsTable = (decimal, showSiteNames) => {
             showSiteNames ? site : `Site ${validSites.get(site)}`,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
             roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
-            roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal), roundTo(stats.varlnIrr, decimal),
+            roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal),
             roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal),
             roundTo(stats.w1, decimal), roundTo(stats.w1Percentage, decimal),
             roundTo(stats.w2, decimal), roundTo(stats.w2Percentage, decimal)
@@ -282,13 +299,98 @@ const populateStatsTable = (decimal, showSiteNames) => {
         row.cells[4].classList.add('table-warning');
         row.cells[5].classList.add('table-success');
         row.cells[6].classList.add('table-warning');
+        row.cells[9].classList.add('table-info');
         row.cells[10].classList.add('table-info');
-        row.cells[11].classList.add('table-info');
+        row.cells[11].classList.add('table-secondary');
         row.cells[12].classList.add('table-secondary');
-        row.cells[13].classList.add('table-secondary');
+        row.cells[13].classList.add('table-light');
         row.cells[14].classList.add('table-light');
-        row.cells[15].classList.add('table-light');
     });
+};
+const populateForestPlot = (decimal, showSiteNames) => {
+    const data = [];
+    for (const value of stats.indiv.values()) {
+        data.push(value);
+    }
+    if (showSiteNames) {
+        data.sort((a, b) => a.siteName.localeCompare(b.siteName));
+    } else {
+        data.sort((a, b) => a.siteNumber - b.siteNumber);
+    }
+
+    const lengthOfSites = [];
+    for (const d of data) {
+        lengthOfSites.push(getStringWidth(d.siteName));
+    }
+    const maxLength = Math.max(...lengthOfSites);
+
+    const fixedHeight = data.length * 45;
+    const fixedWidth = 800;
+
+    // dimensions and margins
+    const margin = {top: 20, right: 40, bottom: 40, left: maxLength};
+    const width = fixedWidth - margin.left - margin.right;
+    const height = fixedHeight - margin.top - margin.bottom;
+
+    d3.select("svg").selectAll("*").remove();
+
+    const svg = d3.select('#forestPlot')
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    d3.select("svg")
+            .attr("width", fixedWidth)
+            .attr("height", fixedHeight);
+
+    // X scale (effect size)
+    const x = d3.scaleLinear()
+            .domain([d3.min(data, d => d.lower95CI - 0.02), d3.max(data, d => d.upper95CI + 0.02)])
+            .range([0, width]);
+
+    // Y scale (studies)
+    const y = d3.scaleBand()
+            .domain(data.map(d => showSiteNames ? d.siteName : `Site ${d.siteNumber}`))
+            .range([0, height])
+            .padding(0.5);
+
+    // axes
+    svg.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x));
+    svg.append('g')
+            .call(d3.axisLeft(y));
+
+    // add vertical reference line (null effect)
+    svg.append('line')
+            .attr('x1', x(1))
+            .attr('x2', x(1))
+            .attr('y1', 0)
+            .attr('y2', height)
+            .attr('stroke', 'red')
+            .attr('stroke-dasharray', '4');
+
+    // draw confidence intervals (horizontal lines)
+    svg.selectAll('.ci')
+            .data(data)
+            .enter()
+            .append('line')
+            .attr('class', 'ci')
+            .attr('x1', d => x(d.lower95CI))
+            .attr('x2', d => x(d.upper95CI))
+            .attr('y1', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
+            .attr('y2', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
+            .attr('stroke', 'black');
+
+    // draw effect size points (boxes or circles)
+    svg.selectAll('.point')
+            .data(data)
+            .enter()
+            .append('circle')
+            .attr('class', 'point')
+            .attr('cx', d => x((d.lower95CI + d.upper95CI) / 2))
+            .attr('cy', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
+            .attr('r', d => ((d.upper95CI - d.lower95CI) * d.w1) / 10)
+            .attr('fill', 'black');
 };
 const populateSiteTable = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
@@ -314,6 +416,7 @@ const constructTableAndPlot = () => {
     populateTableCounts();
     populateTableProbabilities(decimal);
     populateStatsTable(decimal, showSiteNames);
+    populateForestPlot(decimal, showSiteNames);
     populateSiteTable(showSiteNames);
 };
 
@@ -567,10 +670,12 @@ const addIncidenceRateRatioEventListeners = () => {
         }
     });
     $('#decimal').on('change', () => {
+        const showSiteNames = $('#showSiteNames').prop('checked');
         const decimal = parseInt($('#decimal').val());
 
         populateTableProbabilities(decimal);
-        populateStatsTable(decimal, $('#showSiteNames').prop('checked'));
+        populateStatsTable(decimal, showSiteNames);
+        populateForestPlot(decimal, showSiteNames);
     });
 };
 const addSiteNameEventListeners = () => {
@@ -580,6 +685,7 @@ const addSiteNameEventListeners = () => {
 
         populateSiteTable(showSiteNames);
         populateStatsTable(decimal, showSiteNames);
+        populateForestPlot(decimal, showSiteNames);
     });
 
     $('#exportSiteNames').on('click', (event) => {
