@@ -315,7 +315,7 @@
                                         <div class="row gy-4">
                                             <!-- individual stats table -->
                                             <div class="col-12">
-                                                <div class="overflow-scroll" style="max-height: 300px;">
+                                                <div class="overflow-scroll" style="max-height: 400px;">
                                                     <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
                                                         <thead class="sticky-top">
                                                             <tr>
@@ -324,6 +324,7 @@
                                                                 <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
                                                                 <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
                                                                 <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                                <th scope="col"></th>
                                                                 <th scope="col"></th>
                                                                 <th scope="col"></th>
                                                                 <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
@@ -340,6 +341,7 @@
                                                                 <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
                                                                 <th scope="col">IRR</th>
                                                                 <th scope="col">ln(IRR)</th>
+                                                                <th scope="col">Var ln(IRR)</th>
                                                                 <th scope="col" class="table-info">Low ln(IRR)</th>
                                                                 <th scope="col" class="table-info">High ln(IRR)</th>
                                                                 <th scope="col" class="table-secondary">W1</th>
@@ -354,7 +356,7 @@
                                             </div>
                                             <!-- end of individual stats table -->
                                             <!-- forest plot -->
-                                            <div class="col-sm-12 col-md-12 col-lg-8">
+                                            <div class="col-sm-12 col-md-12 col-lg-12">
                                                 <svg class="border" id="forestPlot"></svg>
                                             </div>
                                             <!-- end of forest plot -->
@@ -368,7 +370,7 @@
                                                         </a>
                                                     </div>
                                                     <div class="card-body">
-                                                        <div class="overflow-scroll">
+                                                        <div class="overflow-scroll" style="max-height: 400px;">
                                                             <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
                                                                 <tbody></tbody>
                                                             </table>

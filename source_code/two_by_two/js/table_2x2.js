@@ -262,73 +262,24 @@ const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-const populateStatsTable = (decimal, showSiteNames) => {
-    const tableData = new Map();
-    const indiv = stats.indiv;
-    indiv.forEach((stats, site) => {
-        const data = [
-            showSiteNames ? site : `Site ${validSites.get(site)}`,
-            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
-            roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
-            roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal),
-            roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal),
-            roundTo(stats.w1, decimal), roundTo(stats.w1Percentage, decimal),
-            roundTo(stats.w2, decimal), roundTo(stats.w2Percentage, decimal)
-        ];
-
-        if (showSiteNames) {
-            tableData.set(site, data);
-        } else {
-            tableData.set(validSites.get(site), data);
-        }
-    });
-
-    const tbody = document.querySelector('#stats tbody');
-    tbody.innerHTML = '';
-    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
-    iterator.forEach(key => {
-        const row = tbody.insertRow(-1);
-        tableData.get(key).forEach((value, index) => {
-            row.insertCell(index).innerHTML = value;
-        });
-
-        // add backgroud color to columns
-        row.cells[1].classList.add('table-success');
-        row.cells[2].classList.add('table-success');
-        row.cells[3].classList.add('table-warning');
-        row.cells[4].classList.add('table-warning');
-        row.cells[5].classList.add('table-success');
-        row.cells[6].classList.add('table-warning');
-        row.cells[9].classList.add('table-info');
-        row.cells[10].classList.add('table-info');
-        row.cells[11].classList.add('table-secondary');
-        row.cells[12].classList.add('table-secondary');
-        row.cells[13].classList.add('table-light');
-        row.cells[14].classList.add('table-light');
-    });
-};
 const populateForestPlot = (decimal, showSiteNames) => {
     const data = [];
-    for (const value of stats.indiv.values()) {
-        data.push(value);
-    }
-    if (showSiteNames) {
-        data.sort((a, b) => a.siteName.localeCompare(b.siteName));
-    } else {
-        data.sort((a, b) => a.siteNumber - b.siteNumber);
+    for (const d of stats.indiv.values()) {
+        data.push({
+            site: showSiteNames ? d.siteName : `Site ${d.siteNumber}`,
+            irr: d.irr,
+            lower: d.lower95CI,
+            upper: d.upper95CI,
+            weight: d.w1
+        });
     }
 
-    const lengthOfSites = [];
-    for (const d of data) {
-        lengthOfSites.push(getStringWidth(d.siteName));
-    }
-    const maxLength = Math.max(...lengthOfSites);
-
-    const fixedHeight = data.length * 45;
+    const maxNameLength = Math.max(...data.map(item => Math.ceil(getStringWidth(item.site))));
+    const fixedHeight = data.length * 60;
     const fixedWidth = 800;
 
     // dimensions and margins
-    const margin = {top: 20, right: 40, bottom: 40, left: maxLength};
+    const margin = {top: 20, right: 40, bottom: 40, left: maxNameLength};
     const width = fixedWidth - margin.left - margin.right;
     const height = fixedHeight - margin.top - margin.bottom;
 
@@ -336,20 +287,20 @@ const populateForestPlot = (decimal, showSiteNames) => {
 
     const svg = d3.select('#forestPlot')
             .append('g')
-            .attr('transform', `translate(${margin.left},${margin.top})`);
+            .attr('transform', `translate(${margin.left + 10}, ${margin.top})`);
 
     d3.select("svg")
-            .attr("width", fixedWidth)
+            .attr("width", "100%")
             .attr("height", fixedHeight);
 
-    // X scale (effect size)
+    // x-scale (effect size)
     const x = d3.scaleLinear()
-            .domain([d3.min(data, d => d.lower95CI - 0.02), d3.max(data, d => d.upper95CI + 0.02)])
+            .domain([d3.min(data, d => d.lower - 0.02), d3.max(data, d => d.upper + 0.02)])
             .range([0, width]);
 
-    // Y scale (studies)
+    // y-scale (studies)
     const y = d3.scaleBand()
-            .domain(data.map(d => showSiteNames ? d.siteName : `Site ${d.siteNumber}`))
+            .domain(data.map(d => d.site))
             .range([0, height])
             .padding(0.5);
 
@@ -374,23 +325,133 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .data(data)
             .enter()
             .append('line')
-            .attr('class', 'ci')
-            .attr('x1', d => x(d.lower95CI))
-            .attr('x2', d => x(d.upper95CI))
-            .attr('y1', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
-            .attr('y2', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
+            .attr('x1', d => x(d.lower))
+            .attr('x2', d => x(d.upper))
+            .attr('y1', d => y(d.site) + (y.bandwidth() / 2))
+            .attr('y2', d => y(d.site) + (y.bandwidth() / 2))
             .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => x(d.lower))
+//            .attr('x2', d => x(d.lower))
+//            .attr('y1', d => y(d.site) + (y.bandwidth() / 2) - 5)
+//            .attr('y2', d => y(d.site) + (y.bandwidth() / 2) + 5)
+//            .attr("stroke-width", 2)
+//            .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => x(d.upper))
+//            .attr('x2', d => x(d.upper))
+//            .attr('y1', d => y(d.site) + (y.bandwidth() / 2) - 5)
+//            .attr('y2', d => y(d.site) + (y.bandwidth() / 2) + 5)
+//            .attr("stroke-width", 2)
+//            .attr('stroke', 'black');
 
     // draw effect size points (boxes or circles)
-    svg.selectAll('.point')
+    const sizeScale = d3.scaleSqrt()
+            .domain([0, d3.max(data, d => d.weight)])
+            .range([0, 40]);
+    svg.selectAll(".point")
             .data(data)
             .enter()
-            .append('circle')
-            .attr('class', 'point')
-            .attr('cx', d => x((d.lower95CI + d.upper95CI) / 2))
-            .attr('cy', d => y(showSiteNames ? d.siteName : `Site ${d.siteNumber}`) + y.bandwidth() / 2)
-            .attr('r', d => ((d.upper95CI - d.lower95CI) * d.w1) / 10)
-            .attr('fill', 'black');
+            .append("rect")
+            .attr("class", "point")
+            .attr("x", d => x(d.irr) - (sizeScale(d.weight) / 2))
+            .attr("y", d => (y(d.site) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2))
+            .attr("width", d => sizeScale(d.weight))
+            .attr("height", d => sizeScale(d.weight))
+            .attr("fill", "black");
+
+    const headerGroup = svg.append("g");
+
+    // IRR
+    headerGroup.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", width + 10)
+            .attr("y", 0)
+            .style("font-size", "14px")
+            .text("IRR");
+    svg.append("g")
+            .attr("class", "ci-labels")
+            .selectAll("text")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("x", width + 10)
+            .attr("y", d => y(d.site) + (y.bandwidth() / 2))
+            .attr("dy", "0.35em")
+            .style("font-size", "12px")
+            .text(d => d.irr.toFixed(decimal));
+
+    // 95% CI
+    headerGroup.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", (width + 40) + Math.pow(decimal, 2))
+            .attr("y", 0)
+            .style("font-size", "14px")
+            .text("95% CI");
+    svg.append("g")
+            .attr("class", "ci-labels")
+            .selectAll("text")
+            .data(data)
+            .enter()
+            .append("text")
+            .attr("x", (width + 40) + Math.pow(decimal, 2))
+            .attr("y", d => y(d.site) + (y.bandwidth() / 2))
+            .attr("dy", "0.35em")
+            .style("font-size", "12px")
+            .text(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`);
+
+};
+const populateStatsTable = (decimal, showSiteNames) => {
+    const tableData = new Map();
+    const indiv = stats.indiv;
+    indiv.forEach((stats, site) => {
+        const data = [
+            showSiteNames ? site : `Site ${stats.siteNumber}`,
+            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
+            roundTo(stats.r1c3, decimal), roundTo(stats.r2c3, decimal),
+            roundTo(stats.irr, decimal), roundTo(stats.lnIrr, decimal), roundTo(stats.varlnIrr, decimal),
+            roundTo(stats.lower95CI, decimal), roundTo(stats.upper95CI, decimal),
+            roundTo(stats.w1, decimal), roundTo(stats.w1Percentage, decimal),
+            roundTo(stats.w2, decimal), roundTo(stats.w2Percentage, decimal)
+        ];
+
+        if (showSiteNames) {
+            tableData.set(site, data);
+        } else {
+            tableData.set(stats.siteNumber, data);
+        }
+    });
+
+    const tbody = document.querySelector('#stats tbody');
+    tbody.innerHTML = '';
+//    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
+    const iterator = [...tableData.keys()];
+    iterator.forEach(key => {
+        const row = tbody.insertRow(-1);
+        tableData.get(key).forEach((value, index) => {
+            row.insertCell(index).innerHTML = value;
+        });
+
+        // add backgroud color to columns
+        row.cells[1].classList.add('table-success');
+        row.cells[2].classList.add('table-success');
+        row.cells[3].classList.add('table-warning');
+        row.cells[4].classList.add('table-warning');
+        row.cells[5].classList.add('table-success');
+        row.cells[6].classList.add('table-warning');
+        row.cells[10].classList.add('table-info');
+        row.cells[11].classList.add('table-info');
+        row.cells[12].classList.add('table-secondary');
+        row.cells[13].classList.add('table-secondary');
+        row.cells[14].classList.add('table-light');
+        row.cells[15].classList.add('table-light');
+    });
 };
 const populateSiteTable = (showSiteNames) => {
     $('#siteCounts').text(validSites.size);
