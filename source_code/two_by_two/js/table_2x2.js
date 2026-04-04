@@ -262,24 +262,32 @@ const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
+const getColumnPixelSize = (data) => {
+    return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
+};
 const populateForestPlot = (decimal, showSiteNames) => {
     const data = [];
-    for (const d of stats.indiv.values()) {
+    for (const value of stats.indiv.values()) {
         data.push({
-            site: showSiteNames ? d.siteName : `Site ${d.siteNumber}`,
-            irr: d.irr,
-            lower: d.lower95CI,
-            upper: d.upper95CI,
-            weight: d.w1
+            study: showSiteNames ? value.siteName : `Site ${value.siteNumber}`,
+            groupA: value.r1c1,
+            groupATotal: value.r1c2,
+            groupB: value.r2c1,
+            groupBTotal: value.r2c2,
+            estimate: value.irr,
+            lower: value.lower95CI,
+            upper: value.upper95CI,
+            weight: value.w1,
+            randomWeight: value.w2
         });
     }
 
-    const maxNameLength = Math.max(...data.map(item => Math.ceil(getStringWidth(item.site))));
-    const fixedHeight = data.length * 60;
-    const fixedWidth = 800;
+    const maxNameLength = Math.max(...data.map(value => Math.ceil(getStringWidth(value.study))));
+    const fixedHeight = data.length * 50;
+    const fixedWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 20, right: 40, bottom: 40, left: maxNameLength};
+    const margin = {top: 40, right: 10, bottom: 20, left: 10};
     const width = fixedWidth - margin.left - margin.right;
     const height = fixedHeight - margin.top - margin.bottom;
 
@@ -300,21 +308,72 @@ const populateForestPlot = (decimal, showSiteNames) => {
 
     // y-scale (studies)
     const y = d3.scaleBand()
-            .domain(data.map(d => d.site))
+            .domain(data.map(d => d.study))
             .range([0, height])
             .padding(0.5);
 
+    let rows = svg.selectAll(".row")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "row");
+
+    let xPos = 0;
+    rows.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", xPos)
+            .attr("y", 0)
+            .attr("text-anchor", "start")
+            .style("font-size", "14px")
+            .text("Site");
+    rows.append("text")
+            .attr("x", xPos)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .style("font-size", "12px")
+            .text(d => d.study);
+
+    xPos += getColumnPixelSize([...data.map(d => d.study), 'Site']) + 50;
+    rows.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", xPos)
+            .attr("y", 0)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Group A (n/N)");
+    rows.append("text")
+            .attr("x", xPos)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .text(d => `${d.groupA}/${d.groupATotal}`);
+
+    xPos += getColumnPixelSize([...data.map(d => `${d.groupA}/${d.groupATotal}`), 'Group A (n/N)']) + 40;
+    rows.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", xPos)
+            .attr("y", 0)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .text("Group B (n/N)");
+    rows.append("text")
+            .attr("x", xPos)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .text(d => `${d.groupB}/${d.groupBTotal}`);
+
     // axes
+    xPos += getColumnPixelSize([...data.map(d => `${d.groupB}/${d.groupBTotal}`), 'Group B (n/N)']);
     svg.append('g')
-            .attr('transform', `translate(0,${height})`)
+            .attr('transform', `translate(${xPos},${height})`)
             .call(d3.axisBottom(x));
-    svg.append('g')
-            .call(d3.axisLeft(y));
+//    svg.append('g')
+//            .call(d3.axisLeft(y));
 
     // add vertical reference line (null effect)
     svg.append('line')
-            .attr('x1', x(1))
-            .attr('x2', x(1))
+            .attr('x1', x(1) + xPos)
+            .attr('x2', x(1) + xPos)
             .attr('y1', 0)
             .attr('y2', height)
             .attr('stroke', 'red')
@@ -325,87 +384,107 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .data(data)
             .enter()
             .append('line')
-            .attr('x1', d => x(d.lower))
-            .attr('x2', d => x(d.upper))
-            .attr('y1', d => y(d.site) + (y.bandwidth() / 2))
-            .attr('y2', d => y(d.site) + (y.bandwidth() / 2))
+            .attr('x1', d => x(d.lower) + xPos)
+            .attr('x2', d => x(d.upper) + xPos)
+            .attr('y1', d => y(d.study) + (y.bandwidth() / 2))
+            .attr('y2', d => y(d.study) + (y.bandwidth() / 2))
+            .attr("stroke-width", 1)
             .attr('stroke', 'black');
 //    svg.selectAll('.ci')
 //            .data(data)
 //            .enter()
 //            .append('line')
-//            .attr('x1', d => x(d.lower))
-//            .attr('x2', d => x(d.lower))
-//            .attr('y1', d => y(d.site) + (y.bandwidth() / 2) - 5)
-//            .attr('y2', d => y(d.site) + (y.bandwidth() / 2) + 5)
+//            .attr('x1', d => x(d.lower) + xPos)
+//            .attr('x2', d => x(d.lower) + xPos)
+//            .attr('y1', d => y(d.study) + (y.bandwidth() / 2) - 5)
+//            .attr('y2', d => y(d.study) + (y.bandwidth() / 2) + 5)
 //            .attr("stroke-width", 2)
 //            .attr('stroke', 'black');
 //    svg.selectAll('.ci')
 //            .data(data)
 //            .enter()
 //            .append('line')
-//            .attr('x1', d => x(d.upper))
-//            .attr('x2', d => x(d.upper))
-//            .attr('y1', d => y(d.site) + (y.bandwidth() / 2) - 5)
-//            .attr('y2', d => y(d.site) + (y.bandwidth() / 2) + 5)
+//            .attr('x1', d => x(d.upper) + xPos)
+//            .attr('x2', d => x(d.upper) + xPos)
+//            .attr('y1', d => y(d.study) + (y.bandwidth() / 2) - 5)
+//            .attr('y2', d => y(d.study) + (y.bandwidth() / 2) + 5)
 //            .attr("stroke-width", 2)
 //            .attr('stroke', 'black');
 
     // draw effect size points (boxes or circles)
     const sizeScale = d3.scaleSqrt()
             .domain([0, d3.max(data, d => d.weight)])
-            .range([0, 40]);
+            .range([0, 25]);
     svg.selectAll(".point")
             .data(data)
             .enter()
             .append("rect")
             .attr("class", "point")
-            .attr("x", d => x(d.irr) - (sizeScale(d.weight) / 2))
-            .attr("y", d => (y(d.site) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2))
+            .attr("x", d => x(d.estimate) - (sizeScale(d.weight) / 2) + xPos)
+            .attr("y", d => (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2))
             .attr("width", d => sizeScale(d.weight))
             .attr("height", d => sizeScale(d.weight))
             .attr("fill", "black");
 
-    const headerGroup = svg.append("g");
-
-    // IRR
-    headerGroup.append("text")
+    xPos += fixedWidth + getColumnPixelSize([...data.map(d => `${d.estimate.toFixed(decimal)}`), 'IRR']);
+    rows.append("text")
             .attr("class", "fw-bold")
-            .attr("x", width + 10)
+            .attr("x", xPos)
             .attr("y", 0)
+            .attr("text-anchor", "end")
             .style("font-size", "14px")
             .text("IRR");
-    svg.append("g")
-            .attr("class", "ci-labels")
-            .selectAll("text")
-            .data(data)
-            .enter()
-            .append("text")
-            .attr("x", width + 10)
-            .attr("y", d => y(d.site) + (y.bandwidth() / 2))
-            .attr("dy", "0.35em")
+    rows.append("text")
+            .attr("x", xPos)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "end")
             .style("font-size", "12px")
-            .text(d => d.irr.toFixed(decimal));
+            .text(d => d.estimate.toFixed(decimal));
 
-    // 95% CI
-    headerGroup.append("text")
+    xPos += 10;
+    rows.append("text")
             .attr("class", "fw-bold")
-            .attr("x", (width + 40) + Math.pow(decimal, 2))
+            .attr("x", xPos + getColumnPixelSize([...data.map(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`), '95% CI']))
             .attr("y", 0)
+            .attr("text-anchor", "end")
             .style("font-size", "14px")
             .text("95% CI");
-    svg.append("g")
-            .attr("class", "ci-labels")
-            .selectAll("text")
-            .data(data)
-            .enter()
-            .append("text")
-            .attr("x", (width + 40) + Math.pow(decimal, 2))
-            .attr("y", d => y(d.site) + (y.bandwidth() / 2))
-            .attr("dy", "0.35em")
+    rows.append("text")
+            .attr("x", xPos)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "start")
             .style("font-size", "12px")
             .text(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`);
 
+    xPos += getColumnPixelSize([...data.map(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`), '95% CI']) + 20;
+    rows.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", xPos)
+            .attr("y", 0)
+            .attr("text-anchor", "start")
+            .style("font-size", "14px")
+            .text("Fixed Weight");
+    rows.append("text")
+            .attr("x", xPos + 20 + getColumnPixelSize([...data.map(d => `d.weight.toFixed(decimal)`), 'Fixed Weight']) / 2)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "end")
+            .style("font-size", "12px")
+            .text(d => d.weight.toFixed(decimal));
+
+    xPos += getColumnPixelSize([...data.map(d => `${d.weight.toFixed(decimal)}`), 'Fixed Weight']) + 40;
+    rows.append("text")
+            .attr("class", "fw-bold")
+            .attr("x", xPos)
+            .attr("y", 0)
+            .attr("text-anchor", "start")
+            .style("font-size", "14px")
+            .text("Random Weight");
+    rows.append("text")
+            .attr("x", xPos + getColumnPixelSize([...data.map(d => `d.weight.toFixed(decimal)`), 'Fixed Weight']) - 30)
+            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
+            .attr("text-anchor", "end")
+            .style("font-size", "12px")
+            .text(d => d.randomWeight.toFixed(decimal));
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
