@@ -411,18 +411,16 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize);
 
     // Column 2: Group A (n/N)
-    xPos += lengthCol1 + (lengthCol2 / 2);
+    xPos += lengthCol1 + (lengthCol2 / 2) + (dxPos * 2);
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
-            .attr("dx", dxPos)
             .attr('text-anchor', 'middle')
             .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('Group A');
     svg.append('text')
             .attr('x', xPos)
-            .attr("dx", dxPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'middle')
             .attr('class', 'fw-bold')
@@ -430,13 +428,12 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .text('(n/N)');
     rows.append("text")
             .attr("x", xPos)
-            .attr("dx", dxPos)
             .attr('text-anchor', 'middle')
             .style('font-size', fontSize)
             .text(d => (d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : '');
 
     // Column 3: Group B (n/N)
-    xPos += lengthCol2 + (lengthCol3 / 2);
+    xPos += lengthCol2 + (lengthCol3 / 2) - dxPos;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
@@ -574,15 +571,17 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('stroke', 'red');
 
     // Column 5: IRR
-    xPos += lengthCol4;
+    xPos += lengthCol4 + dxPos + Math.pow(decimal, 2);
     svg.append('text')
-            .attr('class', 'fw-bold')
             .attr("x", xPos)
             .attr('y', yPosHeader)
+            .attr('text-anchor', 'end')
+            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('IRR');
     rows.append('text')
             .attr("x", xPos)
+            .attr('text-anchor', 'end')
             .attr('class', 'irr')
             .style('font-size', fontSize)
             .text(d => d.estimate ? d.estimate.toFixed(decimal) : '');
@@ -595,17 +594,15 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize);
 
     // Column 6: 95% CI
-    xPos += lengthCol5;
+    xPos += lengthCol5 - (lengthCol6 / 4);
     svg.append('text')
-            .attr('class', 'fw-bold')
-            .attr("x", xPos)
+            .attr("x", xPos + decimal)
             .attr('y', yPosHeader)
-            .attr("dx", dxPos)
+            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('95% CI');
     rows.append('text')
             .attr("x", xPos)
-            .attr("dx", dxPos)
             .attr('class', 'ci')
             .style('font-size', fontSize)
             .text(d => (d.lower && d.upper) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
@@ -617,24 +614,24 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize);
 
     // Column 7: Fixed Weight
-    xPos += lengthCol6;
+    xPos += lengthCol6 * 1.5;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
-            .attr("dx", dxPos)
+            .attr('text-anchor', 'end')
             .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('Fixed');
     svg.append('text')
             .attr('x', xPos)
-            .attr("dx", dxPos)
             .attr('dy', dyHeader)
+            .attr('text-anchor', 'end')
             .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('Weight');
     rows.append('text')
             .attr("x", xPos)
-            .attr("dx", dxPos)
+            .attr('text-anchor', 'end')
             .attr('class', 'fixed-weight')
             .style('font-size', fontSize)
             .text(d => d.fixedWeight ? (d.fixedWeight === 100) ? '100%' : (d.fixedWeight === -1) ? '*' : `${d.fixedWeight.toFixed(decimal)}%` : '');
@@ -646,21 +643,24 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize);
 
     // Column 8: Random Weight
-    xPos += lengthCol7;
+    xPos += (lengthCol6 + lengthCol7) / 3;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
+            .attr('text-anchor', 'end')
             .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('Random');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
+            .attr('text-anchor', 'end')
             .attr('class', 'fw-bold')
             .style('font-size', fontSize)
             .text('Weight');
     rows.append('text')
             .attr("x", xPos)
+            .attr('text-anchor', 'end')
             .attr('class', 'random-weight')
             .style('font-size', fontSize)
             .text(d => d.randomWeight ? (d.randomWeight === 100) ? '100%' : (d.randomWeight === -1) ? '*' : `${d.randomWeight.toFixed(decimal)}%` : '');
