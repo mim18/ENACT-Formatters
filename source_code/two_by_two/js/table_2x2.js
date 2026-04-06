@@ -233,20 +233,6 @@ const computeStats = () => {
 const roundTo = (number, decimal) => {
     return Number(number.toFixed(decimal));
 };
-/**
- * Get the pixel with of a string given font size.
- * 
- * @param {type} text
- * @param {type} font
- * @returns {unresolved}
- */
-const getStringWidth = (text, font = '12px Arial') => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    context.font = font;
-
-    return context.measureText(text).width;
-};
 
 const populateTableProbabilities = (decimal) => {
     $('#r1c3').text(roundTo(stats.total.r1c3, decimal));
@@ -261,6 +247,20 @@ const populateTableProbabilities = (decimal) => {
 const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
+};
+/**
+ * Get the pixel with of a string given font size.
+ * 
+ * @param {type} text
+ * @param {type} font
+ * @returns {unresolved}
+ */
+const getStringWidth = (text, font = '14px Arial') => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = font;
+
+    return context.measureText(text).width;
 };
 const getColumnPixelSize = (data) => {
     return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
@@ -280,9 +280,13 @@ const populateForestPlot = (decimal, showSiteNames) => {
             weight: value.w1,
             fixedWeight: value.w1Percentage,
             randomWeight: value.w2Percentage,
-            commonEffect: false
+            commonEffectModel: false,
+            randomEffectModel: false
         });
     }
+
+    // leave row space
+    data.push({});
 
     const common = {
         study: 'Common effect model',
@@ -291,29 +295,30 @@ const populateForestPlot = (decimal, showSiteNames) => {
         upper: stats.total.irr,
         weight: 0,
         fixedWeight: 100,
-        randomWeight: 0,
-        commonEffect: true
+        randomWeight: -1,
+        commonEffectModel: true,
+        randomEffectModel: false
     };
     data.push(common);
 
-    const maxNameLength = Math.max(...data.map(value => Math.ceil(getStringWidth(value.study))));
-    const fixedHeight = data.length * 50;
-    const fixedWidth = 450;
+    const plotHeight = data.length * 50;
+    const plotWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 30, right: 0, bottom: 20, left: 0};
-    const width = fixedWidth - margin.left - margin.right;
-    const height = fixedHeight - margin.top - margin.bottom;
+    const margin = {top: 40, right: 10, bottom: 20, left: 10};
+    const width = plotWidth - margin.left - margin.right;
+    const height = plotHeight - margin.top - margin.bottom;
 
-    d3.select("svg").selectAll("*").remove();
+    // remove previous chart
+    d3.select('svg').selectAll('*').remove();
 
-    const svg = d3.select('#forestPlot')
+    const svg = d3.select('#forestChart')
             .append('g')
-            .attr('transform', `translate(${margin.left + 10}, ${margin.top})`);
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    d3.select("svg")
-            .attr("width", "100%")
-            .attr("height", fixedHeight);
+    d3.select('svg')
+            .attr('width', '100%')
+            .attr('height', plotHeight);
 
     // x-scale (effect size)
     const x = d3.scaleLinear()
@@ -326,86 +331,104 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .range([0, height])
             .padding(0.5);
 
-    let rows = svg.selectAll(".row")
+    const rows = svg.selectAll('.row')
             .data(data)
             .enter()
-            .append("g")
-            .attr("class", "row");
+            .append('g')
+            .attr('transform', d => `translate(0, ${y(d.study) + (y.bandwidth() / 2)})`);
 
-    const headerYPos = -15;
+    const yPosHeader = -25;
+    const dxPos = 20;
+    const dyHeader = -5;
+    const fontSize = '0.875em';
     let xPos = 0;
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "start")
-            .style("font-size", "14px")
-            .text("Site");
-    rows.append("text")
-            .attr("class", "site-name")
-            .attr("x", xPos)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .style("font-size", "12px")
-            .text(d => d.study);
+
+    const lengthCol1 = getColumnPixelSize([...data.map(d => d.study ? d.study : ''), 'Site']);
+    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : ''}`), 'Group A']);
+    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : ''}`), 'Group B (Ref)']);
+    const lengthCol4 = plotWidth;
+    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR']);
+    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI']) + dxPos;
+    const lengthCol7 = getColumnPixelSize([...data.map(d => d.fixedWeight ? `${d.fixedWeight.toFixed(decimal)}%` : ''), 'Fixed Weight']);
+
+    // column 1: Site
+    svg.append('text')
+            .attr('class', 'fw-bold')
+            .attr('x', 0)
+            .attr('y', yPosHeader)
+            .style('font-size', fontSize)
+            .text('Site');
+    rows.append('text')
+            .attr('x', 0)
+            .attr('class', 'site-name')
+            .style('font-size', fontSize)
+            .text(d => d.study ? d.study : '');
 
     // bold common effect (Site)
-    d3.selectAll(".site-name")
-            .filter(d => d.commonEffect)
-            .attr("class", "fw-bold")
-            .style("font-size", "14px");
+    d3.selectAll('.site-name')
+            .filter(d => d.commonEffectModel || d.randomEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
 
-    xPos += getColumnPixelSize([...data.map(d => d.study), 'Site']) + 50;
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Group A");
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("dy", "0")
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("(n/N)");
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "middle")
-            .style("font-size", "12px")
+    // Column 2: Group A (n/N)
+    xPos += lengthCol1 + (lengthCol2 / 2);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .attr('dx', dxPos)
+            .attr('text-anchor', 'middle')
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Group A');
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dx', dxPos)
+            .attr('dy', dyHeader)
+            .attr('text-anchor', 'middle')
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('(n/N)');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('dx', dxPos)
+            .attr('text-anchor', 'middle')
+            .style('font-size', fontSize)
             .text(d => (d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : '');
 
-    xPos += getColumnPixelSize([...data.map(d => `${d.groupA}/${d.groupATotal}`), 'Group A']);
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Group B (Ref)");
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("dy", "0")
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("(n/N)");
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "middle")
-            .style("font-size", "12px")
+    // Column 3: Group B (n/N)
+    xPos += lengthCol2 + (lengthCol3 / 2);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .attr('text-anchor', 'middle')
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Group B (Ref)');
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dy', dyHeader)
+            .attr('text-anchor', 'middle')
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('(n/N)');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'middle')
+            .style('font-size', fontSize)
             .text(d => (d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : '');
 
-    // axes
-    xPos += getColumnPixelSize([...data.map(d => `${d.groupB}/${d.groupBTotal}`), 'Group B (Ref)']) - 70;
-    rows.append("text")
-            .attr("x", xPos + (width / 2))
-            .attr("y", headerYPos)
-            .attr("text-anchor", "middle")
-            .style("font-size", "14px")
-            .text("Incident Rate Ratio");
+    // Column 4: Incident Rate Ratio (forest plot)
+    xPos += lengthCol3;
+    svg.append('text')
+            .attr('x', xPos + (width / 2))
+            .attr('y', yPosHeader)
+            .attr('text-anchor', 'middle')
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Incident Rate Ratio');
     svg.append('g')
             .attr('transform', `translate(${xPos},${height})`)
             .call(d3.axisBottom(x));
-//    svg.append('g')
-//            .call(d3.axisLeft(y));
 
     // add vertical reference line (null effect)
     svg.append('line')
@@ -426,152 +449,167 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('stroke-dasharray', '8');
 
     // draw confidence intervals (horizontal lines)
+    const yShift = 5;
     svg.selectAll('.ci')
             .data(data)
             .enter()
             .append('line')
-            .attr('x1', d => x(d.lower) + xPos)
-            .attr('x2', d => x(d.upper) + xPos)
-            .attr('y1', d => y(d.study) + (y.bandwidth() / 2) - 5)
-            .attr('y2', d => y(d.study) + (y.bandwidth() / 2) - 5)
-            .attr("stroke-width", 1)
+            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+            .attr('stroke-width', 1)
             .attr('stroke', 'black');
 //    svg.selectAll('.ci')
 //            .data(data)
 //            .enter()
 //            .append('line')
-//            .attr('x1', d => x(d.lower) + xPos)
-//            .attr('x2', d => x(d.lower) + xPos)
-//            .attr('y1', d => y(d.study) + (y.bandwidth() / 2) - 5)
-//            .attr('y2', d => y(d.study) + (y.bandwidth() / 2) + 5)
-//            .attr("stroke-width", 1)
+//            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
 //            .attr('stroke', 'black');
 //    svg.selectAll('.ci')
 //            .data(data)
 //            .enter()
 //            .append('line')
-//            .attr('x1', d => x(d.upper) + xPos)
-//            .attr('x2', d => x(d.upper) + xPos)
-//            .attr('y1', d => y(d.study) + (y.bandwidth() / 2) - 5)
-//            .attr('y2', d => y(d.study) + (y.bandwidth() / 2) + 5)
-//            .attr("stroke-width", 1)
+//            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
 //            .attr('stroke', 'black');
 
-    // draw effect size points (boxes or circles)
+    // draw effect size points (boxes)
     const sizeScale = d3.scaleSqrt()
             .domain([0, d3.max(data, d => d.weight)])
             .range([0, 25]);
-    svg.selectAll(".point")
+    svg.selectAll('.point')
             .data(data)
             .enter()
-            .append("rect")
-            .attr("class", "point")
-            .attr("x", d => x(d.estimate) - (sizeScale(d.weight) / 2) + xPos)
-            .attr("y", d => (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2) - 5)
-            .attr("width", d => sizeScale(d.weight))
-            .attr("height", d => sizeScale(d.weight))
-            .attr("fill", "black");
+            .append('rect')
+            .attr('class', 'point')
+            .attr('x', d => (d.estimate && d.weight) ? x(d.estimate) - (sizeScale(d.weight) / 2) + xPos : x(1) + xPos)
+            .attr('y', d => (d.study && d.weight) ? (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2) - yShift : x(1) + xPos)
+            .attr('width', d => d.weight ? sizeScale(d.weight) : 0)
+            .attr('height', d => d.weight ? sizeScale(d.weight) : 0)
+            .attr('fill', 'black');
 
-    // common effect (overlap the existing common effect shape)
+    // draw common effect point
     const dat = [{
             x: x(common.estimate) + xPos,
-            y: y(common.study)
+            y: y(common.study) + (y.bandwidth() / 2) - yShift
         }];
     const size = 8;
-    svg.selectAll("path.diamond")
+    svg.selectAll('path.diamond')
             .data(dat)
             .enter()
-            .append("path")
-            .attr("d", `M 0,${-size} L ${size},0 L 0,${size} L ${-size},0 Z`)
-            .attr("transform", d => `translate(${d.x},${d.y})`)
-            .attr("fill", "blue")
-            .attr("stroke", "blue");
+            .append('path')
+            .attr('d', `M 0,${-size} L ${size},0 L 0,${size} L ${-size},0 Z`)
+            .attr('transform', d => `translate(${d.x},${d.y})`)
+            .attr('fill', 'blue')
+            .attr('stroke', 'blue');
 
-    xPos += fixedWidth + getColumnPixelSize([...data.map(d => `${d.estimate.toFixed(decimal)}`), 'IRR']);
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "end")
-            .style("font-size", "14px")
-            .text("IRR");
-    rows.append("text")
-            .attr("class", "irr-value")
-            .attr("x", xPos)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "end")
-            .style("font-size", "12px")
-            .text(d => d.estimate.toFixed(decimal));
+    // Column 5: IRR
+    xPos += lengthCol4;
+    svg.append('text')
+            .attr('class', 'fw-bold')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .style('font-size', fontSize)
+            .text('IRR');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('class', 'irr')
+            .style('font-size', fontSize)
+            .text(d => d.estimate ? d.estimate.toFixed(decimal) : '');
 
     // bold common effect (IRR)
-    d3.selectAll(".irr-value")
-            .filter(d => d.commonEffect)
-            .attr("x", xPos + 8)
-            .attr("class", "fw-bold")
-            .style("font-size", "14px");
+    d3.selectAll('.irr')
+            .filter(d => d.commonEffectModel || d.randomEffectModel)
+            .attr('x', xPos + 8)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
 
-    xPos += 10;
-    rows.append("text")
-            .attr("x", xPos + getColumnPixelSize([...data.map(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`), '95% CI']))
-            .attr("y", headerYPos)
-            .attr("text-anchor", "end")
-            .style("font-size", "14px")
-            .text("95% CI");
-    rows.append("text")
-            .attr("class", "ci")
-            .attr("x", xPos)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "start")
-            .style("font-size", "12px")
-            .text(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`);
+    // Column 6: 95% CI
+    xPos += lengthCol5;
+    svg.append('text')
+            .attr('class', 'fw-bold')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .attr('dx', dxPos)
+            .style('font-size', fontSize)
+            .text('95% CI');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('dx', dxPos)
+            .attr('class', 'ci')
+            .style('font-size', fontSize)
+            .text(d => (d.lower && d.upper) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
 
     // bold common effect (95% CI)
-    d3.selectAll(".ci")
-            .filter(d => d.commonEffect)
-            .attr("x", xPos + 8)
-            .attr("class", "fw-bold")
-            .style("font-size", "14px");
+    d3.selectAll('.ci')
+            .filter(d => d.commonEffectModel || d.randomEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
 
-    xPos += getColumnPixelSize([...data.map(d => `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]`), '95% CI']) + 20;
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "start")
-            .style("font-size", "14px")
-            .text("Fixed Weight");
-    rows.append("text")
-            .attr("class", "fixed-weight")
-            .attr("x", xPos + 20 + getColumnPixelSize([...data.map(d => `d.weight.toFixed(decimal)`), 'Fixed Weight']) / 2)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "end")
-            .style("font-size", "12px")
-            .text(d => (d.fixedWeight === 100) ? '100%' : (d.fixedWeight === 0) ? '*' : `${d.fixedWeight.toFixed(decimal)}%`);
+    // Column 7: Fixed Weight
+    xPos += lengthCol6;
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .attr('dx', dxPos)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Fixed');
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dx', dxPos)
+            .attr('dy', dyHeader)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Weight');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('dx', dxPos)
+            .attr('class', 'fixed-weight')
+            .style('font-size', fontSize)
+            .text(d => d.fixedWeight ? `${d.fixedWeight.toFixed(decimal)}%` : '');
 
     // bold common effect (Fixed Weight)
-    d3.selectAll(".fixed-weight")
-            .filter(d => d.commonEffect)
-            .attr("class", "fw-bold")
-            .style("font-size", "14px");
+    d3.selectAll('.fixed-weight')
+            .filter(d => d.commonEffectModel || d.randomEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('100%');
 
-    xPos += getColumnPixelSize([...data.map(d => `${d.fixedWeight.toFixed(decimal)}%`), 'Fixed Weight']) + 40;
-    rows.append("text")
-            .attr("x", xPos)
-            .attr("y", headerYPos)
-            .attr("text-anchor", "start")
-            .style("font-size", "14px")
-            .text("Random Weight");
-    rows.append("text")
-            .attr("class", "random-weight")
-            .attr("x", xPos + getColumnPixelSize([...data.map(d => `d.weight.toFixed(decimal)`), 'Fixed Weight']) - 30)
-            .attr("y", d => y(d.study) + (y.bandwidth() / 2))
-            .attr("text-anchor", "end")
-            .style("font-size", "12px")
-            .text(d => (d.randomWeight === 100) ? '100%' : (d.randomWeight === 0) ? '*' : `${d.randomWeight.toFixed(decimal)}%`);
+    // Column 8: Random Weight
+    xPos += lengthCol7;
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('y', yPosHeader)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Random');
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dy', dyHeader)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('Weight');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('class', 'random-weight')
+            .style('font-size', fontSize)
+            .text(d => d.randomWeight ? `${d.randomWeight.toFixed(decimal)}%` : '');
 
     // bold common effect (Random Weight)
-    d3.selectAll(".random-weight")
-            .filter(d => d.commonEffect)
-            .attr("class", "fw-bold")
-            .style("font-size", "14px");
+    d3.selectAll('.random-weight')
+            .filter(d => d.commonEffectModel || d.randomEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize)
+            .text('*');
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
