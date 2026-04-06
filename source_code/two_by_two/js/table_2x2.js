@@ -20,13 +20,16 @@ const stats = {
     total: {
         r1c1: 0, r1c2: 0, r1c3: 0,
         r2c1: 0, r2c2: 0, r2c3: 0,
-        irr: 0,
-        stderr: 0,
-        ci: 0,
-        lower95CI: 0,
-        upper95CI: 0
+        irr: 0, lnIrr: 0, varlnIrr: 0,
+        stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+        w1: 0, w1Percentage: 0
     },
-    indiv: new Map()
+    random: {
+        irr: 0,
+        lower95CI: 0, upper95CI: 0
+    },
+    indiv: new Map(),
+    tau: 0
 };
 
 /**
@@ -141,11 +144,19 @@ const computeTotalSiteStats = () => {
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
     total.irr = total.r2c3 / total.r1c3;
+    total.lnIrr = Math.log(total.irr);
+    total.varlnIrr = (1.0 / total.r1c1) + (1.0 / total.r2c1);
 
-    total.stderr = Math.sqrt((1.0 / total.r1c1) + (1.0 / total.r2c1));
+    total.stderr = Math.sqrt(total.varlnIrr);
     total.ci = 1.959964 * total.stderr;
-    total.lower95CI = Math.exp(Math.log(total.irr) - total.ci);
-    total.upper95CI = Math.exp(Math.log(total.irr) + total.ci);
+    total.lower95CI = Math.exp(total.lnIrr - total.ci);
+    total.upper95CI = Math.exp(total.lnIrr + total.ci);
+
+    total.w1 = 1 / total.varlnIrr;
+
+    // the weight percent should always be 100%
+    const sumW1 = total.w1;
+    total.w1Percentage = (total.w1 / sumW1) * 100;
 };
 const computeIndividualSiteStats = () => {
     const indiv = stats.indiv;
@@ -208,6 +219,8 @@ const computeIndividualSiteStats = () => {
     const tauSq1 = sumQ - (indiv.size - 1);
     const tauSq2 = sumW1 - (sumW1Sq / sumW1);
     const tau = tauSq1 / tauSq2;
+    stats.tau = tau;
+
     let sumW2 = 0;
     indiv.values().forEach(data => {
         data.w2 = 1 / (data.varlnIrr + tau);
@@ -215,9 +228,19 @@ const computeIndividualSiteStats = () => {
         sumW2 += data.w2;
     });
 
+    let sumW2Irr = 0;
+    let sumRandomLowerCI = 0;
+    let sumRandomUpperCI = 0;
     indiv.values().forEach(data => {
         data.w2Percentage = data.w2 / sumW2;
+
+        sumW2Irr += data.irr * data.w2Percentage;
+        sumRandomLowerCI += data.lower95CI * data.w2Percentage;
+        sumRandomUpperCI += data.upper95CI * data.w2Percentage;
     });
+    stats.random.irr = sumW2Irr;
+    stats.random.lower95CI = sumRandomLowerCI;
+    stats.random.upper95CI = sumRandomUpperCI;
 
     // convert to percentage from decimal
     indiv.values().forEach(data => {
@@ -270,6 +293,7 @@ const populateForestPlot = (decimal, showSiteNames) => {
     for (const value of stats.indiv.values()) {
         data.push({
             study: showSiteNames ? value.siteName : `Site ${value.siteNumber}`,
+            studyNumber: value.siteNumber,
             groupA: value.r1c1,
             groupATotal: value.r1c2,
             groupB: value.r2c1,
@@ -285,6 +309,12 @@ const populateForestPlot = (decimal, showSiteNames) => {
         });
     }
 
+    if (showSiteNames) {
+        data.sort((a, b) => a.study.localeCompare(b.study));
+    } else {
+        data.sort((a, b) => a.studyNumber - b.studyNumber);
+    }
+
     // leave row space
     data.push({});
 
@@ -293,13 +323,23 @@ const populateForestPlot = (decimal, showSiteNames) => {
         estimate: stats.total.irr,
         lower: stats.total.lower95CI,
         upper: stats.total.upper95CI,
-        weight: 0,
-        fixedWeight: 100,
+        fixedWeight: stats.total.w1Percentage,
         randomWeight: -1,
         commonEffectModel: true,
         randomEffectModel: false
     };
+    const random = {
+        study: 'Random effect model',
+        estimate: stats.random.irr,
+        lower: stats.random.lower95CI,
+        upper: stats.random.upper95CI,
+        fixedWeight: -1,
+        randomWeight: 100,
+        commonEffectModel: false,
+        randomEffectModel: true
+    };
     data.push(common);
+    data.push(random);
 
     const plotHeight = data.length * 50;
     const plotWidth = 450;
@@ -435,8 +475,8 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('x2', x(1) + xPos)
             .attr('y1', 0)
             .attr('y2', height)
-            .attr('stroke', 'red')
-            .attr('stroke-dasharray', '4');
+            .attr('stroke', 'black')
+            .attr('stroke-dasharray', 'none');
 
     // common effect vertical reference line
     svg.append('line')
@@ -446,6 +486,14 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('y2', y(common.study))
             .attr('stroke', 'blue')
             .attr('stroke-dasharray', '8');
+    // random effect vertical reference line
+    svg.append('line')
+            .attr('x1', x(random.estimate) + xPos)
+            .attr('x2', x(random.estimate) + xPos)
+            .attr('y1', 0)
+            .attr('y2', y(random.study))
+            .attr('stroke', 'red')
+            .attr('stroke-dasharray', '4');
 
     // draw confidence intervals (horizontal lines)
     const yShift = 5;
@@ -453,8 +501,8 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .data(data)
             .enter()
             .append('line')
-            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
-            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+            .attr('x1', d => (d.commonEffectModel || d.randomEffectModel) ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
+            .attr('x2', d => (d.commonEffectModel || d.randomEffectModel) ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
             .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('stroke-width', 1)
@@ -482,7 +530,7 @@ const populateForestPlot = (decimal, showSiteNames) => {
 
     // draw effect size points (boxes)
     const sizeScale = d3.scaleSqrt()
-            .domain([0, d3.max(data, d => d.weight)])
+            .domain([0, d3.max(data, d => d.weight ? d.weight : 0)])
             .range([0, 25]);
     svg.selectAll('.point')
             .data(data)
@@ -491,24 +539,39 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('class', 'point')
             .attr('x', d => (d.estimate && d.weight) ? x(d.estimate) - (sizeScale(d.weight) / 2) + xPos : x(1) + xPos)
             .attr('y', d => (d.study && d.weight) ? (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2) - yShift : x(1) + xPos)
-            .attr('width', d => d.weight ? sizeScale(d.weight) : 0)
-            .attr('height', d => d.weight ? sizeScale(d.weight) : 0)
+            .attr('width', d => (d.commonEffectModel || d.randomEffectModel) ? 0 : d.weight ? sizeScale(d.weight) : 0)
+            .attr('height', d => (d.commonEffectModel || d.randomEffectModel) ? 0 : d.weight ? sizeScale(d.weight) : 0)
             .attr('fill', 'black');
 
     // draw common effect point
-    const dat = [{
+    let size = 8;
+    const commonData = [{
             x: x(common.estimate) + xPos,
             y: y(common.study) + (y.bandwidth() / 2) - yShift
         }];
-    const size = 8;
     svg.selectAll('path.diamond')
-            .data(dat)
+            .data(commonData)
             .enter()
             .append('path')
             .attr('d', `M 0,${-size} L ${size},0 L 0,${size} L ${-size},0 Z`)
             .attr('transform', d => `translate(${d.x},${d.y})`)
             .attr('fill', 'blue')
             .attr('stroke', 'blue');
+
+    // draw random effect point
+    size = 8;
+    const randomData = [{
+            x: x(random.estimate) + xPos,
+            y: y(random.study) + (y.bandwidth() / 2) - yShift
+        }];
+    svg.selectAll('path.diamond')
+            .data(randomData)
+            .enter()
+            .append('path')
+            .attr('d', `M 0,${-size} L ${size * 2},0 L 0,${size} L ${-size * 2},0 Z`)
+            .attr('transform', d => `translate(${d.x},${d.y})`)
+            .attr('fill', 'red')
+            .attr('stroke', 'red');
 
     // Column 5: IRR
     xPos += lengthCol4;
@@ -574,14 +637,13 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr("dx", dxPos)
             .attr('class', 'fixed-weight')
             .style('font-size', fontSize)
-            .text(d => d.fixedWeight ? `${d.fixedWeight.toFixed(decimal)}%` : '');
+            .text(d => d.fixedWeight ? (d.fixedWeight === 100) ? '100%' : (d.fixedWeight === -1) ? '*' : `${d.fixedWeight.toFixed(decimal)}%` : '');
 
     // bold common effect (Fixed Weight)
     d3.selectAll('.fixed-weight')
             .filter(d => d.commonEffectModel || d.randomEffectModel)
             .attr('class', 'fw-bold')
-            .style('font-size', fontSize)
-            .text('100%');
+            .style('font-size', fontSize);
 
     // Column 8: Random Weight
     xPos += lengthCol7;
@@ -601,14 +663,13 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr("x", xPos)
             .attr('class', 'random-weight')
             .style('font-size', fontSize)
-            .text(d => d.randomWeight ? `${d.randomWeight.toFixed(decimal)}%` : '');
+            .text(d => d.randomWeight ? (d.randomWeight === 100) ? '100%' : (d.randomWeight === -1) ? '*' : `${d.randomWeight.toFixed(decimal)}%` : '');
 
     // bold common effect (Random Weight)
     d3.selectAll('.random-weight')
             .filter(d => d.commonEffectModel || d.randomEffectModel)
             .attr('class', 'fw-bold')
-            .style('font-size', fontSize)
-            .text('*');
+            .style('font-size', fontSize);
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
@@ -633,8 +694,8 @@ const populateStatsTable = (decimal, showSiteNames) => {
 
     const tbody = document.querySelector('#stats tbody');
     tbody.innerHTML = '';
-//    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
-    const iterator = [...tableData.keys()];
+    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
+//    const iterator = [...tableData.keys()];
     iterator.forEach(key => {
         const row = tbody.insertRow(-1);
         tableData.get(key).forEach((value, index) => {
