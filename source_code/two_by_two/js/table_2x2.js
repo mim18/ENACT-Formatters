@@ -1,18 +1,79 @@
+/**
+ * Display counts and incident rate ratio for sites
+ * and forest plot for site meta-analysis.
+ * 
+ * @author Kevin V. Bui (kvb2univpitt@gmail.com)
+ * @date 2025-02-20
+ * @version 1.0.0
+ */
+
+
+/**
+ * Contains input files.
+ * 
+ * key: group r1c1,r1c2,r2c1,r2c2
+ * value: CSV file
+ * 
+ * @type Map
+ */
 const dataFiles = new Map();
+/**
+ * Contains the original data read from files.
+ * 
+ * key: group r1c1,r1c2,r2c1,r2c2
+ * value: map containing site names and their counts => map(site, counts)
+ * 
+ * @type Map
+ */
 const dataFileRawData = new Map();
 
+/**
+ * Contains all the sites that don't have missing counts.
+ * The site number is used to anonymously show the counts for sites.
+ * 
+ * key: site name
+ * value: site number that is random assigned
+ * 
+ * @type Map
+ */
 const validSites = new Map();
 
+/**
+ * Holds the aggregate counts of sites in each group r1c1,r1c2,r2c1,r2c2.
+ * 
+ * key: group r1c1,r1c2,r2c1,r2c2
+ * value: total counts of all sites in each group
+ * 
+ * @type Map
+ */
 const totalCounts = new Map();
+
+/**
+ * Holds individual site counts for each group r1c1,r1c2,r2c1,r2c2.
+ * 
+ * key: group r1c1,r1c2,r2c1,r2c2
+ * value: map contain individual site counts => map(site, counts)
+ * 
+ * @type Map
+ */
 const siteGroupCounts = new Map();
 
 /**
- * r1c1 = group A count
- * r1c2 = group A total count
- * r1c3 = group A rate
- * r2c1 = group B count
- * r2c2 = group B total count
- * r2c3 = group B rate
+ * r1c1: group A count
+ * r1c2: group A total count
+ * r1c3: group A rate => count/(total count)
+ * r2c1: group B count
+ * r2c2: group B total count
+ * r2c3: group B rate => count/(total count)
+ * irr: incident rate ratio
+ * lnIrr: ln(irr)
+ * varlnIrr: variance of lnIrr
+ * stderr: standard error
+ * ci: 95% confidence interval
+ * lower95CI: lower 95% confidence interval
+ * upper95CI: uppper 95% confidence interval
+ * w1: weight => 1/var(ln(irr))
+ * w1Percentage: percentage of weight => weight/(total weight) = 1, in this case
  * 
  * @type type
  */
@@ -28,7 +89,7 @@ const stats = {
         irr: 0,
         lower95CI: 0, upper95CI: 0
     },
-    indiv: new Map(),
+    indiv: new Map(), // map(site, {r1c1: 0, r1c2: 0, r1c3: 0, ...})
     tau: 0
 };
 
@@ -55,7 +116,21 @@ const shuffle = (array) => {
 
 const clearDataStructures = () => {
     dataFiles.clear();
+    dataFileRawData.clear();
+
     validSites.clear();
+
+    totalCounts.clear();
+    siteGroupCounts.clear();
+
+    stats.total = {
+        r1c1: 0, r1c2: 0, r1c3: 0,
+        r2c1: 0, r2c2: 0, r2c3: 0,
+        irr: 0, lnIrr: 0, varlnIrr: 0,
+        stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+        w1: 0, w1Percentage: 0
+    };
+    stats.indiv.clear();
 };
 
 /**
@@ -808,15 +883,15 @@ const advanceToNextTab = () => {
 };
 
 const generateTableAndPlot = () => {
-    validSites.clear();
     Promise.all(getValidSiteTasks()).then((siteNames) => {
         let sites = new Set();
         siteNames.forEach(siteName => {
             sites = sites.size > 0 ? sites.intersection(siteName) : sites.union(siteName);
         });
 
+        validSites.clear();
         const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
-        Array.from(sites).forEach((site, index) => validSites.set(site, shuffledIndexes[index]));
+        Array.from(sites).forEach((site, index) => validSites.set(site, shuffledIndexes[index] + 1));
 
         readInData(advanceToNextTab);
     });
