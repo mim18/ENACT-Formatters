@@ -541,32 +541,30 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .attr('fill', 'black');
 
     // draw common effect point
-    let size = 8;
-    const commonData = [{
-            x: x(common.estimate) + xPos,
-            y: y(common.study) + (y.bandwidth() / 2) - yShift
-        }];
-    svg.selectAll('path.diamond')
-            .data(commonData)
-            .enter()
-            .append('path')
-            .attr('d', `M 0,${-size} L ${size},0 L 0,${size} L ${-size},0 Z`)
-            .attr('transform', d => `translate(${d.x},${d.y})`)
+    const size = 8;
+    const lineGenerator = d3.line()
+            .x(d => d.x)
+            .y(d => d.y);
+    let diamond = [
+        {x: x(common.lower) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift}, // left
+        {x: x(common.estimate) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift - size}, // top
+        {x: x(common.upper) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift}, // right
+        {x: x(common.estimate) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift + size} // bottom
+    ];
+    svg.append("path")
+            .attr("d", lineGenerator(diamond) + 'Z') // 'Z' closes path
             .attr('fill', 'blue')
             .attr('stroke', 'blue');
 
     // draw random effect point
-    size = 8;
-    const randomData = [{
-            x: x(random.estimate) + xPos,
-            y: y(random.study) + (y.bandwidth() / 2) - yShift
-        }];
-    svg.selectAll('path.diamond')
-            .data(randomData)
-            .enter()
-            .append('path')
-            .attr('d', `M 0,${-size} L ${size * 2},0 L 0,${size} L ${-size * 2},0 Z`)
-            .attr('transform', d => `translate(${d.x},${d.y})`)
+    diamond = [
+        {x: x(random.lower) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift}, // left
+        {x: x(random.estimate) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift - size}, // top
+        {x: x(random.upper) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift}, // right
+        {x: x(random.estimate) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift + size} // bottom
+    ];
+    svg.append("path")
+            .attr("d", lineGenerator(diamond) + 'Z') // 'Z' closes path
             .attr('fill', 'red')
             .attr('stroke', 'red');
 
@@ -636,15 +634,17 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize)
             .text(d => d.fixedWeight ? (d.fixedWeight === 100) ? '100%' : (d.fixedWeight === -1) ? '*' : `${d.fixedWeight.toFixed(decimal)}%` : '');
 
-    // bold common effect (Fixed Weight)
-    d3.selectAll('.fixed-weight')
-            .filter(d => d.commonEffectModel || d.randomEffectModel)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
-    // center weight (*)
+    // bold and center random effect fixed weight (*)
     d3.selectAll('.fixed-weight')
             .filter(d => d.randomEffectModel)
-            .attr("x", xPos - 20);
+            .attr("x", xPos - 20)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
+    // bold common effect fixed weight (100%)
+    d3.selectAll('.fixed-weight')
+            .filter(d => d.commonEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
 
     // Column 8: Random Weight
     xPos += (lengthCol6 + lengthCol7) / 3;
@@ -669,15 +669,17 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize)
             .text(d => d.randomWeight ? (d.randomWeight === 100) ? '100%' : (d.randomWeight === -1) ? '*' : `${d.randomWeight.toFixed(decimal)}%` : '');
 
-    // bold common effect (Random Weight)
-    d3.selectAll('.random-weight')
-            .filter(d => d.commonEffectModel || d.randomEffectModel)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
-    // center weight (*)
+    // bold and center common effect random weight (*)
     d3.selectAll('.random-weight')
             .filter(d => d.commonEffectModel)
-            .attr("x", xPos - 20);
+            .attr("x", xPos - 20)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
+    // bold random effect random weight (100%)
+    d3.selectAll('.random-weight')
+            .filter(d => d.randomEffectModel)
+            .attr('class', 'fw-bold')
+            .style('font-size', fontSize);
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
