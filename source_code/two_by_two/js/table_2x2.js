@@ -641,6 +641,10 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .filter(d => d.commonEffectModel || d.randomEffectModel)
             .attr('class', 'fw-bold')
             .style('font-size', fontSize);
+    // center weight (*)
+    d3.selectAll('.fixed-weight')
+            .filter(d => d.randomEffectModel)
+            .attr("x", xPos - 20);
 
     // Column 8: Random Weight
     xPos += (lengthCol6 + lengthCol7) / 3;
@@ -670,6 +674,10 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .filter(d => d.commonEffectModel || d.randomEffectModel)
             .attr('class', 'fw-bold')
             .style('font-size', fontSize);
+    // center weight (*)
+    d3.selectAll('.random-weight')
+            .filter(d => d.commonEffectModel)
+            .attr("x", xPos - 20);
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
