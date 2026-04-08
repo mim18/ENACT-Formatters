@@ -87,7 +87,8 @@ const stats = {
     indiv: new Map(),
     fixedIrr: 0, fixedLower95CI: 0, fixedUpper95CI: 0,
     randomIrr: 0, randomLower95CI: 0, randomUpper95CI: 0,
-    tau: 0
+    tauSquare: 0,
+    iSquare: 0
 };
 
 /**
@@ -224,6 +225,11 @@ const computeTotalSiteStats = () => {
     total.lower95CI = Math.exp(total.lnIrr - total.ci);
     total.upper95CI = Math.exp(total.lnIrr + total.ci);
 };
+/**
+ * Source for calculation: https://drsm.in/Meta-analysis/Meta_AnalysisHelp1
+ * 
+ * @returns {undefined}
+ */
 const computeIndividualSiteStats = () => {
     const indiv = stats.indiv;
     indiv.clear();
@@ -293,7 +299,7 @@ const computeIndividualSiteStats = () => {
     const tauSq1 = sumQ - (indiv.size - 1);
     const tauSq2 = sumFixedWgt - (sumFixedWgtSq / sumFixedWgt);
     const tau = tauSq1 / tauSq2;
-    stats.tau = tau;
+    stats.tauSquare = tau;
 
     let sumRandomWgt = 0;
     indiv.values().forEach(data => {
@@ -331,6 +337,7 @@ const computeIndividualSiteStats = () => {
     stats.randomIrr = sumRandomWgtIrr;
     stats.randomLower95CI = sumRandomLowerCI;
     stats.randomUpper95CI = sumRandomUpperCI;
+    stats.iSquare = 100 * (sumQ - (indiv.size - 1)) / sumQ;
 
     // convert to percentage from decimal
     indiv.values().forEach(data => {
@@ -395,11 +402,11 @@ const populateForestPlot = (decimal, showSiteNames) => {
         });
     }
 
-    if (showSiteNames) {
-        data.sort((a, b) => a.study.localeCompare(b.study));
-    } else {
-        data.sort((a, b) => a.studyNumber - b.studyNumber);
-    }
+//    if (showSiteNames) {
+//        data.sort((a, b) => a.study.localeCompare(b.study));
+//    } else {
+//        data.sort((a, b) => a.studyNumber - b.studyNumber);
+//    }
 
     // leave row space
     data.push({});
@@ -766,6 +773,12 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .filter(d => d.randomEffect)
             .attr('class', 'fw-bold')
             .style('font-size', fontSize);
+
+    svg.append('text')
+            .attr('x', 0)
+            .attr('y', height)
+            .style('font-size', fontSize)
+            .text(`Heterogeneity: I² = ${stats.iSquare.toFixed(1)}%, τ² = ${stats.tauSquare.toFixed(4)}, p < 0.0001`);
 };
 const populateStatsTable = (decimal, showSiteNames) => {
     const tableData = new Map();
