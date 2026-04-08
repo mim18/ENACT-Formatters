@@ -381,8 +381,53 @@ const getStringWidth = (text, font = '14px Arial') => {
 const getColumnPixelSize = (data) => {
     return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
 };
-const populateForestPlot = (decimal, showSiteNames) => {
-    const data = [];
+const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
+    const tableData = new Map();
+    const indiv = stats.indiv;
+    indiv.forEach((stats, site) => {
+        const data = [
+            showSiteNames ? site : `Site ${stats.siteNumber}`,
+            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
+            stats.r1c3.toFixed(decimal), stats.r2c3.toFixed(decimal),
+            stats.irr.toFixed(decimal), stats.stderr.toFixed(decimal),
+            stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
+            stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
+            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal)
+        ];
+
+        if (showSiteNames) {
+            tableData.set(site, data);
+        } else {
+            tableData.set(stats.siteNumber, data);
+        }
+    });
+
+    const tbody = document.querySelector('#stats tbody');
+    tbody.innerHTML = '';
+    const data = sortSiteNames
+            ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
+            : [...tableData.keys()];
+    data.forEach(key => {
+        const row = tbody.insertRow(-1);
+        tableData.get(key).forEach((value, index) => {
+            row.insertCell(index).innerHTML = value;
+        });
+
+        // add backgroud color to columns
+        row.cells[1].classList.add('table-success');
+        row.cells[2].classList.add('table-success');
+        row.cells[3].classList.add('table-warning');
+        row.cells[4].classList.add('table-warning');
+        row.cells[5].classList.add('table-success');
+        row.cells[6].classList.add('table-warning');
+        row.cells[9].classList.add('table-info');
+        row.cells[10].classList.add('table-info');
+        row.cells[11].classList.add('table-secondary');
+        row.cells[12].classList.add('table-secondary');
+    });
+};
+const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
+    let data = [];
     for (const value of stats.indiv.values()) {
         data.push({
             study: showSiteNames ? value.siteName : `Site ${value.siteNumber}`,
@@ -402,11 +447,9 @@ const populateForestPlot = (decimal, showSiteNames) => {
         });
     }
 
-//    if (showSiteNames) {
-//        data.sort((a, b) => a.study.localeCompare(b.study));
-//    } else {
-//        data.sort((a, b) => a.studyNumber - b.studyNumber);
-//    }
+    if (sortSiteNames) {
+        data = showSiteNames ? data.sort((a, b) => a.study.localeCompare(b.study)) : data.sort((a, b) => a.studyNumber - b.studyNumber);
+    }
 
     // leave row space
     data.push({});
@@ -780,64 +823,19 @@ const populateForestPlot = (decimal, showSiteNames) => {
             .style('font-size', fontSize)
             .text(`Heterogeneity: I² = ${stats.iSquare.toFixed(1)}%, τ² = ${stats.tauSquare.toFixed(4)}, p < 0.0001`);
 };
-const populateStatsTable = (decimal, showSiteNames) => {
-    const tableData = new Map();
-    const indiv = stats.indiv;
-    indiv.forEach((stats, site) => {
-        const data = [
-            showSiteNames ? site : `Site ${stats.siteNumber}`,
-            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
-            stats.r1c3.toFixed(decimal), stats.r2c3.toFixed(decimal),
-            stats.irr.toFixed(decimal), stats.stderr.toFixed(decimal),
-            stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
-            stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
-            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal)
-        ];
-
-        if (showSiteNames) {
-            tableData.set(site, data);
-        } else {
-            tableData.set(stats.siteNumber, data);
-        }
-    });
-
-    const tbody = document.querySelector('#stats tbody');
-    tbody.innerHTML = '';
-    const iterator = showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b);
-//    const iterator = [...tableData.keys()];
-    iterator.forEach(key => {
-        const row = tbody.insertRow(-1);
-        tableData.get(key).forEach((value, index) => {
-            row.insertCell(index).innerHTML = value;
-        });
-
-        // add backgroud color to columns
-        row.cells[1].classList.add('table-success');
-        row.cells[2].classList.add('table-success');
-        row.cells[3].classList.add('table-warning');
-        row.cells[4].classList.add('table-warning');
-        row.cells[5].classList.add('table-success');
-        row.cells[6].classList.add('table-warning');
-        row.cells[9].classList.add('table-info');
-        row.cells[10].classList.add('table-info');
-        row.cells[11].classList.add('table-secondary');
-        row.cells[12].classList.add('table-secondary');
-    });
-};
-const populateSiteTable = (showSiteNames) => {
+const populateSiteTable = (showSiteNames, sortSiteNames) => {
     $('#siteCounts').text(validSites.size);
+
+    let data = showSiteNames ? [...validSites.keys()] : [...validSites.values()];
+    if (sortSiteNames) {
+        data = showSiteNames ? data.sort() : data.sort((a, b) => a - b);
+    }
 
     const tbody = document.querySelector('#siteNames tbody');
     tbody.innerHTML = '';
-    if (showSiteNames) {
-        [...validSites.keys()].sort().forEach(name => {
-            tbody.insertRow(-1).insertCell(0).innerHTML = name;
-        });
-    } else {
-        [...validSites.values()].sort((a, b) => a - b).forEach(name => {
-            tbody.insertRow(-1).insertCell(0).innerHTML = `Site ${name}`;
-        });
-    }
+    data.forEach(name => {
+        tbody.insertRow(-1).insertCell(0).innerHTML = showSiteNames ? name : `Site ${name}`;
+    });
 };
 const constructTableAndPlot = () => {
     const showSiteNames = $('#showSiteNames').prop('checked');
@@ -1111,14 +1109,17 @@ const addIncidenceRateRatioEventListeners = () => {
     });
 };
 const addSiteNameEventListeners = () => {
-    $('#showSiteNames').on('change', () => {
-        const showSiteNames = $('#showSiteNames').prop('checked');
+    const handleSiteNameChange = () => {
         const decimal = parseInt($('#decimal').val());
+        const showSiteNames = $('#showSiteNames').prop('checked');
+        const sortSiteNames = $('#sortSiteNames').prop('checked');
 
-        populateSiteTable(showSiteNames);
-        populateStatsTable(decimal, showSiteNames);
-        populateForestPlot(decimal, showSiteNames);
-    });
+        populateSiteTable(showSiteNames, sortSiteNames);
+        populateStatsTable(decimal, showSiteNames, sortSiteNames);
+        populateForestPlot(decimal, showSiteNames, sortSiteNames);
+    };
+    $('#showSiteNames').on('change', handleSiteNameChange);
+    $('#sortSiteNames').on('change', handleSiteNameChange);
 
     $('#exportSiteNames').on('click', (event) => {
         event.preventDefault();
