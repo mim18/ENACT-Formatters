@@ -350,20 +350,6 @@ const computeStats = () => {
     computeIndividualSiteStats();
 };
 
-const populateTableProbabilities = (decimal) => {
-    $('#r1c3').text(stats.total.r1c3.toFixed(decimal));
-    $('#r2c3').text(stats.total.r2c3.toFixed(decimal));
-    $('#r2c4').text(`${stats.total.irr.toFixed(decimal)} (${stats.total.lower95CI.toFixed(decimal)}-${stats.total.upper95CI.toFixed(decimal)})`);
-
-    $('#stderr').text(stats.total.stderr.toFixed(decimal));
-    $('#irr').text(stats.total.irr.toFixed(decimal));
-    $('#ci_lower').text(stats.total.lower95CI.toFixed(decimal));
-    $('#ci_upper').text(stats.total.upper95CI.toFixed(decimal));
-};
-const populateTableCounts = () => {
-    // display counts for r1c1,r1c2,r2c1,r2c2
-    totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
-};
 /**
  * Get the pixel with of a string given font size.
  * 
@@ -380,6 +366,20 @@ const getStringWidth = (text, font = '14px Arial') => {
 };
 const getColumnPixelSize = (data) => {
     return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
+};
+const populateTableProbabilities = (decimal) => {
+    $('#r1c3').text(stats.total.r1c3.toFixed(decimal));
+    $('#r2c3').text(stats.total.r2c3.toFixed(decimal));
+    $('#r2c4').text(`${stats.total.irr.toFixed(decimal)} (${stats.total.lower95CI.toFixed(decimal)}-${stats.total.upper95CI.toFixed(decimal)})`);
+
+    $('#stderr').text(stats.total.stderr.toFixed(decimal));
+    $('#irr').text(stats.total.irr.toFixed(decimal));
+    $('#ci_lower').text(stats.total.lower95CI.toFixed(decimal));
+    $('#ci_upper').text(stats.total.upper95CI.toFixed(decimal));
+};
+const populateTableCounts = () => {
+    // display counts for r1c1,r1c2,r2c1,r2c2
+    totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
 const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
     const tableData = new Map();
@@ -529,10 +529,10 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
 
     // column 1: Site
     svg.append('text')
-            .attr('class', 'fw-bold')
             .attr("x", 0)
             .attr('y', yPosHeader)
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Site');
     rows.append('text')
             .attr("x", 0)
@@ -543,8 +543,8 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     // bold common effect (Site)
     d3.selectAll('.site-name')
             .filter(d => d.commonEffect || d.randomEffect)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
 
     // Column 2: Group A (n/N)
     xPos += lengthCol1 + (lengthCol2 / 2) + (dxPos * 2);
@@ -552,15 +552,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Group A');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'middle')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('(n/N)');
     rows.append("text")
             .attr("x", xPos)
@@ -574,15 +574,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Group B (Ref)');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'middle')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('(n/N)');
     rows.append('text')
             .attr('x', xPos)
@@ -595,9 +595,9 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     svg.append('text')
             .attr('x', xPos + (width / 2) - (Math.ceil(getStringWidth('Incident Rate Ratio')) / 2))
             .attr('y', yPosHeader)
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
-            .text('Incident Rate Ratio');
+            .text('Incident Rate Ratio')
+            .style("font-weight", "bold");
     svg.append('g')
             .attr('transform', `translate(${xPos},${height})`)
             .call(d3.axisBottom(x));
@@ -710,8 +710,8 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr("x", xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('IRR');
     rows.append('text')
             .attr("x", xPos)
@@ -724,16 +724,16 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     d3.selectAll('.irr')
             .filter(d => d.commonEffect || d.randomEffect)
             .attr('x', xPos)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
 
     // Column 6: 95% CI
     xPos += lengthCol5 - (lengthCol6 / 4);
     svg.append('text')
             .attr("x", xPos + decimal)
             .attr('y', yPosHeader)
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('95% CI');
     rows.append('text')
             .attr("x", xPos)
@@ -744,8 +744,8 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     // bold common effect (95% CI)
     d3.selectAll('.ci')
             .filter(d => d.commonEffect || d.randomEffect)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
 
     // Column 7: Fixed Weight
     xPos += lengthCol6 * 1.5;
@@ -753,15 +753,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Fixed');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'end')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Weight');
     rows.append('text')
             .attr("x", xPos)
@@ -774,13 +774,13 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     d3.selectAll('.fixed-weight')
             .filter(d => d.randomEffect)
             .attr("x", xPos - 20)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
     // bold common effect fixed weight (100%)
     d3.selectAll('.fixed-weight')
             .filter(d => d.commonEffect)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
 
     // Column 8: Random Weight
     xPos += (lengthCol6 + lengthCol7) / 3;
@@ -788,15 +788,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Random');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'end')
-            .attr('class', 'fw-bold')
             .style('font-size', fontSize)
+            .style("font-weight", "bold")
             .text('Weight');
     rows.append('text')
             .attr("x", xPos)
@@ -809,13 +809,13 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     d3.selectAll('.random-weight')
             .filter(d => d.commonEffect)
             .attr("x", xPos - 20)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
     // bold random effect random weight (100%)
     d3.selectAll('.random-weight')
             .filter(d => d.randomEffect)
-            .attr('class', 'fw-bold')
-            .style('font-size', fontSize);
+            .style('font-size', fontSize)
+            .style("font-weight", "bold");
 
     svg.append('text')
             .attr('x', 0)
