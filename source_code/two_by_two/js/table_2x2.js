@@ -316,12 +316,12 @@ const computeIndividualSiteStats = () => {
     let sumRandomUpperCI = 0;
     indiv.values().forEach(data => {
         data.randomWgtPct = data.randomWgt / sumRandomWgt;
-        data.random2Wgt = data.irr * data.randomWgtPct;
+        data.random2Wgt = data.lnIrr * data.randomWgtPct;
 
         data.fixedWgt2Lower95CI = data.lnLower95CI * data.fixedWgtPct;
         data.fixedWgtUpper95CI = data.lnUpper95CI * data.fixedWgtPct;
-        data.random2WgtLower95CI = data.lower95CI * data.randomWgtPct;
-        data.random2WgtUpper95CI = data.upper95CI * data.randomWgtPct;
+        data.random2WgtLower95CI = data.lnLower95CI * data.randomWgtPct;
+        data.random2WgtUpper95CI = data.lnUpper95CI * data.randomWgtPct;
 
         sumFixedWgtIrr += data.lnIrr * data.fixedWgtPct;
         sumRandomWgtIrr += data.random2Wgt;
@@ -334,9 +334,9 @@ const computeIndividualSiteStats = () => {
     stats.fixedIrr = Math.exp(sumFixedWgtIrr);
     stats.fixedLower95CI = Math.exp(sumFixedLowerCI);
     stats.fixedUpper95CI = Math.exp(sumFixedUpperCI);
-    stats.randomIrr = sumRandomWgtIrr;
-    stats.randomLower95CI = sumRandomLowerCI;
-    stats.randomUpper95CI = sumRandomUpperCI;
+    stats.randomIrr = Math.exp(sumRandomWgtIrr);
+    stats.randomLower95CI = Math.exp(sumRandomLowerCI);
+    stats.randomUpper95CI = Math.exp(sumRandomUpperCI);
     stats.iSquare = 100 * (sumQ - (indiv.size - 1)) / sumQ;
 
     // convert to percentage from decimal
@@ -838,16 +838,17 @@ const populateSiteTable = (showSiteNames, sortSiteNames) => {
     });
 };
 const constructTableAndPlot = () => {
-    const showSiteNames = $('#showSiteNames').prop('checked');
     const decimal = parseInt($('#decimal').val());
+    const showSiteNames = $('#showSiteNames').prop('checked');
+    const sortSiteNames = $('#sortSiteNames').prop('checked');
 
     computeStats();
     applyInputLabels();
     populateTableCounts();
     populateTableProbabilities(decimal);
-    populateStatsTable(decimal, showSiteNames);
-    populateForestPlot(decimal, showSiteNames);
-    populateSiteTable(showSiteNames);
+    populateStatsTable(decimal, showSiteNames, sortSiteNames);
+    populateForestPlot(decimal, showSiteNames, sortSiteNames);
+    populateSiteTable(showSiteNames, sortSiteNames);
 };
 
 const readInData = (callback) => {

@@ -31,7 +31,7 @@
     </head>
     <body>
         <div class="container my-5">
-            <h3>Enact 2x2 Table</h3>
+            <h3>ENACT 2x2 Table</h3>
             <hr class="mb-4" />
             <ul class="nav nav-pills mb-4" id="wizard-tab" role="tablist">
                 <li class="nav-item flex-fill">
@@ -303,7 +303,7 @@
                                         </div>
                                     </div>
                                     <!-- end of incidence rate ratio table -->
-                                    <!-- forest plot stats -->
+                                    <!-- meta-analysis table -->
                                     <div class="col-12">
                                         <div class="d-flex align-items-center justify-content-between p-0">
                                             <h5 class="m-0">Meta-Analysis Table: Fixed and Random Effect Model</h5>
@@ -312,84 +312,78 @@
                                             </a>
                                         </div>
                                         <hr class="mt-0" />
-                                        <div class="row gy-4">
-                                            <!-- individual stats table -->
-                                            <div class="col-12">
-                                                <div class="overflow-scroll" style="max-height: 400px;">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
-                                                            <thead class="sticky-top">
-                                                                <tr>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
-                                                                    <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
-                                                                    <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
-                                                                    <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col"></th>
-                                                                    <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
-                                                                    <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
-                                                                    <th scope="col" colspan="2" class="text-center">Random</th>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th scope="col">Site</th>
-                                                                    <th scope="col" class="table-success"><span class="col1LabelText">A</span></th>
-                                                                    <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
-                                                                    <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
-                                                                    <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
-                                                                    <th scope="col" class="table-success">Rate <span class="col1LabelText">A</span></th>
-                                                                    <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
-                                                                    <th scope="col">StdErr ln(IRR)</th>
-                                                                    <th scope="col">IRR</th>
-                                                                    <th scope="col" class="table-info">Low ln(IRR)</th>
-                                                                    <th scope="col" class="table-info">High ln(IRR)</th>
-                                                                    <th scope="col" class="table-secondary">Weight</th>
-                                                                    <th scope="col" class="table-secondary">Weight %</th>
-                                                                    <th scope="col">Weight</th>
-                                                                    <th scope="col">Weight %</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
+                                        <div class="overflow-scroll" style="max-height: 400px;">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped table-hover table-sm border-secondary w-100" id="stats">
+                                                    <thead class="sticky-top">
+                                                        <tr>
+                                                            <th scope="col"></th>
+                                                            <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                            <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                            <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
+                                                            <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
+                                                            <th scope="col" colspan="2" class="text-center table-secondary">Fixed</th>
+                                                            <th scope="col" colspan="2" class="text-center">Random</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th scope="col">Site</th>
+                                                            <th scope="col" class="table-success"><span class="col1LabelText">A</span></th>
+                                                            <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
+                                                            <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
+                                                            <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
+                                                            <th scope="col" class="table-success">Rate <span class="col1LabelText">A</span></th>
+                                                            <th scope="col" class="table-warning">Rate <span class="col2LabelText">B</span></th>
+                                                            <th scope="col">StdErr ln(IRR)</th>
+                                                            <th scope="col">IRR</th>
+                                                            <th scope="col" class="table-info">Low ln(IRR)</th>
+                                                            <th scope="col" class="table-info">High ln(IRR)</th>
+                                                            <th scope="col" class="table-secondary">Weight</th>
+                                                            <th scope="col" class="table-secondary">Weight %</th>
+                                                            <th scope="col">Weight</th>
+                                                            <th scope="col">Weight %</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
                                             </div>
-                                            <!-- end of individual stats table -->
-                                            <!-- forest plot -->
-                                            <div class="col-12">
-                                                <div class="d-flex align-items-center justify-content-between p-0">
-                                                    <h5 class="m-0">Forest Plot</h5>
-                                                    <a class="nav-link" id="downloadForestPlot" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Downloand Plot">
-                                                        <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                    </a>
-                                                </div>
-                                                <hr class="mt-0" /><div class="p-2 border bg-light-subtle text-light-emphasis">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" id="forestChart"></svg>
-                                                </div>
-                                            </div>
-                                            <!-- end of forest plot -->
-                                            <!-- show included sites -->
-                                            <div class="col-sm-12 col-md-12 col-lg-4">
-                                                <div class="card">
-                                                    <div class="card-header d-flex align-items-center justify-content-between">
-                                                        <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
-                                                        <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
-                                                            <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <div class="overflow-scroll" style="max-height: 400px;">
-                                                            <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
-                                                                <tbody></tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- end of show included sites -->
                                         </div>
                                     </div>
-                                    <!-- end of forest plot stats -->
+                                    <!-- end of meta-analysis table -->
+                                    <!-- forest plot -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Forest Plot</h5>
+                                            <a class="nav-link" id="downloadForestPlot" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Downloand Plot">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" /><div class="p-2 border bg-light-subtle text-light-emphasis">
+                                            <svg xmlns="http://www.w3.org/2000/svg" id="forestChart"></svg>
+                                        </div>
+                                    </div>
+                                    <!-- end of forest plot -->
+                                    <!-- show included sites -->
+                                    <div class="col-sm-12 col-md-12 col-lg-4">
+                                        <div class="card">
+                                            <div class="card-header d-flex align-items-center justify-content-between">
+                                                <h5 class="m-0">Sites Included (<span id="siteCounts">0</span>)</h5>
+                                                <a class="nav-link" id="exportSiteNames" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export site names">
+                                                    <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                                </a>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="overflow-scroll" style="max-height: 400px;">
+                                                    <table class="table table-bordered table-striped table-sm w-100" id="siteNames">
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end of show included sites -->
                                 </div>
                             </div>
                         </div>
