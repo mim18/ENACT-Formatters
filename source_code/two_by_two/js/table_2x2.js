@@ -1,7 +1,7 @@
 /**
  * Display counts and incident rate ratio for sites
  * and forest plot for site meta-analysis.
- * 
+ *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  * @date 2025-02-20
  * @version 1.0.0
@@ -10,19 +10,19 @@
 
 /**
  * Contains input files.
- * 
+ *
  * key: group r1c1,r1c2,r2c1,r2c2
  * value: CSV file
- * 
+ *
  * @type Map
  */
 const dataFiles = new Map();
 /**
  * Contains the original data read from files.
- * 
+ *
  * key: group r1c1,r1c2,r2c1,r2c2
  * value: map containing site names and their counts => map(site, counts)
- * 
+ *
  * @type Map
  */
 const dataFileRawData = new Map();
@@ -30,30 +30,30 @@ const dataFileRawData = new Map();
 /**
  * Contains all the sites that don't have missing counts.
  * The site number is used to anonymously show the counts for sites.
- * 
+ *
  * key: site name
  * value: site number that is random assigned
- * 
+ *
  * @type Map
  */
 const validSites = new Map();
 
 /**
  * Holds the aggregate counts of sites in each group r1c1,r1c2,r2c1,r2c2.
- * 
+ *
  * key: group r1c1,r1c2,r2c1,r2c2
  * value: total counts of all sites in each group
- * 
+ *
  * @type Map
  */
 const totalCounts = new Map();
 
 /**
  * Holds individual site counts for each group r1c1,r1c2,r2c1,r2c2.
- * 
+ *
  * key: group r1c1,r1c2,r2c1,r2c2
  * value: map contain individual site counts => map(site, counts)
- * 
+ *
  * @type Map
  */
 const siteGroupCounts = new Map();
@@ -74,7 +74,7 @@ const siteGroupCounts = new Map();
  * upper95CI: uppper 95% confidence interval
  * w1: weight => 1/var(ln(irr))
  * w1Percentage: percentage of weight => weight/(total weight) = 1, in this case
- * 
+ *
  * @type type
  */
 const stats = {
@@ -93,7 +93,7 @@ const stats = {
 
 /**
  * Fisher-Yates Shuffle
- * 
+ *
  * @param {type} array
  * @returns {shuffled array}
  */
@@ -133,7 +133,7 @@ const clearDataStructures = () => {
 
 /**
  * A site is valid if it has data (counts).
- * 
+ *
  * @param {type} csvFile
  * @returns {Promise}
  */
@@ -227,7 +227,7 @@ const computeTotalSiteStats = () => {
 };
 /**
  * Source for calculation: https://drsm.in/Meta-analysis/Meta_AnalysisHelp1
- * 
+ *
  * @returns {undefined}
  */
 const computeIndividualSiteStats = () => {
@@ -352,7 +352,7 @@ const computeStats = () => {
 
 /**
  * Get the pixel with of a string given font size.
- * 
+ *
  * @param {type} text
  * @param {type} font
  * @returns {unresolved}
@@ -381,10 +381,10 @@ const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
+const getStatsTableData = (decimal, showSiteNames) => {
     const tableData = new Map();
-    const indiv = stats.indiv;
-    indiv.forEach((stats, site) => {
+
+    stats.indiv.forEach((stats, site) => {
         const data = [
             showSiteNames ? site : `Site ${stats.siteNumber}`,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
@@ -401,6 +401,11 @@ const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
             tableData.set(stats.siteNumber, data);
         }
     });
+
+    return tableData;
+};
+const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
+    const tableData = getStatsTableData(decimal, showSiteNames);
 
     const tbody = document.querySelector('#stats tbody');
     tbody.innerHTML = '';
@@ -640,26 +645,26 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('stroke-width', 1)
             .attr('stroke', 'black');
-//    svg.selectAll('.ci')
-//            .data(data)
-//            .enter()
-//            .append('line')
-//            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
-//            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
-//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
-//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
-//            .attr('stroke-width', 1)
-//            .attr('stroke', 'black');
-//    svg.selectAll('.ci')
-//            .data(data)
-//            .enter()
-//            .append('line')
-//            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
-//            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
-//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
-//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
-//            .attr('stroke-width', 1)
-//            .attr('stroke', 'black');
+    //    svg.selectAll('.ci')
+    //            .data(data)
+    //            .enter()
+    //            .append('line')
+    //            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+    //            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+    //            .attr('stroke-width', 1)
+    //            .attr('stroke', 'black');
+    //    svg.selectAll('.ci')
+    //            .data(data)
+    //            .enter()
+    //            .append('line')
+    //            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+    //            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+    //            .attr('stroke-width', 1)
+    //            .attr('stroke', 'black');
 
     // draw effect size points (boxes)
     const sizeScale = d3.scaleSqrt()
@@ -867,7 +872,7 @@ const readInData = (callback) => {
 
 /**
  * A task for getting all sites that contain data (counts).
- * 
+ *
  * @returns {Array|getValidSiteTasks.tasks}
  */
 const getValidSiteTasks = () => {
@@ -920,6 +925,41 @@ const generateTableAndPlot = () => {
     return true;
 };
 
+const getIndividualDataContents = () => {
+    const content = [];
+
+    const header = [
+        'Site',
+        `${$('.row1LabelText').first().text()}: ${$('.col1LabelText').first().text()}`,
+        `${$('.row1LabelText').first().text()}: ${$('.col2LabelText').first().text()}`,
+        `${$('.row2LabelText').first().text()}: ${$('.col1LabelText').first().text()}`,
+        `${$('.row2LabelText').first().text()}: ${$('.col2LabelText').first().text()}`,
+        `${$('.col1LabelText').first().text()} Rate`,
+        `${$('.col2LabelText').first().text()} Rate`,
+        'SE ln(IRR)',
+        'IRR',
+        'Lower 95% CI',
+        'Upper 95% CI',
+        'Fixed Weight',
+        'Fixed Weight %',
+        'Random Weight',
+        'Random Weight %'
+    ];
+    content.push(header.join(','));
+
+    // settings
+    const decimal = parseInt($('#decimal').val());
+    const showSiteNames = $('#showSiteNames').prop('checked');
+    const sortSiteNames = $('#sortSiteNames').prop('checked');
+
+    const tableData = getStatsTableData(decimal, showSiteNames);
+    const data = sortSiteNames
+            ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
+            : [...tableData.keys()];
+    data.forEach(key => content.push(tableData.get(key).join(',')));
+
+    return content.join('\r\n');
+};
 const getSiteNameContents = () => {
     const content = [];
     content.push('"Generic Name","Site Name"');
@@ -1100,6 +1140,7 @@ const addSettingsEventListeners = () => {
             constructTableAndPlot();
         }
     });
+
     $('#decimal').on('change', () => {
         const showSiteNames = $('#showSiteNames').prop('checked');
         const decimal = parseInt($('#decimal').val());
@@ -1108,8 +1149,7 @@ const addSettingsEventListeners = () => {
         populateStatsTable(decimal, showSiteNames);
         populateForestPlot(decimal, showSiteNames);
     });
-};
-const addSiteNameEventListeners = () => {
+
     const handleSiteNameChange = () => {
         const decimal = parseInt($('#decimal').val());
         const showSiteNames = $('#showSiteNames').prop('checked');
@@ -1121,6 +1161,19 @@ const addSiteNameEventListeners = () => {
     };
     $('#showSiteNames').on('change', handleSiteNameChange);
     $('#sortSiteNames').on('change', handleSiteNameChange);
+};
+const addExportEventListeners = () => {
+    $('#exportIndividualData').on('click', (event) => {
+        event.preventDefault();
+
+        const content = getIndividualDataContents();
+        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'stats.csv';
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.click();
+    });
 
     $('#exportSiteNames').on('click', (event) => {
         event.preventDefault();
@@ -1128,10 +1181,41 @@ const addSiteNameEventListeners = () => {
         const content = getSiteNameContents();
         const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
 
-        const downloadLink = document.createElement("a");
-        downloadLink.download = 'table1_sites.csv';
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'sites.csv';
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.click();
+    });
+
+    $('#exportForestPlot').on('click', (event) => {
+        event.preventDefault();
+
+        const svg = d3.select("svg").node();
+        const {width, height} = svg.getBoundingClientRect();
+
+        // get SVG as Base64 encode string
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgDataBase64 = btoa(unescape(encodeURIComponent(svgData)));
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8;base64,${svgDataBase64}`;
+
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#FFFFFF';
+        context.fillRect(0, 0, width, height);
+
+        const image = new Image();
+        image.addEventListener('load', () => {
+            context.drawImage(image, 0, 0, width, height);
+
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'forest_plot.png';
+            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.click();
+        });
+        image.src = svgDataUrl;
     });
 };
 const addForestPlotEventListeners = () => {
@@ -1141,7 +1225,7 @@ const addForestPlotEventListeners = () => {
         const svg = d3.select("svg").node();
         const {width, height} = svg.getBoundingClientRect();
 
-        // get SVG as Base64 encode string 
+        // get SVG as Base64 encode string
         const svgData = new XMLSerializer().serializeToString(svg);
         const svgDataBase64 = btoa(unescape(encodeURIComponent(svgData)));
         const svgDataUrl = `data:image/svg+xml;charset=utf-8;base64,${svgDataBase64}`;
@@ -1171,9 +1255,10 @@ const addEventListeners = () => {
     addFileDrapDropEventListeners();
     addFileSelectEventListeners();
     addWizardEventListeners();
+
     addSettingsEventListeners();
-    addSiteNameEventListeners();
     addForestPlotEventListeners();
+    addExportEventListeners();
 };
 
 const applyInputLabels = () => {
