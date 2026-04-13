@@ -1,14 +1,4 @@
 /**
- * Display counts and incident rate ratio for sites
- * and forest plot for site meta-analysis.
- *
- * @author Kevin V. Bui (kvb2univpitt@gmail.com)
- * @date 2025-02-20
- * @version 1.0.0
- */
-
-
-/**
  * Contains input files.
  *
  * key: group r1c1,r1c2,r2c1,r2c2
@@ -46,7 +36,7 @@ const validSites = new Map();
  *
  * @type Map
  */
-const totalCounts = new Map();
+const aggregateCounts = new Map();
 
 /**
  * Holds individual site counts for each group r1c1,r1c2,r2c1,r2c2.
@@ -72,19 +62,18 @@ const siteGroupCounts = new Map();
  * ci: 95% confidence interval
  * lower95CI: lower 95% confidence interval
  * upper95CI: uppper 95% confidence interval
- * w1: weight => 1/var(ln(irr))
- * w1Percentage: percentage of weight => weight/(total weight) = 1, in this case
  *
  * @type type
  */
 const stats = {
-    total: {
+    aggregate: {
         r1c1: 0, r1c2: 0, r1c3: 0,
         r2c1: 0, r2c2: 0, r2c3: 0,
-        irr: 0, lnIrr: 0, varlnIrr: 0,
-        stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0
+        irr: 0, lnIrr: 0, varLnIrr: 0,
+        lnStdErr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+        zScore: 0, pValue: 0
     },
-    indiv: new Map(),
+    individual: new Map(),
     fixedIrr: 0, fixedLower95CI: 0, fixedUpper95CI: 0,
     randomIrr: 0, randomLower95CI: 0, randomUpper95CI: 0,
     tauSquare: 0,
@@ -118,17 +107,25 @@ const clearDataStructures = () => {
 
     validSites.clear();
 
-    totalCounts.clear();
+    aggregateCounts.clear();
     siteGroupCounts.clear();
 
-    stats.total = {
+    stats.aggregate = {
         r1c1: 0, r1c2: 0, r1c3: 0,
         r2c1: 0, r2c2: 0, r2c3: 0,
-        irr: 0, lnIrr: 0, varlnIrr: 0,
-        stderr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
-        w1: 0, w1Percentage: 0
+        irr: 0, lnIrr: 0, varLnIrr: 0,
+        lnStdErr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+        zScore: 0, pValue: 0
     };
-    stats.indiv.clear();
+    stats.individual.clear();
+    stats.fixedIrr = 0;
+    stats.fixedLower95CI = 0;
+    stats.fixedUpper95CI = 0;
+    stats.randomIrr = 0;
+    stats.randomLower95CI = 0;
+    stats.randomUpper95CI = 0;
+    stats.tauSquare = 0;
+    stats.iSquare = 0;
 };
 
 /**
@@ -184,46 +181,62 @@ const readIn2ColumnRowDataTask = (csvFile, group, map) => {
 };
 
 const computeCounts = () => {
-    totalCounts.clear();
+    aggregateCounts.clear();
     siteGroupCounts.clear();
 
     const countsForTenOrLess = parseInt($('#selectPatientCounts').val());
     if (countsForTenOrLess >= 1 && countsForTenOrLess <= 10) {
         for (const [group, rawSiteCounts] of dataFileRawData) {
-            let sumCounts = 0;
+            let total = 0;
             const siteCounts = new Map();
             for (const [site, rawCounts] of rawSiteCounts) {
                 const counts = (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts);
                 siteCounts.set(site, counts);
-                sumCounts += counts;
+                total += counts;
             }
 
-            totalCounts.set(group, sumCounts);
+            aggregateCounts.set(group, total);
             siteGroupCounts.set(group, siteCounts);
         }
     }
 };
 
-const computeTotalSiteStats = () => {
-    const total = stats.total;
+/**
+ * Normal Distribution CDF (Standard Normal).
+ *
+ * @param {type} z
+ * @returns {Number}
+ */
+const normalCDF = (z) => {
+    const t = 1 / (1 + 0.2316419 * Math.abs(z));
+    const d = 0.3989423 * Math.exp(-z * z / 2);
+    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+
+    return z > 0 ? 1 - p : p;
+};
+const computeAggregateSiteStats = () => {
+    const aggregate = stats.aggregate;
 
     // set the counts for r1c1,r1c2,r2c1,r2c2
-    totalCounts.forEach((counts, id) => total[id] = counts);
+    aggregateCounts.forEach((counts, cell) => aggregate[cell] = counts);
 
     // calculate the rate for group A and group B
-    total.r1c3 = (total.r1c2 / total.r1c1) * 100;
-    total.r2c3 = (total.r2c2 / total.r2c1) * 100;
+    aggregate.r1c3 = (aggregate.r1c2 / aggregate.r1c1) * 100;
+    aggregate.r2c3 = (aggregate.r2c2 / aggregate.r2c1) * 100;
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    total.irr = total.r2c3 / total.r1c3;
-    total.lnIrr = Math.log(total.irr);
-    total.varlnIrr = (1.0 / total.r1c1) + (1.0 / total.r2c1);
+    aggregate.irr = aggregate.r2c3 / aggregate.r1c3;
+    aggregate.lnIrr = Math.log(aggregate.irr);
+    aggregate.varLnIrr = (1.0 / aggregate.r1c1) + (1.0 / aggregate.r2c1);
 
-    total.stderr = Math.sqrt(total.varlnIrr);
-    total.ci = 1.959964 * total.stderr;
-    total.lower95CI = Math.exp(total.lnIrr - total.ci);
-    total.upper95CI = Math.exp(total.lnIrr + total.ci);
+    aggregate.lnStdErr = Math.sqrt(aggregate.varLnIrr);
+    aggregate.ci = 1.959964 * aggregate.lnStdErr;
+    aggregate.lower95CI = Math.exp(aggregate.lnIrr - aggregate.ci);
+    aggregate.upper95CI = Math.exp(aggregate.lnIrr + aggregate.ci);
+
+    aggregate.zScore = aggregate.lnIrr / aggregate.lnStdErr;
+    aggregate.pValue = 2 * (1 - normalCDF(Math.abs(aggregate.zScore)));
 };
 /**
  * Source for calculation: https://drsm.in/Meta-analysis/Meta_AnalysisHelp1
@@ -231,23 +244,22 @@ const computeTotalSiteStats = () => {
  * @returns {undefined}
  */
 const computeIndividualSiteStats = () => {
-    const indiv = stats.indiv;
+    const indiv = stats.individual;
     indiv.clear();
 
-    [...validSites.keys()].forEach(site => {
-        indiv.set(site, {
-            siteName: site,
-            siteNumber: validSites.get(site),
+    // initialize data
+    validSites.forEach((siteNumber, siteName) => {
+        indiv.set(siteName, {
+            siteName: siteName,
+            siteNumber: siteNumber,
             r1c1: 0, r1c2: 0, r1c3: 0,
             r2c1: 0, r2c2: 0, r2c3: 0,
-            irr: 0, lnIrr: 0, varlnIrr: 0,
-            stderr: 0, ci: 0,
+            irr: 0, lnIrr: 0, varLnIrr: 0,
+            lnStdErr: 0, ci: 0,
             lower95CI: 0, upper95CI: 0, lnLower95CI: 0, lnUpper95CI: 0,
+            zScore: 0, pValue: 0,
             fixedWgt: 0, fixedWgtPct: 0,
-            randomWgt: 0, randomWgtPct: 0,
-            fixedWgt2: 0, random2Wgt: 0,
-            fixedWgt2Lower95CI: 0, fixedWgtUpper95CI: 0,
-            random2WgtLower95CI: 0, random2WgtUpper95CI: 0
+            randomWgt: 0, randomWgtPct: 0
         });
     });
 
@@ -258,25 +270,29 @@ const computeIndividualSiteStats = () => {
         });
     });
 
-    // calculate the rate for group A and group B
+    // calculate the stats
     let sumFixedWgt = 0; // sum(fixedWgt)
     let sumFixedWgtSq = 0; // sum(fixedWgt^2)
     indiv.values().forEach(data => {
+        // calcuate the rates
         data.r1c3 = data.r1c1 / data.r1c2;
         data.r2c3 = data.r2c1 / data.r2c2;
 
         data.irr = data.r1c3 / data.r2c3;
         data.lnIrr = Math.log(data.irr);
-        data.varlnIrr = (1.0 / data.r1c1) + (1.0 / data.r2c1);
+        data.varLnIrr = (1.0 / data.r1c1) + (1.0 / data.r2c1);
 
-        data.stderr = Math.sqrt(data.varlnIrr);
-        data.ci = 1.959964 * data.stderr;
+        data.lnStdErr = Math.sqrt(data.varLnIrr);
+        data.ci = 1.959964 * data.lnStdErr;
         data.lnLower95CI = data.lnIrr - data.ci;
         data.lnUpper95CI = data.lnIrr + data.ci;
         data.lower95CI = Math.exp(data.lnLower95CI);
         data.upper95CI = Math.exp(data.lnUpper95CI);
 
-        data.fixedWgt = 1 / data.varlnIrr;
+        data.zScore = data.lnIrr / data.lnStdErr;
+        data.pValue = 2 * (1 - normalCDF(Math.abs(data.zScore)));
+
+        data.fixedWgt = 1 / data.varLnIrr;
 
         sumFixedWgt += data.fixedWgt;
         sumFixedWgtSq += data.fixedWgt * data.fixedWgt;
@@ -285,9 +301,8 @@ const computeIndividualSiteStats = () => {
     let sumFixedWgtLnIrr = 0; // sum(lnIRR*fixedWgtPct)
     indiv.values().forEach(data => {
         data.fixedWgtPct = data.fixedWgt / sumFixedWgt;
-        data.fixedWgt2 = data.lnIrr * data.fixedWgtPct;
 
-        sumFixedWgtLnIrr += data.fixedWgt2;
+        sumFixedWgtLnIrr += data.lnIrr * data.fixedWgtPct;
     });
 
     let sumQ = 0;
@@ -303,7 +318,7 @@ const computeIndividualSiteStats = () => {
 
     let sumRandomWgt = 0;
     indiv.values().forEach(data => {
-        data.randomWgt = 1 / (data.varlnIrr + tau);
+        data.randomWgt = 1 / (data.varLnIrr + tau);
 
         sumRandomWgt += data.randomWgt;
     });
@@ -316,20 +331,14 @@ const computeIndividualSiteStats = () => {
     let sumRandomUpperCI = 0;
     indiv.values().forEach(data => {
         data.randomWgtPct = data.randomWgt / sumRandomWgt;
-        data.random2Wgt = data.lnIrr * data.randomWgtPct;
-
-        data.fixedWgt2Lower95CI = data.lnLower95CI * data.fixedWgtPct;
-        data.fixedWgtUpper95CI = data.lnUpper95CI * data.fixedWgtPct;
-        data.random2WgtLower95CI = data.lnLower95CI * data.randomWgtPct;
-        data.random2WgtUpper95CI = data.lnUpper95CI * data.randomWgtPct;
 
         sumFixedWgtIrr += data.lnIrr * data.fixedWgtPct;
-        sumRandomWgtIrr += data.random2Wgt;
+        sumRandomWgtIrr += data.lnIrr * data.randomWgtPct;
 
-        sumFixedLowerCI += data.fixedWgt2Lower95CI;
-        sumFixedUpperCI += data.fixedWgtUpper95CI;
-        sumRandomLowerCI += data.random2WgtLower95CI;
-        sumRandomUpperCI += data.random2WgtUpper95CI;
+        sumFixedLowerCI += data.lnLower95CI * data.fixedWgtPct;
+        sumFixedUpperCI += data.lnUpper95CI * data.fixedWgtPct;
+        sumRandomLowerCI += data.lnLower95CI * data.randomWgtPct;
+        sumRandomUpperCI += data.lnUpper95CI * data.randomWgtPct;
     });
     stats.fixedIrr = Math.exp(sumFixedWgtIrr);
     stats.fixedLower95CI = Math.exp(sumFixedLowerCI);
@@ -346,8 +355,56 @@ const computeIndividualSiteStats = () => {
     });
 };
 const computeStats = () => {
-    computeTotalSiteStats();
+    computeAggregateSiteStats();
     computeIndividualSiteStats();
+};
+
+const getStatsTableData = (decimal, showSiteNames) => {
+    const tableData = new Map();
+
+    stats.individual.forEach((stats, site) => {
+        const data = [
+            showSiteNames ? site : `Site ${stats.siteNumber}`,
+            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
+            stats.lnStdErr.toFixed(decimal), stats.irr.toFixed(decimal),
+            stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
+            stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
+            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal)
+        ];
+
+        if (showSiteNames) {
+            tableData.set(site, data);
+        } else {
+            tableData.set(stats.siteNumber, data);
+        }
+    });
+
+    return tableData;
+};
+const getForestPlotData = (showSiteNames, sortSiteNames, isRandomEffect) => {
+    let data = [];
+    for (const value of stats.individual.values()) {
+        data.push({
+            study: showSiteNames ? value.siteName : `Site ${value.siteNumber}`,
+            studyNumber: value.siteNumber,
+            groupA: value.r1c1,
+            groupATotal: value.r1c2,
+            groupB: value.r2c1,
+            groupBTotal: value.r2c2,
+            estimate: value.irr,
+            lower: value.lower95CI,
+            upper: value.upper95CI,
+            wgt: isRandomEffect ? value.randomWgt : value.fixedWgt,
+            wgtPct: isRandomEffect ? value.randomWgtPct : value.fixedWgtPct,
+            effectModel: false
+        });
+    }
+
+    if (sortSiteNames) {
+        data = showSiteNames ? data.sort((a, b) => a.study.localeCompare(b.study)) : data.sort((a, b) => a.studyNumber - b.studyNumber);
+    }
+
+    return data;
 };
 
 /**
@@ -367,42 +424,20 @@ const getStringWidth = (text, font = '14px Arial') => {
 const getColumnPixelSize = (data) => {
     return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
 };
-const populateTableProbabilities = (decimal) => {
-    $('#r1c3').text(stats.total.r1c3.toFixed(decimal));
-    $('#r2c3').text(stats.total.r2c3.toFixed(decimal));
-    $('#r2c4').text(`${stats.total.irr.toFixed(decimal)} (${stats.total.lower95CI.toFixed(decimal)}-${stats.total.upper95CI.toFixed(decimal)})`);
 
-    $('#stderr').text(stats.total.stderr.toFixed(decimal));
-    $('#irr').text(stats.total.irr.toFixed(decimal));
-    $('#ci_lower').text(stats.total.lower95CI.toFixed(decimal));
-    $('#ci_upper').text(stats.total.upper95CI.toFixed(decimal));
-};
 const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
-    totalCounts.forEach((counts, id) => $(`#${id}`).text(counts));
+    aggregateCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-const getStatsTableData = (decimal, showSiteNames) => {
-    const tableData = new Map();
+const populateTableProbabilities = (decimal) => {
+    $('#r1c3').text(stats.aggregate.r1c3.toFixed(decimal));
+    $('#r2c3').text(stats.aggregate.r2c3.toFixed(decimal));
+    $('#r2c4').text(`${stats.aggregate.irr.toFixed(decimal)} (${stats.aggregate.lower95CI.toFixed(decimal)}-${stats.aggregate.upper95CI.toFixed(decimal)})`);
 
-    stats.indiv.forEach((stats, site) => {
-        const data = [
-            showSiteNames ? site : `Site ${stats.siteNumber}`,
-            stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
-            stats.r1c3.toFixed(decimal), stats.r2c3.toFixed(decimal),
-            stats.irr.toFixed(decimal), stats.stderr.toFixed(decimal),
-            stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
-            stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
-            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal)
-        ];
-
-        if (showSiteNames) {
-            tableData.set(site, data);
-        } else {
-            tableData.set(stats.siteNumber, data);
-        }
-    });
-
-    return tableData;
+    $('#stderr').text(stats.aggregate.lnStdErr.toFixed(decimal));
+    $('#irr').text(stats.aggregate.irr.toFixed(decimal));
+    $('#ci_lower').text(stats.aggregate.lower95CI.toFixed(decimal));
+    $('#ci_upper').text(stats.aggregate.upper95CI.toFixed(decimal));
 };
 const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
     const tableData = getStatsTableData(decimal, showSiteNames);
@@ -423,66 +458,20 @@ const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
         row.cells[2].classList.add('table-success');
         row.cells[3].classList.add('table-warning');
         row.cells[4].classList.add('table-warning');
-        row.cells[5].classList.add('table-success');
-        row.cells[6].classList.add('table-warning');
-        row.cells[9].classList.add('table-info');
-        row.cells[10].classList.add('table-info');
-        row.cells[11].classList.add('table-secondary');
-        row.cells[12].classList.add('table-secondary');
+        row.cells[7].classList.add('table-info');
+        row.cells[8].classList.add('table-info');
+        row.cells[9].classList.add('table-secondary');
+        row.cells[10].classList.add('table-secondary');
     });
 };
-const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
-    let data = [];
-    for (const value of stats.indiv.values()) {
-        data.push({
-            study: showSiteNames ? value.siteName : `Site ${value.siteNumber}`,
-            studyNumber: value.siteNumber,
-            groupA: value.r1c1,
-            groupATotal: value.r1c2,
-            groupB: value.r2c1,
-            groupBTotal: value.r2c2,
-            estimate: value.irr,
-            lower: value.lower95CI,
-            upper: value.upper95CI,
-            weight: value.fixedWgt,
-            fixedWeight: value.fixedWgtPct,
-            randomWeight: value.randomWgtPct,
-            commonEffect: false,
-            randomEffect: false
-        });
-    }
-
-    if (sortSiteNames) {
-        data = showSiteNames ? data.sort((a, b) => a.study.localeCompare(b.study)) : data.sort((a, b) => a.studyNumber - b.studyNumber);
-    }
-
-    // leave row space
-    data.push({});
-
-    const common = {
-        study: 'Common effect model',
-        estimate: stats.total.irr,
-        lower: stats.total.lower95CI,
-        upper: stats.total.upper95CI,
-        fixedWeight: 100,
-        randomWeight: -1,
-        commonEffect: true,
-        randomEffect: false
+const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal) => {
+    const blankRow = {
+        lower: effectModel.lower,
+        upper: effectModel.upper
     };
-    const random = {
-        study: 'Random effect model',
-        estimate: stats.randomIrr,
-        lower: stats.randomLower95CI,
-        upper: stats.randomUpper95CI,
-        fixedWeight: -1,
-        randomWeight: 100,
-        commonEffect: false,
-        randomEffect: true
-    };
-    data.push(common);
-    data.push(random);
+    const data = [...plotData, blankRow, effectModel];
 
-    const plotHeight = data.length * 50;
+    const plotHeight = data.length * 40;
     const plotWidth = 450;
 
     // dimensions and margins
@@ -490,14 +479,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     const width = plotWidth - margin.left - margin.right;
     const height = plotHeight - margin.top - margin.bottom;
 
-    // remove previous chart
-    d3.select('svg').selectAll('*').remove();
 
-    const svg = d3.select('#forestChart')
+    // remove previous chart
+    d3.select(plot).selectAll('*').remove();
+
+    const svg = d3.select(plot)
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    d3.select('svg')
+    d3.select(plot)
             .attr('width', '100%')
             .attr('height', plotHeight);
 
@@ -529,8 +519,8 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : ''}`), 'Group B (Ref)']);
     const lengthCol4 = plotWidth;
     const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR']);
-    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI']) + dxPos;
-    const lengthCol7 = getColumnPixelSize([...data.map(d => d.fixedWeight ? `${d.fixedWeight.toFixed(decimal)}%` : ''), 'Fixed Weight']) + dxPos;
+    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI']);
+    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${d.wgtPct.toFixed(decimal)}%` : ''), 'Weight']);
 
     // column 1: Site
     svg.append('text')
@@ -544,10 +534,9 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('class', 'site-name')
             .style('font-size', fontSize)
             .text(d => d.study ? d.study : '');
-
-    // bold common effect (Site)
+    // bold effect model
     d3.selectAll('.site-name')
-            .filter(d => d.commonEffect || d.randomEffect)
+            .filter(d => d.effectModel)
             .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
@@ -569,9 +558,15 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .text('(n/N)');
     rows.append('text')
             .attr('x', xPos)
+            .attr('class', 'group-a')
             .attr('text-anchor', 'middle')
             .style('font-size', fontSize)
             .text(d => (d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : '');
+    // bold effect model
+    d3.selectAll('.group-a')
+            .filter(d => d.effectModel)
+            .style('font-size', fontSize)
+            .style('font-weight', 'bold');
 
     // Column 3: Group B (n/N)
     xPos += lengthCol2 + (lengthCol3 / 2) - dxPos;
@@ -591,12 +586,18 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .text('(n/N)');
     rows.append('text')
             .attr('x', xPos)
+            .attr('class', 'group-b')
             .attr('text-anchor', 'middle')
             .style('font-size', fontSize)
             .text(d => (d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : '');
+    // bold effect model
+    d3.selectAll('.group-b')
+            .filter(d => d.effectModel)
+            .style('font-size', fontSize)
+            .style('font-weight', 'bold');
 
     // Column 4: Incident Rate Ratio (forest plot)
-    xPos += lengthCol3 - (lengthCol3 / 2);
+    xPos += lengthCol3;
     svg.append('text')
             .attr('x', xPos + (width / 2) - (Math.ceil(getStringWidth('Incident Rate Ratio')) / 2))
             .attr('y', yPosHeader)
@@ -613,25 +614,17 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x2', x(1) + xPos)
             .attr('y1', 0)
             .attr('y2', height)
-            .attr('stroke', 'black')
+            .attr('stroke', 'red')
             .attr('stroke-dasharray', 'none');
 
-    // common effect vertical reference line
+    // effect model vertical reference line
     svg.append('line')
-            .attr('x1', x(common.estimate) + xPos)
-            .attr('x2', x(common.estimate) + xPos)
+            .attr('x1', x(effectModel.estimate) + xPos)
+            .attr('x2', x(effectModel.estimate) + xPos)
             .attr('y1', 0)
-            .attr('y2', y(common.study))
+            .attr('y2', y(effectModel.study))
             .attr('stroke', 'blue')
             .attr('stroke-dasharray', '8');
-    // random effect vertical reference line
-    svg.append('line')
-            .attr('x1', x(random.estimate) + xPos)
-            .attr('x2', x(random.estimate) + xPos)
-            .attr('y1', 0)
-            .attr('y2', y(random.study))
-            .attr('stroke', 'red')
-            .attr('stroke-dasharray', '4');
 
     // draw confidence intervals (horizontal lines)
     const yShift = 5;
@@ -639,8 +632,8 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .data(data)
             .enter()
             .append('line')
-            .attr('x1', d => (d.commonEffect || d.randomEffect) ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
-            .attr('x2', d => (d.commonEffect || d.randomEffect) ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
+            .attr('x1', d => d.effectModel ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
+            .attr('x2', d => d.effectModel ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
             .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('stroke-width', 1)
@@ -668,17 +661,17 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
 
     // draw effect size points (boxes)
     const sizeScale = d3.scaleSqrt()
-            .domain([0, d3.max(data, d => d.weight ? d.weight : 0)])
+            .domain([0, d3.max(data, d => d.wgt ? d.wgt : 0)])
             .range([0, 25]);
     svg.selectAll('.point')
             .data(data)
             .enter()
             .append('rect')
             .attr('class', 'point')
-            .attr('x', d => (d.estimate && d.weight) ? x(d.estimate) - (sizeScale(d.weight) / 2) + xPos : x(1) + xPos)
-            .attr('y', d => (d.study && d.weight) ? (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.weight) / 2) - yShift : x(1) + xPos)
-            .attr('width', d => (d.commonEffect || d.randomEffect) ? 0 : d.weight ? sizeScale(d.weight) : 0)
-            .attr('height', d => (d.commonEffect || d.randomEffect) ? 0 : d.weight ? sizeScale(d.weight) : 0)
+            .attr('x', d => (d.estimate && d.wgt) ? x(d.estimate) - (sizeScale(d.wgt) / 2) + xPos : x(1) + xPos)
+            .attr('y', d => (d.study && d.wgt) ? (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.wgt) / 2) - yShift : x(1) + xPos)
+            .attr('width', d => d.effectModel ? 0 : d.wgt ? sizeScale(d.wgt) : 0)
+            .attr('height', d => d.effectModel ? 0 : d.wgt ? sizeScale(d.wgt) : 0)
             .attr('fill', 'black');
 
     // draw common effect point
@@ -686,28 +679,16 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     const lineGenerator = d3.line()
             .x(d => d.x)
             .y(d => d.y);
-    let diamond = [
-        {x: x(common.lower) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift}, // left
-        {x: x(common.estimate) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift - size}, // top
-        {x: x(common.upper) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift}, // right
-        {x: x(common.estimate) + xPos, y: y(common.study) + (y.bandwidth() / 2) - yShift + size} // bottom
+    const diamond = [
+        {x: x(effectModel.lower) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift}, // left
+        {x: x(effectModel.estimate) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift - size}, // top
+        {x: x(effectModel.upper) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift}, // right
+        {x: x(effectModel.estimate) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift + size} // bottom
     ];
     svg.append('path')
             .attr('d', lineGenerator(diamond) + 'Z') // 'Z' closes path
             .attr('fill', 'blue')
             .attr('stroke', 'blue');
-
-    // draw random effect point
-    diamond = [
-        {x: x(random.lower) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift}, // left
-        {x: x(random.estimate) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift - size}, // top
-        {x: x(random.upper) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift}, // right
-        {x: x(random.estimate) + xPos, y: y(random.study) + (y.bandwidth() / 2) - yShift + size} // bottom
-    ];
-    svg.append('path')
-            .attr('d', lineGenerator(diamond) + 'Z') // 'Z' closes path
-            .attr('fill', 'red')
-            .attr('stroke', 'red');
 
     // Column 5: IRR
     xPos += lengthCol4 + dxPos + Math.pow(decimal, 2);
@@ -724,10 +705,9 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('class', 'irr')
             .style('font-size', fontSize)
             .text(d => d.estimate ? d.estimate.toFixed(decimal) : '');
-
-    // bold common effect (IRR)
+    // bold effect model (IRR)
     d3.selectAll('.irr')
-            .filter(d => d.commonEffect || d.randomEffect)
+            .filter(d => d.effectModel)
             .attr('x', xPos)
             .style('font-size', fontSize)
             .style('font-weight', 'bold');
@@ -744,23 +724,23 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', xPos)
             .attr('class', 'ci')
             .style('font-size', fontSize)
-            .text(d => (d.lower && d.upper) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
-
-    // bold common effect (95% CI)
+            .text(d => (d.lower && d.upper && d.estimate) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
+    // bold effect model (95% CI)
     d3.selectAll('.ci')
-            .filter(d => d.commonEffect || d.randomEffect)
+            .filter(d => d.effectModel)
+            .attr('x', xPos)
             .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 7: Fixed Weight
-    xPos += lengthCol6 * 1.5;
+    xPos += lengthCol6 + lengthCol7 + dxPos;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
             .style('font-size', fontSize)
             .style('font-weight', 'bold')
-            .text('Fixed');
+            .text(isRandomEffect ? 'Random' : 'Fixed');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
@@ -771,54 +751,13 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     rows.append('text')
             .attr('x', xPos)
             .attr('text-anchor', 'end')
-            .attr('class', 'fixed-weight')
+            .attr('class', 'weight-percent')
             .style('font-size', fontSize)
-            .text(d => d.fixedWeight ? (d.fixedWeight === 100) ? '100%' : (d.fixedWeight === -1) ? '*' : `${d.fixedWeight.toFixed(decimal)}%` : '');
-
-    // bold and center random effect fixed weight (*)
-    d3.selectAll('.fixed-weight')
-            .filter(d => d.randomEffect)
-            .attr('x', xPos - 20)
-            .style('font-size', fontSize)
-            .style('font-weight', 'bold');
-    // bold common effect fixed weight (100%)
-    d3.selectAll('.fixed-weight')
-            .filter(d => d.commonEffect)
-            .style('font-size', fontSize)
-            .style('font-weight', 'bold');
-
-    // Column 8: Random Weight
-    xPos += (lengthCol6 + lengthCol7) / 3;
-    svg.append('text')
+            .text(d => d.wgtPct ? (d.wgtPct === 100) ? '100%' : `${d.wgtPct.toFixed(decimal)}%` : '');
+    // bold effect model (95% CI)
+    d3.selectAll('.weight-percent')
+            .filter(d => d.effectModel)
             .attr('x', xPos)
-            .attr('y', yPosHeader)
-            .attr('text-anchor', 'end')
-            .style('font-size', fontSize)
-            .style('font-weight', 'bold')
-            .text('Random');
-    svg.append('text')
-            .attr('x', xPos)
-            .attr('dy', dyHeader)
-            .attr('text-anchor', 'end')
-            .style('font-size', fontSize)
-            .style('font-weight', 'bold')
-            .text('Weight');
-    rows.append('text')
-            .attr('x', xPos)
-            .attr('text-anchor', 'end')
-            .attr('class', 'random-weight')
-            .style('font-size', fontSize)
-            .text(d => d.randomWeight ? (d.randomWeight === 100) ? '100%' : (d.randomWeight === -1) ? '*' : `${d.randomWeight.toFixed(decimal)}%` : '');
-
-    // bold and center common effect random weight (*)
-    d3.selectAll('.random-weight')
-            .filter(d => d.commonEffect)
-            .attr('x', xPos - 20)
-            .style('font-size', fontSize)
-            .style('font-weight', 'bold');
-    // bold random effect random weight (100%)
-    d3.selectAll('.random-weight')
-            .filter(d => d.randomEffect)
             .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
@@ -826,7 +765,36 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
             .attr('x', 0)
             .attr('y', height)
             .style('font-size', fontSize)
-            .text(`Heterogeneity: I² = ${stats.iSquare.toFixed(1)}%, τ² = ${stats.tauSquare.toFixed(4)}, p < 0.0001`);
+            .text(`Heterogeneity: I² = ${stats.iSquare.toFixed(1)}%, τ² = ${stats.tauSquare.toFixed(4)}, ${stats.aggregate.pValue < 0.0001 ? 'p < 0.0001' : stats.aggregate.pValue.toFixed(decimal)}`);
+};
+const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
+    const common = {
+        study: 'Common effect model',
+        groupA: stats.aggregate.r1c1,
+        groupATotal: stats.aggregate.r1c2,
+        groupB: stats.aggregate.r2c1,
+        groupBTotal: stats.aggregate.r2c2,
+        estimate: stats.aggregate.irr,
+        lower: stats.aggregate.lower95CI,
+        upper: stats.aggregate.upper95CI,
+        wgtPct: 100,
+        effectModel: true
+    };
+    populateWeightedForestPlot('#forestChartFixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
+
+    const random = {
+        study: 'Random effect model',
+        groupA: stats.aggregate.r1c1,
+        groupATotal: stats.aggregate.r1c2,
+        groupB: stats.aggregate.r2c1,
+        groupBTotal: stats.aggregate.r2c2,
+        estimate: stats.randomIrr,
+        lower: stats.randomLower95CI,
+        upper: stats.randomUpper95CI,
+        wgtPct: 100,
+        effectModel: true
+    };
+    populateWeightedForestPlot('#forestChartRandom', getForestPlotData(showSiteNames, sortSiteNames, true), random, true, decimal);
 };
 const populateSiteTable = (showSiteNames, sortSiteNames) => {
     $('#siteCounts').text(validSites.size);
@@ -842,17 +810,17 @@ const populateSiteTable = (showSiteNames, sortSiteNames) => {
         tbody.insertRow(-1).insertCell(0).innerHTML = showSiteNames ? name : `Site ${name}`;
     });
 };
-const constructTableAndPlot = () => {
-    const decimal = parseInt($('#decimal').val());
-    const showSiteNames = $('#showSiteNames').prop('checked');
-    const sortSiteNames = $('#sortSiteNames').prop('checked');
 
+const constructTableAndPlot = () => {
     computeStats();
-    applyInputLabels();
     populateTableCounts();
+
+    const showSiteNames = $('#showSiteNames').prop('checked');
+    const decimal = parseInt($('#decimal').val());
+    const sortSiteNames = $('#sortSiteNames').prop('checked');
     populateTableProbabilities(decimal);
     populateStatsTable(decimal, showSiteNames, sortSiteNames);
-    populateForestPlot(decimal, showSiteNames, sortSiteNames);
+    populateForestPlot(decimal, showSiteNames, sortSiteNames, false);
     populateSiteTable(showSiteNames, sortSiteNames);
 };
 
@@ -928,14 +896,18 @@ const generateTableAndPlot = () => {
 const getIndividualDataContents = () => {
     const content = [];
 
+    const rowLabel = $('.rowLabelText').first().text();
+    const row1Label = $('.row1LabelText').first().text();
+    const row2Label = $('.row2LabelText').first().text();
+    const colLabel = $('.colLabelText').first().text();
+    const col1Label = $('.col1LabelText').first().text();
+    const col2Label = $('.col2LabelText').first().text();
     const header = [
         'Site',
-        `${$('.row1LabelText').first().text()}: ${$('.col1LabelText').first().text()}`,
-        `${$('.row1LabelText').first().text()}: ${$('.col2LabelText').first().text()}`,
-        `${$('.row2LabelText').first().text()}: ${$('.col1LabelText').first().text()}`,
-        `${$('.row2LabelText').first().text()}: ${$('.col2LabelText').first().text()}`,
-        `${$('.col1LabelText').first().text()} Rate`,
-        `${$('.col2LabelText').first().text()} Rate`,
+        `${rowLabel} ${row1Label}: ${col1Label}`,
+        `${rowLabel} ${row1Label}: ${col2Label}`,
+        `${colLabel} ${row2Label}: ${col1Label}`,
+        `${colLabel} ${row2Label}: ${col2Label}`,
         'SE ln(IRR)',
         'IRR',
         'Lower 95% CI',
@@ -1135,7 +1107,7 @@ const addWizardEventListeners = () => {
 };
 const addSettingsEventListeners = () => {
     $('#selectPatientCounts').on('change', () => {
-        if (totalCounts.size >= 4) {
+        if (aggregateCounts.size >= 4) {
             computeCounts();
             constructTableAndPlot();
         }
@@ -1187,10 +1159,8 @@ const addExportEventListeners = () => {
         downloadLink.click();
     });
 
-    $('#exportForestPlot').on('click', (event) => {
-        event.preventDefault();
-
-        const svg = d3.select("svg").node();
+    const exportPlot = (plotId, outputFilename) => {
+        const svg = d3.select(plotId).node();
         const {width, height} = svg.getBoundingClientRect();
 
         // get SVG as Base64 encode string
@@ -1211,43 +1181,19 @@ const addExportEventListeners = () => {
             context.drawImage(image, 0, 0, width, height);
 
             const downloadLink = document.createElement('a');
-            downloadLink.download = 'forest_plot.png';
+            downloadLink.download = outputFilename;
             downloadLink.href = canvas.toDataURL('image/png');
             downloadLink.click();
         });
         image.src = svgDataUrl;
+    };
+    $('#exportForestPlotFixed').on('click', (event) => {
+        event.preventDefault();
+        exportPlot('#forestChartFixed', 'forest_plot_fixed.png');
     });
-};
-const addForestPlotEventListeners = () => {
-    $('#downloadForestPlot').on('click', (event) => {
+    $('#exportForestPlotRandom').on('click', (event) => {
         event.preventDefault();
-
-        const svg = d3.select("svg").node();
-        const {width, height} = svg.getBoundingClientRect();
-
-        // get SVG as Base64 encode string
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const svgDataBase64 = btoa(unescape(encodeURIComponent(svgData)));
-        const svgDataUrl = `data:image/svg+xml;charset=utf-8;base64,${svgDataBase64}`;
-
-        const canvas = document.createElement('canvas');
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
-
-        const context = canvas.getContext('2d');
-        context.fillStyle = '#FFFFFF';
-        context.fillRect(0, 0, width, height);
-
-        const image = new Image();
-        image.addEventListener('load', () => {
-            context.drawImage(image, 0, 0, width, height);
-
-            const downloadLink = document.createElement('a');
-            downloadLink.download = 'forest_plot.png';
-            downloadLink.href = canvas.toDataURL('image/png');
-            downloadLink.click();
-        });
-        image.src = svgDataUrl;
+        exportPlot('#forestChartRandom', 'forest_plot_random.png');
     });
 };
 const addEventListeners = () => {
@@ -1257,7 +1203,6 @@ const addEventListeners = () => {
     addWizardEventListeners();
 
     addSettingsEventListeners();
-    addForestPlotEventListeners();
     addExportEventListeners();
 };
 

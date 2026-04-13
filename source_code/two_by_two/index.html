@@ -171,7 +171,7 @@
                     </div>
                 </div>
                 <div class="tab-pane fade" id="step2">
-                    <!-- generated table -->
+                    <!-- generated table and plots -->
                     <div class="card border-secondary mb-4">
                         <div class="card-header text-bg-secondary">Incidence Rate Ratio</div>
                         <div class="card-body">
@@ -318,10 +318,21 @@
                                                     <thead class="sticky-top">
                                                         <tr>
                                                             <th scope="col"></th>
+                                                            <th scope="col" colspan="2" class="text-center table-success"><span class="rowLabelText">Exposure</span></th>
+                                                            <th scope="col" colspan="2" class="text-center table-warning"><span class="colLabelText">Outcome</span></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                            <th scope="col"></th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th scope="col"></th>
                                                             <th scope="col" colspan="2" class="text-center table-success"><span class="row1LabelText">A</span></th>
                                                             <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">B</span></th>
-                                                            <th scope="col" class="text-center table-success"><span class="row1LabelText">A</span></th>
-                                                            <th scope="col" class="text-center table-warning"><span class="row2LabelText">B</span></th>
                                                             <th scope="col"></th>
                                                             <th scope="col"></th>
                                                             <th scope="col" colspan="2" class="table-info text-center">95% CI</th>
@@ -334,8 +345,6 @@
                                                             <th scope="col" class="table-success"><span class="col2LabelText">TA</span></th>
                                                             <th scope="col" class="table-warning"><span class="col1LabelText">B</span></th>
                                                             <th scope="col" class="table-warning"><span class="col2LabelText">TB</span></th>
-                                                            <th scope="col" class="table-success"><span class="col1LabelText">A</span> Rate</th>
-                                                            <th scope="col" class="table-warning"><span class="col2LabelText">B</span> Rate</th>
                                                             <th scope="col">SE ln(IRR)</th>
                                                             <th scope="col">IRR</th>
                                                             <th scope="col" class="table-info">Low ln(IRR)</th>
@@ -355,13 +364,24 @@
                                     <!-- forest plot -->
                                     <div class="col-12">
                                         <div class="d-flex align-items-center justify-content-between p-0">
-                                            <h5 class="m-0">Forest Plot</h5>
-                                            <a class="nav-link" id="exportForestPlot" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Downloand Plot">
+                                            <h5 class="m-0">Forest Plot: Common Effect Model</h5>
+                                            <a class="nav-link" id="exportForestPlotFixed" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Downloand Plot">
                                                 <i class="bi bi-file-earmark-arrow-down fs-4"></i>
                                             </a>
                                         </div>
                                         <hr class="mt-0" /><div class="p-2 border bg-light-subtle text-light-emphasis">
-                                            <svg xmlns="http://www.w3.org/2000/svg" id="forestChart"></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" id="forestChartFixed"></svg>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-0">
+                                            <h5 class="m-0">Forest Plot: Random Effect Model</h5>
+                                            <a class="nav-link" id="exportForestPlotRandom" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Downloand Plot">
+                                                <i class="bi bi-file-earmark-arrow-down fs-4"></i>
+                                            </a>
+                                        </div>
+                                        <hr class="mt-0" /><div class="p-2 border bg-light-subtle text-light-emphasis">
+                                            <svg xmlns="http://www.w3.org/2000/svg" id="forestChartRandom"></svg>
                                         </div>
                                     </div>
                                     <!-- end of forest plot -->
@@ -388,7 +408,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- end of generated table -->
+                    <!-- end of generated table and plots -->
                     <div class="d-grid gap-0 col-4 mx-auto">
                         <button type="button" class="btn btn-primary" id="prevStep"><i class="bi bi-arrow-left"></i> Back</button>
                     </div>
