@@ -221,12 +221,12 @@ const computeAggregateSiteStats = () => {
     aggregateCounts.forEach((counts, cell) => aggregate[cell] = counts);
 
     // calculate the rate for group A and group B
-    aggregate.r1c3 = (aggregate.r1c2 / aggregate.r1c1) * 100;
-    aggregate.r2c3 = (aggregate.r2c2 / aggregate.r2c1) * 100;
+    aggregate.r1c3 = (aggregate.r1c1 / aggregate.r1c2);
+    aggregate.r2c3 = (aggregate.r2c1 / aggregate.r2c2);
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    aggregate.irr = aggregate.r2c3 / aggregate.r1c3;
+    aggregate.irr = aggregate.r1c3 / aggregate.r2c3;
     aggregate.lnIrr = Math.log(aggregate.irr);
     aggregate.varLnIrr = (1.0 / aggregate.r1c1) + (1.0 / aggregate.r2c1);
 
