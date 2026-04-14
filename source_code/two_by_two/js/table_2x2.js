@@ -414,15 +414,15 @@ const getForestPlotData = (showSiteNames, sortSiteNames, isRandomEffect) => {
  * @param {type} font
  * @returns {unresolved}
  */
-const getStringWidth = (text, font = '14px Arial') => {
+const getStringWidth = (text, font = '14px Arial, sans-serif') => {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     context.font = font;
 
     return context.measureText(text).width;
 };
-const getColumnPixelSize = (data) => {
-    return Math.max(...data.map(value => Math.ceil(getStringWidth(value))));
+const getColumnPixelSize = (data, font) => {
+    return Math.max(...data.map(value => Math.ceil(getStringWidth(value, font))));
 };
 
 const populateTableCounts = () => {
@@ -471,29 +471,34 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     };
     const data = [...plotData, blankRow, effectModel];
 
-    const plotHeight = data.length * 40;
+    const plotHeight = data.length * 50;
     const plotWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 40, right: 10, bottom: 20, left: 10};
+    const margin = {top: 50, right: 15, bottom: 30, left: 15};
     const width = plotWidth - margin.left - margin.right;
     const height = plotHeight - margin.top - margin.bottom;
-
 
     // remove previous chart
     d3.select(plot).selectAll('*').remove();
 
+    const fontFamily = 'Arial, sans-serif';
+    const fontSize = '0.875em';
+
     const svg = d3.select(plot)
+            .attr('width', '100%')
+            .attr('height', plotHeight)
+            .attr('font-family', fontFamily)
+            .attr('font-size', fontSize)
+            .call(d3.zoom().scaleExtent([1, 5]).on('zoom', function (event) {
+                svg.attr('transform', event.transform);
+            }))
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    d3.select(plot)
-            .attr('width', '100%')
-            .attr('height', plotHeight);
-
     // x-scale (effect size)
     const x = d3.scaleLinear()
-            .domain([d3.min(data, d => d.lower - 0.02), d3.max(data, d => d.upper + 0.02)])
+            .domain([d3.min(data, d => d.lower - 0.05), d3.max(data, d => d.upper + 0.05)])
             .range([0, width]);
 
     // y-scale (studies)
@@ -509,95 +514,86 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('transform', d => `translate(0, ${y(d.study) + (y.bandwidth() / 2)})`);
 
     const yPosHeader = -25;
-    const dxPos = 20;
+    const dxPos = 10;
     const dyHeader = -5;
-    const fontSize = '0.875em';
+
     let xPos = 0;
 
-    const lengthCol1 = getColumnPixelSize([...data.map(d => d.study ? d.study : ''), 'Site']);
-    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : ''}`), 'Group A']);
-    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : ''}`), 'Group B (Ref)']);
+    const font = '16px Arial, sans-serif';
+    const lengthCol1 = getColumnPixelSize([...data.map(d => d.study ? d.study : ''), 'Site'], font);
+    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : ''}`), 'Group A'], font);
+    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : ''}`), 'Group B (Ref)'], font);
     const lengthCol4 = plotWidth;
-    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR']);
-    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI']);
-    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${d.wgtPct.toFixed(decimal)}%` : ''), 'Weight']);
+    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR'], font);
+    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI'], font);
+    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${d.wgtPct.toFixed(decimal)}%` : ''), 'Weight'], font);
 
     // column 1: Site
     svg.append('text')
             .attr('x', 0)
             .attr('y', yPosHeader)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('Site');
     rows.append('text')
             .attr('x', 0)
+            .attr('text-anchor', 'start')
             .attr('class', 'site-name')
-            .style('font-size', fontSize)
             .text(d => d.study ? d.study : '');
     // bold effect model
     d3.selectAll('.site-name')
             .filter(d => d.effectModel)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 2: Group A (n/N)
-    xPos += lengthCol1 + (lengthCol2 / 2) + (dxPos * 2);
+    xPos += lengthCol1 + (lengthCol2 / 2);
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('Group A');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('(n/N)');
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'group-a')
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
-            .text(d => (d.groupA && d.groupATotal) ? `${d.groupA}/${d.groupATotal}` : '');
+            .text(d => (d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : '');
     // bold effect model
     d3.selectAll('.group-a')
             .filter(d => d.effectModel)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 3: Group B (n/N)
-    xPos += lengthCol2 + (lengthCol3 / 2) - dxPos;
+    xPos += (lengthCol2 + lengthCol3) / 2;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('Group B (Ref)');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('(n/N)');
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'group-b')
             .attr('text-anchor', 'middle')
-            .style('font-size', fontSize)
-            .text(d => (d.groupB && d.groupBTotal) ? `${d.groupB}/${d.groupBTotal}` : '');
+            .text(d => (d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : '');
     // bold effect model
     d3.selectAll('.group-b')
             .filter(d => d.effectModel)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 4: Incident Rate Ratio (forest plot)
-    xPos += lengthCol3;
+    xPos += lengthCol3 / 2;
     svg.append('text')
             .attr('x', xPos + (width / 2) - (Math.ceil(getStringWidth('Incident Rate Ratio')) / 2))
             .attr('y', yPosHeader)
@@ -691,81 +687,74 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('stroke', 'blue');
 
     // Column 5: IRR
-    xPos += lengthCol4 + dxPos + Math.pow(decimal, 2);
+    xPos += lengthCol4 + (lengthCol5 / 2);
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('IRR');
     rows.append('text')
             .attr('x', xPos)
             .attr('text-anchor', 'end')
             .attr('class', 'irr')
-            .style('font-size', fontSize)
             .text(d => d.estimate ? d.estimate.toFixed(decimal) : '');
     // bold effect model (IRR)
     d3.selectAll('.irr')
             .filter(d => d.effectModel)
             .attr('x', xPos)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 6: 95% CI
-    xPos += lengthCol5 - (lengthCol6 / 4);
+    xPos += dxPos;
     svg.append('text')
             .attr('x', xPos + decimal)
             .attr('y', yPosHeader)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('95% CI');
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'ci')
-            .style('font-size', fontSize)
             .text(d => (d.lower && d.upper && d.estimate) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
     // bold effect model (95% CI)
     d3.selectAll('.ci')
             .filter(d => d.effectModel)
             .attr('x', xPos)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
     // Column 7: Fixed Weight
-    xPos += lengthCol6 + lengthCol7 + dxPos;
+    xPos += lengthCol6 + lengthCol7 - dxPos;
     svg.append('text')
             .attr('x', xPos)
             .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text(isRandomEffect ? 'Random' : 'Fixed');
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyHeader)
             .attr('text-anchor', 'end')
-            .style('font-size', fontSize)
             .style('font-weight', 'bold')
             .text('Weight');
     rows.append('text')
             .attr('x', xPos)
             .attr('text-anchor', 'end')
             .attr('class', 'weight-percent')
-            .style('font-size', fontSize)
             .text(d => d.wgtPct ? (d.wgtPct === 100) ? '100%' : `${d.wgtPct.toFixed(decimal)}%` : '');
     // bold effect model (95% CI)
     d3.selectAll('.weight-percent')
             .filter(d => d.effectModel)
             .attr('x', xPos)
-            .style('font-size', fontSize)
             .style('font-weight', 'bold');
 
+    const iSq = stats.iSquare.toFixed(1);
+    const tauSq = stats.tauSquare.toFixed(4);
+    const pvalue = (stats.aggregate.pValue < 0.0001) ? 'p < 0.0001' : `p = ${stats.aggregate.pValue.toFixed(4)}`;
     svg.append('text')
             .attr('x', 0)
             .attr('y', height)
             .style('font-size', fontSize)
-            .text(`Heterogeneity: I² = ${stats.iSquare.toFixed(1)}%, τ² = ${stats.tauSquare.toFixed(4)}, ${stats.aggregate.pValue < 0.0001 ? 'p < 0.0001' : stats.aggregate.pValue.toFixed(decimal)}`);
+            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, ${pvalue}`);
 };
 const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     const common = {
