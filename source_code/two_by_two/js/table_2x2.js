@@ -49,19 +49,15 @@ const aggregateCounts = new Map();
 const siteGroupCounts = new Map();
 
 /**
- * r1c1: group A count
- * r1c2: group A total count
- * r1c3: group A rate => count/(total count)
- * r2c1: group B count
- * r2c2: group B total count
- * r2c3: group B rate => count/(total count)
- * irr: incident rate ratio
- * lnIrr: ln(irr)
- * varlnIrr: variance of lnIrr
- * stderr: standard error
- * ci: 95% confidence interval
- * lower95CI: lower 95% confidence interval
- * upper95CI: uppper 95% confidence interval
+ * Group A is experimental group.
+ * Group B is control group.
+ *
+ * r1c1 = group A count
+ * r1c2 = group A total count
+ * r1c3 = group A rate
+ * r2c1 = group B count
+ * r2c2 = group B total count
+ * r2c3 = group B rate
  *
  * @type type
  */
@@ -74,10 +70,70 @@ const stats = {
         zScore: 0, pValue: 0
     },
     individual: new Map(),
-    fixedIrr: 0, fixedLower95CI: 0, fixedUpper95CI: 0,
-    randomIrr: 0, randomLower95CI: 0, randomUpper95CI: 0,
-    tauSquare: 0,
-    iSquare: 0
+    metaAnalysis: {
+        fixedEffect: {
+            irr: 0,
+            lnIrr: 0,
+            lnStdErr: 0,
+            ci: 0, lower95CI: 0, upper95CI: 0, lnLower95CI: 0, lnUpper95CI: 0,
+            zScore: 0, pValue: 0
+        },
+        randomEffect: {
+            irr: 0,
+            lnIrr: 0,
+            lnStdErr: 0,
+            ci: 0, lower95CI: 0, upper95CI: 0, lnLower95CI: 0, lnUpper95CI: 0,
+            zScore: 0, pValue: 0
+        },
+        heterogeneity: {
+            Q: 0,
+            tauSq: 0,
+            ISq: 0,
+            pValue: 0
+        }
+    },
+    normalCDF: (z) => {
+        const t = 1 / (1 + 0.2316419 * Math.abs(z));
+        const d = 0.3989423 * Math.exp(-z * z / 2);
+        const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+
+        return z > 0 ? 1 - p : p;
+    },
+    chiSquarePValue: (chiSq, df) => {
+        if (chiSq < 0 || df < 1)
+            return 1;
+
+        // Approximation for the Incomplete Gamma Function
+        function gammaCDF(x, a) {
+            if (x <= 0)
+                return 0;
+            let sum = 1 / a;
+            let term = sum;
+            for (let i = 1; i < 100; i++) {
+                term *= x / (a + i);
+                sum += term;
+                if (term < sum * 1e-14)
+                    break;
+            }
+            return sum * Math.exp(-x + a * Math.log(x) - logGamma(a));
+        }
+
+        function logGamma(n) {
+            // Lanczos approximation
+            const coeff = [76.18009172947146, -86.50532032941677, 24.01409824083091,
+                -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+            let x = n, y = n;
+            let tmp = x + 5.5;
+            tmp -= (x + 0.5) * Math.log(tmp);
+            let ser = 1.000000000190015;
+            for (let j = 0; j <= 5; j++)
+                ser += coeff[j] / ++y;
+            return -tmp + Math.log(2.5066282746310005 * ser / x);
+        }
+
+        // Chi-Square P-Value is 1 - CDF
+        return 1 - gammaCDF(chiSq / 2, df / 2);
+    }
 };
 
 /**
@@ -201,42 +257,29 @@ const computeCounts = () => {
     }
 };
 
-/**
- * Normal Distribution CDF (Standard Normal).
- *
- * @param {type} z
- * @returns {Number}
- */
-const normalCDF = (z) => {
-    const t = 1 / (1 + 0.2316419 * Math.abs(z));
-    const d = 0.3989423 * Math.exp(-z * z / 2);
-    const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-
-    return z > 0 ? 1 - p : p;
-};
 const computeAggregateSiteStats = () => {
-    const aggregate = stats.aggregate;
+    const aggr = stats.aggregate;
 
     // set the counts for r1c1,r1c2,r2c1,r2c2
-    aggregateCounts.forEach((counts, cell) => aggregate[cell] = counts);
+    aggregateCounts.forEach((counts, cell) => aggr[cell] = counts);
 
     // calculate the rate for group A and group B
-    aggregate.r1c3 = (aggregate.r1c1 / aggregate.r1c2);
-    aggregate.r2c3 = (aggregate.r2c1 / aggregate.r2c2);
+    aggr.r1c3 = (aggr.r1c1 / aggr.r1c2);
+    aggr.r2c3 = (aggr.r2c1 / aggr.r2c2);
 
     // incidence rate ratio
     // (num of no exposure) / (num of exposure)
-    aggregate.irr = aggregate.r1c3 / aggregate.r2c3;
-    aggregate.lnIrr = Math.log(aggregate.irr);
-    aggregate.varLnIrr = (1.0 / aggregate.r1c1) + (1.0 / aggregate.r2c1);
+    aggr.irr = aggr.r1c3 / aggr.r2c3;
+    aggr.lnIrr = Math.log(aggr.irr);
+    aggr.varLnIrr = (1.0 / aggr.r1c1) + (1.0 / aggr.r2c1);
 
-    aggregate.lnStdErr = Math.sqrt(aggregate.varLnIrr);
-    aggregate.ci = 1.959964 * aggregate.lnStdErr;
-    aggregate.lower95CI = Math.exp(aggregate.lnIrr - aggregate.ci);
-    aggregate.upper95CI = Math.exp(aggregate.lnIrr + aggregate.ci);
+    aggr.lnStdErr = Math.sqrt(aggr.varLnIrr);
+    aggr.ci = 1.959964 * aggr.lnStdErr;
+    aggr.lower95CI = Math.exp(aggr.lnIrr - aggr.ci);
+    aggr.upper95CI = Math.exp(aggr.lnIrr + aggr.ci);
 
-    aggregate.zScore = aggregate.lnIrr / aggregate.lnStdErr;
-    aggregate.pValue = 2 * (1 - normalCDF(Math.abs(aggregate.zScore)));
+    aggr.zScore = aggr.lnIrr / aggr.lnStdErr;
+    aggr.pValue = 2 * (1 - stats.normalCDF(Math.abs(aggr.zScore)));
 };
 /**
  * Source for calculation: https://drsm.in/Meta-analysis/Meta_AnalysisHelp1
@@ -245,9 +288,12 @@ const computeAggregateSiteStats = () => {
  */
 const computeIndividualSiteStats = () => {
     const indiv = stats.individual;
-    indiv.clear();
+    const fixedEffect = stats.metaAnalysis.fixedEffect;
+    const randomEffect = stats.metaAnalysis.randomEffect;
+    const heterogeneity = stats.metaAnalysis.heterogeneity;
 
     // initialize data
+    indiv.clear();
     validSites.forEach((siteNumber, siteName) => {
         indiv.set(siteName, {
             siteName: siteName,
@@ -290,20 +336,32 @@ const computeIndividualSiteStats = () => {
         data.upper95CI = Math.exp(data.lnUpper95CI);
 
         data.zScore = data.lnIrr / data.lnStdErr;
-        data.pValue = 2 * (1 - normalCDF(Math.abs(data.zScore)));
+        data.pValue = 2 * (1 - stats.normalCDF(Math.abs(data.zScore)));
 
+        // weights (W) of each included studies under fixed effect model (inverse variance method)
         data.fixedWgt = 1 / data.varLnIrr;
 
         sumFixedWgt += data.fixedWgt;
         sumFixedWgtSq += data.fixedWgt * data.fixedWgt;
     });
 
+    // summary Log IRR (meta-analysis Log IRR) under fixed effect model
     let sumFixedWgtLnIrr = 0; // sum(lnIRR*fixedWgtPct)
     indiv.values().forEach(data => {
         data.fixedWgtPct = data.fixedWgt / sumFixedWgt;
 
         sumFixedWgtLnIrr += data.lnIrr * data.fixedWgtPct;
     });
+    fixedEffect.irr = Math.exp(sumFixedWgtLnIrr);
+    fixedEffect.lnIrr = sumFixedWgtLnIrr;
+    fixedEffect.lnStdErr = 1.0 / Math.sqrt(sumFixedWgt);
+    fixedEffect.ci = 1.959964 * fixedEffect.lnStdErr;
+    fixedEffect.lnLower95CI = fixedEffect.lnIrr - fixedEffect.ci;
+    fixedEffect.lnUpper95CI = fixedEffect.lnIrr + fixedEffect.ci;
+    fixedEffect.lower95CI = Math.exp(fixedEffect.lnLower95CI);
+    fixedEffect.upper95CI = Math.exp(fixedEffect.lnUpper95CI);
+    fixedEffect.zScore = fixedEffect.lnIrr / fixedEffect.lnStdErr;
+    fixedEffect.pValue = 2 * (1 - stats.normalCDF(Math.abs(fixedEffect.zScore)));
 
     let sumQ = 0;
     indiv.values().forEach(data => {
@@ -311,44 +369,43 @@ const computeIndividualSiteStats = () => {
         sumQ += data.fixedWgt * Math.pow((data.lnIrr - sumFixedWgtLnIrr), 2);
     });
 
+    const degreeFreedom = indiv.size - 1;
     const tauSq1 = sumQ - (indiv.size - 1);
     const tauSq2 = sumFixedWgt - (sumFixedWgtSq / sumFixedWgt);
-    const tau = tauSq1 / tauSq2;
-    stats.tauSquare = tau;
+    const tauSq = tauSq1 / tauSq2;
+    heterogeneity.Q = sumQ;
+    heterogeneity.tauSq = tauSq;
+    heterogeneity.ISq = ((sumQ - degreeFreedom) / sumQ) * 100;
+
+    // compare the statistic against a (chi-squared) distribution with degrees of freedom
+    heterogeneity.pValue = stats.chiSquarePValue(heterogeneity.Q, degreeFreedom);
 
     let sumRandomWgt = 0;
     indiv.values().forEach(data => {
-        data.randomWgt = 1 / (data.varLnIrr + tau);
+        data.randomWgt = 1 / (data.varLnIrr + tauSq);
 
         sumRandomWgt += data.randomWgt;
     });
 
-    let sumFixedWgtIrr = 0;
-    let sumRandomWgtIrr = 0;
-    let sumFixedLowerCI = 0;
-    let sumFixedUpperCI = 0;
-    let sumRandomLowerCI = 0;
-    let sumRandomUpperCI = 0;
+    // summary Log IRR (meta-analysis Log IRR) under random effect model
+    let sumRandomWgtLnIrr = 0;
     indiv.values().forEach(data => {
         data.randomWgtPct = data.randomWgt / sumRandomWgt;
 
-        sumFixedWgtIrr += data.lnIrr * data.fixedWgtPct;
-        sumRandomWgtIrr += data.lnIrr * data.randomWgtPct;
-
-        sumFixedLowerCI += data.lnLower95CI * data.fixedWgtPct;
-        sumFixedUpperCI += data.lnUpper95CI * data.fixedWgtPct;
-        sumRandomLowerCI += data.lnLower95CI * data.randomWgtPct;
-        sumRandomUpperCI += data.lnUpper95CI * data.randomWgtPct;
+        sumRandomWgtLnIrr += data.lnIrr * data.randomWgtPct;
     });
-    stats.fixedIrr = Math.exp(sumFixedWgtIrr);
-    stats.fixedLower95CI = Math.exp(sumFixedLowerCI);
-    stats.fixedUpper95CI = Math.exp(sumFixedUpperCI);
-    stats.randomIrr = Math.exp(sumRandomWgtIrr);
-    stats.randomLower95CI = Math.exp(sumRandomLowerCI);
-    stats.randomUpper95CI = Math.exp(sumRandomUpperCI);
-    stats.iSquare = 100 * (sumQ - (indiv.size - 1)) / sumQ;
+    randomEffect.irr = Math.exp(sumRandomWgtLnIrr);
+    randomEffect.lnIrr = sumRandomWgtLnIrr;
+    randomEffect.lnStdErr = 1.0 / Math.sqrt(sumRandomWgt);
+    randomEffect.ci = 1.959964 * randomEffect.lnStdErr;
+    randomEffect.lnLower95CI = randomEffect.lnIrr - randomEffect.ci;
+    randomEffect.lnUpper95CI = randomEffect.lnIrr + randomEffect.ci;
+    randomEffect.lower95CI = Math.exp(randomEffect.lnLower95CI);
+    randomEffect.upper95CI = Math.exp(randomEffect.lnUpper95CI);
+    randomEffect.zScore = randomEffect.lnIrr / randomEffect.lnStdErr;
+    randomEffect.pValue = 2 * (1 - stats.normalCDF(Math.abs(randomEffect.zScore)));
 
-    // convert to percentage from decimal
+    // convert to percentage from decimal (do this last)
     indiv.values().forEach(data => {
         data.fixedWgtPct *= 100;
         data.randomWgtPct *= 100;
@@ -430,14 +487,17 @@ const populateTableCounts = () => {
     aggregateCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
 const populateTableProbabilities = (decimal) => {
-    $('#r1c3').text(stats.aggregate.r1c3.toFixed(decimal));
-    $('#r2c3').text(stats.aggregate.r2c3.toFixed(decimal));
-    $('#r2c4').text(`${stats.aggregate.irr.toFixed(decimal)} (${stats.aggregate.lower95CI.toFixed(decimal)}-${stats.aggregate.upper95CI.toFixed(decimal)})`);
+    const aggr = stats.aggregate;
 
-    $('#stderr').text(stats.aggregate.lnStdErr.toFixed(decimal));
-    $('#irr').text(stats.aggregate.irr.toFixed(decimal));
-    $('#ci_lower').text(stats.aggregate.lower95CI.toFixed(decimal));
-    $('#ci_upper').text(stats.aggregate.upper95CI.toFixed(decimal));
+    $('#r1c3').text(aggr.r1c3.toFixed(decimal));
+    $('#r2c3').text(aggr.r2c3.toFixed(decimal));
+    $('#r2c4').text(`${aggr.irr.toFixed(decimal)} (${aggr.lower95CI.toFixed(decimal)}-${aggr.upper95CI.toFixed(decimal)})`);
+
+    $('#stderr').text(aggr.lnStdErr.toFixed(decimal));
+    $('#irr').text(aggr.irr.toFixed(decimal));
+    $('#ci_lower').text(aggr.lower95CI.toFixed(decimal));
+    $('#ci_upper').text(aggr.upper95CI.toFixed(decimal));
+    $('#p_value').text(aggr.pValue < 0.0001 ? '< 0.0001' : aggr.pValue.toFixed(decimal));
 };
 const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
     const tableData = getStatsTableData(decimal, showSiteNames);
@@ -465,10 +525,7 @@ const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
     });
 };
 const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal) => {
-    const blankRow = {
-        lower: effectModel.lower,
-        upper: effectModel.upper
-    };
+    const blankRow = {};
     const data = [...plotData, blankRow, effectModel];
 
     const plotHeight = data.length * 50;
@@ -638,6 +695,16 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     //            .data(data)
     //            .enter()
     //            .append('line')
+    //            .attr('x1', d => d.effectModel ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
+    //            .attr('x2', d => d.effectModel ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
+    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+    //            .attr('stroke-width', 1)
+    //            .attr('stroke', 'black');
+    //    svg.selectAll('.ci')
+    //            .data(data)
+    //            .enter()
+    //            .append('line')
     //            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
     //            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
     //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
@@ -670,7 +737,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('height', d => d.effectModel ? 0 : d.wgt ? sizeScale(d.wgt) : 0)
             .attr('fill', 'black');
 
-    // draw common effect point
+    // draw effect point
     const size = 8;
     const lineGenerator = d3.line()
             .x(d => d.x)
@@ -747,39 +814,44 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('x', xPos)
             .style('font-weight', 'bold');
 
-    const iSq = stats.iSquare.toFixed(1);
-    const tauSq = stats.tauSquare.toFixed(4);
-    const pvalue = (stats.aggregate.pValue < 0.0001) ? 'p < 0.0001' : `p = ${stats.aggregate.pValue.toFixed(4)}`;
+    const heterogeneity = stats.metaAnalysis.heterogeneity;
+    const iSq = heterogeneity.ISq.toFixed(1);
+    const tauSq = heterogeneity.tauSq.toFixed(4);
+    const pvalue = heterogeneity.pValue;
+    const pvalueDisplay = (pvalue < 0.0001) ? 'p < 0.0001' : `p = ${pvalue.toFixed(4)}`;
     svg.append('text')
             .attr('x', 0)
             .attr('y', height)
-            .style('font-size', fontSize)
-            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, ${pvalue}`);
+            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, ${pvalueDisplay}`);
 };
 const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
+    const aggr = stats.aggregate;
+
+    const fixed = stats.metaAnalysis.fixedEffect;
     const common = {
         study: 'Common effect model',
-        groupA: stats.aggregate.r1c1,
-        groupATotal: stats.aggregate.r1c2,
-        groupB: stats.aggregate.r2c1,
-        groupBTotal: stats.aggregate.r2c2,
-        estimate: stats.aggregate.irr,
-        lower: stats.aggregate.lower95CI,
-        upper: stats.aggregate.upper95CI,
+        groupA: aggr.r1c1,
+        groupATotal: aggr.r1c2,
+        groupB: aggr.r2c1,
+        groupBTotal: aggr.r2c2,
+        estimate: fixed.irr,
+        lower: fixed.lower95CI,
+        upper: fixed.upper95CI,
         wgtPct: 100,
         effectModel: true
     };
     populateWeightedForestPlot('#forestChartFixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
 
+    const rand = stats.metaAnalysis.randomEffect;
     const random = {
         study: 'Random effect model',
-        groupA: stats.aggregate.r1c1,
-        groupATotal: stats.aggregate.r1c2,
-        groupB: stats.aggregate.r2c1,
-        groupBTotal: stats.aggregate.r2c2,
-        estimate: stats.randomIrr,
-        lower: stats.randomLower95CI,
-        upper: stats.randomUpper95CI,
+        groupA: aggr.r1c1,
+        groupATotal: aggr.r1c2,
+        groupB: aggr.r2c1,
+        groupBTotal: aggr.r2c2,
+        estimate: rand.irr,
+        lower: rand.lower95CI,
+        upper: rand.upper95CI,
         wgtPct: 100,
         effectModel: true
     };
