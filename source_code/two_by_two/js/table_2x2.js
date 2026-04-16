@@ -532,9 +532,9 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const plotWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 50, right: 15, bottom: 30, left: 15};
+    const margin = {top: 30, right: 30, bottom: 40, left: 30};
     const width = plotWidth - margin.left - margin.right;
-    const height = plotHeight - margin.top - margin.bottom;
+    const height = plotHeight;
 
     // remove previous chart
     d3.select(plot).selectAll('*').remove();
@@ -542,14 +542,16 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const fontFamily = 'Arial, sans-serif';
     const fontSize = '0.875em';
 
+    const zoom = d3.zoom().scaleExtent([1, 5]).on('zoom', function (event) {
+        svg.attr('transform', event.transform);
+    });
+
     const svg = d3.select(plot)
             .attr('width', '100%')
-            .attr('height', plotHeight)
-            .attr('font-family', fontFamily)
-            .attr('font-size', fontSize)
-            .call(d3.zoom().scaleExtent([1, 5]).on('zoom', function (event) {
-                svg.attr('transform', event.transform);
-            }))
+            .attr('height', height + margin.top + margin.bottom)
+            .style('font-family', fontFamily)
+            .style('font-size', fontSize)
+            .call(zoom)
             .append('g')
             .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
@@ -561,7 +563,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     // y-scale (studies)
     const y = d3.scaleBand()
             .domain(data.map(d => d.study))
-            .range([0, height])
+            .range([10, height])
             .padding(1.25);
 
     const rows = svg.selectAll('.row')
@@ -570,9 +572,8 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .append('g')
             .attr('transform', d => `translate(0, ${y(d.study) + (y.bandwidth() / 2)})`);
 
-    const yPosHeader = -25;
     const dxPos = 10;
-    const dyHeader = -5;
+    const dyPos = 20;
 
     let xPos = 0;
 
@@ -587,12 +588,9 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
 
     // column 1: Site
     svg.append('text')
-            .attr('x', 0)
-            .attr('y', yPosHeader)
             .style('font-weight', 'bold')
             .text('Site');
     rows.append('text')
-            .attr('x', 0)
             .attr('text-anchor', 'start')
             .attr('class', 'site-name')
             .text(d => d.study ? d.study : '');
@@ -605,13 +603,12 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     xPos += lengthCol1 + (lengthCol2 / 2);
     svg.append('text')
             .attr('x', xPos)
-            .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
             .text('Group A');
     svg.append('text')
             .attr('x', xPos)
-            .attr('dy', dyHeader)
+            .attr('dy', dyPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
             .text('(n/N)');
@@ -629,13 +626,12 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     xPos += (lengthCol2 + lengthCol3) / 2;
     svg.append('text')
             .attr('x', xPos)
-            .attr('y', yPosHeader)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
             .text('Group B (Ref)');
     svg.append('text')
             .attr('x', xPos)
-            .attr('dy', dyHeader)
+            .attr('dy', dyPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
             .text('(n/N)');
@@ -650,11 +646,9 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .style('font-weight', 'bold');
 
     // Column 4: Incident Rate Ratio (forest plot)
-    xPos += lengthCol3 / 2;
+    xPos += (lengthCol3 / 2) + dxPos;
     svg.append('text')
             .attr('x', xPos + (width / 2) - (Math.ceil(getStringWidth('Incident Rate Ratio')) / 2))
-            .attr('y', yPosHeader)
-            .style('font-size', fontSize)
             .text('Incident Rate Ratio')
             .style('font-weight', 'bold');
     svg.append('g')
@@ -665,7 +659,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     svg.append('line')
             .attr('x1', x(1) + xPos)
             .attr('x2', x(1) + xPos)
-            .attr('y1', 0)
+            .attr('y1', 10 + margin.top)
             .attr('y2', height)
             .attr('stroke', 'red')
             .attr('stroke-dasharray', 'none');
@@ -674,7 +668,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     svg.append('line')
             .attr('x1', x(effectModel.estimate) + xPos)
             .attr('x2', x(effectModel.estimate) + xPos)
-            .attr('y1', 0)
+            .attr('y1', 10 + margin.top)
             .attr('y2', y(effectModel.study))
             .attr('stroke', 'blue')
             .attr('stroke-dasharray', '8');
@@ -691,36 +685,26 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
             .attr('stroke-width', 1)
             .attr('stroke', 'black');
-    //    svg.selectAll('.ci')
-    //            .data(data)
-    //            .enter()
-    //            .append('line')
-    //            .attr('x1', d => d.effectModel ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
-    //            .attr('x2', d => d.effectModel ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
-    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
-    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
-    //            .attr('stroke-width', 1)
-    //            .attr('stroke', 'black');
-    //    svg.selectAll('.ci')
-    //            .data(data)
-    //            .enter()
-    //            .append('line')
-    //            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
-    //            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
-    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
-    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
-    //            .attr('stroke-width', 1)
-    //            .attr('stroke', 'black');
-    //    svg.selectAll('.ci')
-    //            .data(data)
-    //            .enter()
-    //            .append('line')
-    //            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
-    //            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
-    //            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
-    //            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
-    //            .attr('stroke-width', 1)
-    //            .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
+//            .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
+//            .attr('stroke', 'black');
 
     // draw effect size points (boxes)
     const sizeScale = d3.scaleSqrt()
@@ -757,7 +741,6 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     xPos += lengthCol4 + (lengthCol5 / 2);
     svg.append('text')
             .attr('x', xPos)
-            .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
             .style('font-weight', 'bold')
             .text('IRR');
@@ -776,7 +759,6 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     xPos += dxPos;
     svg.append('text')
             .attr('x', xPos + decimal)
-            .attr('y', yPosHeader)
             .style('font-weight', 'bold')
             .text('95% CI');
     rows.append('text')
@@ -793,13 +775,12 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     xPos += lengthCol6 + lengthCol7 - dxPos;
     svg.append('text')
             .attr('x', xPos)
-            .attr('y', yPosHeader)
             .attr('text-anchor', 'end')
             .style('font-weight', 'bold')
             .text(isRandomEffect ? 'Random' : 'Fixed');
     svg.append('text')
             .attr('x', xPos)
-            .attr('dy', dyHeader)
+            .attr('dy', dyPos)
             .attr('text-anchor', 'end')
             .style('font-weight', 'bold')
             .text('Weight');
