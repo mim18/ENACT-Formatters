@@ -87,6 +87,7 @@ const stats = {
         },
         heterogeneity: {
             Q: 0,
+            df: 0,
             tauSq: 0,
             ISq: 0,
             pValue: 0
@@ -338,7 +339,7 @@ const computeIndividualSiteStats = () => {
         data.zScore = data.lnIrr / data.lnStdErr;
         data.pValue = 2 * (1 - stats.normalCDF(Math.abs(data.zScore)));
 
-        // weights (W) of each included studies under fixed effect model (inverse variance method)
+        // weights (W) of each included studies under fixed effect model (inverse variance method) 
         data.fixedWgt = 1 / data.varLnIrr;
 
         sumFixedWgt += data.fixedWgt;
@@ -373,12 +374,13 @@ const computeIndividualSiteStats = () => {
     const tauSq1 = sumQ - (indiv.size - 1);
     const tauSq2 = sumFixedWgt - (sumFixedWgtSq / sumFixedWgt);
     const tauSq = tauSq1 / tauSq2;
+    heterogeneity.df = degreeFreedom
     heterogeneity.Q = sumQ;
     heterogeneity.tauSq = tauSq;
     heterogeneity.ISq = ((sumQ - degreeFreedom) / sumQ) * 100;
 
     // compare the statistic against a (chi-squared) distribution with degrees of freedom
-    heterogeneity.pValue = stats.chiSquarePValue(heterogeneity.Q, degreeFreedom);
+    heterogeneity.pValue = stats.chiSquarePValue(sumQ, degreeFreedom);
 
     let sumRandomWgt = 0;
     indiv.values().forEach(data => {
@@ -532,9 +534,9 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const plotWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 30, right: 30, bottom: 40, left: 30};
+    const margin = {top: 30, right: 30, bottom: 90, left: 30};
     const width = plotWidth - margin.left - margin.right;
-    const height = plotHeight;
+    const height = plotHeight - margin.top - margin.bottom;
 
     // remove previous chart
     d3.select(plot).selectAll('*').remove();
@@ -795,15 +797,29 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('x', xPos)
             .style('font-weight', 'bold');
 
+    let yPosInfo = height + margin.bottom - dyPos - dyPos;
     const heterogeneity = stats.metaAnalysis.heterogeneity;
     const iSq = heterogeneity.ISq.toFixed(1);
     const tauSq = heterogeneity.tauSq.toFixed(4);
-    const pvalue = heterogeneity.pValue;
-    const pvalueDisplay = (pvalue < 0.0001) ? 'p < 0.0001' : `p = ${pvalue.toFixed(4)}`;
+    const Q = heterogeneity.Q.toFixed(2);
+    const df = heterogeneity.df;
+    let pValue = heterogeneity.pValue;
+    let pValDisp = (pValue < 0.0001) ? 'p < 0.0001' : `p = ${pValue.toFixed(4)}`;
     svg.append('text')
             .attr('x', 0)
-            .attr('y', height)
-            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, ${pvalueDisplay}`);
+            .attr('y', yPosInfo)
+            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, Q = ${Q} df = ${df} (${pValDisp})`);
+
+    yPosInfo += dyPos;
+    const fixedEffect = stats.metaAnalysis.fixedEffect;
+    const randomEffect = stats.metaAnalysis.randomEffect;
+    const zScore = isRandomEffect ? randomEffect.zScore.toFixed(2) : fixedEffect.zScore.toFixed(2);
+    pValue = isRandomEffect ? randomEffect.pValue : fixedEffect.pValue;
+    pValDisp = (pValue < 0.0001) ? 'p < 0.0001' : `p = ${pValue.toFixed(4)}`;
+    svg.append('text')
+            .attr('x', 0)
+            .attr('y', yPosInfo)
+            .text(`Test for overall effect: z = ${zScore} (${pValDisp})`);
 };
 const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
     const aggr = stats.aggregate;
