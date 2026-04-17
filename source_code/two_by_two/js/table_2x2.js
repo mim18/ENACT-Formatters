@@ -534,9 +534,10 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const plotWidth = 450;
 
     // dimensions and margins
-    const margin = {top: 30, right: 30, bottom: 90, left: 30};
+    const margin = {top: 40, right: 30, bottom: 90, left: 30};
     const width = plotWidth - margin.left - margin.right;
     const height = plotHeight - margin.top - margin.bottom;
+    const yPlotStart = 40;
 
     // remove previous chart
     d3.select(plot).selectAll('*').remove();
@@ -565,7 +566,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     // y-scale (studies)
     const y = d3.scaleBand()
             .domain(data.map(d => d.study))
-            .range([10, height])
+            .range([yPlotStart, height])
             .padding(1.25);
 
     const rows = svg.selectAll('.row')
@@ -577,12 +578,16 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const dxPos = 10;
     const dyPos = 20;
 
-    let xPos = 0;
+    const row1Txt = $('.row1LabelText').first().text();
+    const row2Txt = $('.row2LabelText').first().text();
+    const col1Txt = $('.col1LabelText').first().text();
+    const col2Txt = $('.col2LabelText').first().text();
+    const groupCntLbl = `${col1Txt} / ${col2Txt}`;
 
     const font = '16px Arial, sans-serif';
     const lengthCol1 = getColumnPixelSize([...data.map(d => d.study ? d.study : ''), 'Site'], font);
-    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : ''}`), 'Group A'], font);
-    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : ''}`), 'Group B (Ref)'], font);
+    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : ''}`), row1Txt, groupCntLbl], font);
+    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : ''}`), row2Txt, groupCntLbl], font);
     const lengthCol4 = plotWidth;
     const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR'], font);
     const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI'], font);
@@ -602,18 +607,18 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .style('font-weight', 'bold');
 
     // Column 2: Group A (n/N)
-    xPos += lengthCol1 + (lengthCol2 / 2);
+    let xPos = lengthCol1 + (lengthCol2 / 2);
     svg.append('text')
             .attr('x', xPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text('Group A');
+            .text(row1Txt);
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text('(n/N)');
+            .text(groupCntLbl);
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'group-a')
@@ -630,13 +635,13 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('x', xPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text('Group B (Ref)');
+            .text(row2Txt);
     svg.append('text')
             .attr('x', xPos)
             .attr('dy', dyPos)
             .attr('text-anchor', 'middle')
             .style('font-weight', 'bold')
-            .text('(n/N)');
+            .text(groupCntLbl);
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'group-b')
@@ -650,9 +655,16 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     // Column 4: Incident Rate Ratio (forest plot)
     xPos += (lengthCol3 / 2) + dxPos;
     svg.append('text')
-            .attr('x', xPos + (width / 2) - (Math.ceil(getStringWidth('Incident Rate Ratio')) / 2))
-            .text('Incident Rate Ratio')
-            .style('font-weight', 'bold');
+            .attr('x', xPos + (width / 2))
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text('Incidence Rate Ratio (IRR)');
+    svg.append('text')
+            .attr('x', xPos + (width / 2))
+            .attr('dy', dyPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(isRandomEffect ? 'Random Effects Model' : 'Fixed Effect Model');
     svg.append('g')
             .attr('transform', `translate(${xPos},${height})`)
             .call(d3.axisBottom(x));
@@ -661,7 +673,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     svg.append('line')
             .attr('x1', x(1) + xPos)
             .attr('x2', x(1) + xPos)
-            .attr('y1', 10 + margin.top)
+            .attr('y1', yPlotStart)
             .attr('y2', height)
             .attr('stroke', 'red')
             .attr('stroke-dasharray', 'none');
@@ -670,7 +682,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     svg.append('line')
             .attr('x1', x(effectModel.estimate) + xPos)
             .attr('x2', x(effectModel.estimate) + xPos)
-            .attr('y1', 10 + margin.top)
+            .attr('y1', yPlotStart)
             .attr('y2', y(effectModel.study))
             .attr('stroke', 'blue')
             .attr('stroke-dasharray', '8');
@@ -826,7 +838,7 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
 
     const fixed = stats.metaAnalysis.fixedEffect;
     const common = {
-        study: 'Common effect model',
+        study: 'Fixed effect model',
         groupA: aggr.r1c1,
         groupATotal: aggr.r1c2,
         groupB: aggr.r2c1,
@@ -841,7 +853,7 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
 
     const rand = stats.metaAnalysis.randomEffect;
     const random = {
-        study: 'Random effect model',
+        study: 'Random effects model',
         groupA: aggr.r1c1,
         groupATotal: aggr.r1c2,
         groupB: aggr.r2c1,
