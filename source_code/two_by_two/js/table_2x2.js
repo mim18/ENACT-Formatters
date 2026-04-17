@@ -1010,18 +1010,16 @@ const getAggregateDataContents = () => {
 const getIndividualDataContents = (isExport) => {
     const content = [];
 
-    const rowLabel = $('.rowLabelText').first().text();
     const row1Label = $('.row1LabelText').first().text();
     const row2Label = $('.row2LabelText').first().text();
-    const colLabel = $('.colLabelText').first().text();
     const col1Label = $('.col1LabelText').first().text();
     const col2Label = $('.col2LabelText').first().text();
     const header = [
         '"Site"',
-        `"${rowLabel} ${row1Label}: ${col1Label}"`,
-        `"${rowLabel} ${row1Label}: ${col2Label}"`,
-        `"${colLabel} ${row2Label}: ${col1Label}"`,
-        `"${colLabel} ${row2Label}: ${col2Label}"`,
+        `"${row1Label}: ${col1Label}"`,
+        `"${row1Label}: ${col2Label}"`,
+        `"${row2Label}: ${col1Label}"`,
+        `"${row2Label}: ${col2Label}"`,
         '"SE ln(IRR)"',
         '"IRR"',
         '"Lower 95% CI"',
@@ -1332,23 +1330,8 @@ const addEventListeners = () => {
     addExportEventListeners();
 };
 
-const applyInputLabels = () => {
-    // side-label
-    $('.rowLabel').text($('#rowLabelInput').val());
-    $('.row1Label').text($('#row1LabelInput').val());
-    $('.row2Label').text($('#row2LabelInput').val());
-
-    // top-label
-    $('.colLabel').text($('#colLabelInput').val());
-    $('.col1Label').text($('#col1LabelInput').val());
-    $('.col2Label').text($('#col2LabelInput').val());
-    $('.col3Label').text($('#col3LabelInput').val());
-    $('.col4Label').text($('#col4LabelInput').val());
-};
-
 const resetData = () => {
     clearDataStructures();
-    applyInputLabels();
 };
 
 $(document).ready(function () {
