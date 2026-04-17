@@ -418,12 +418,13 @@ const computeStats = () => {
     computeIndividualSiteStats();
 };
 
-const getStatsTableData = (decimal, showSiteNames) => {
+const getStatsTableData = (decimal, showSiteNames, isExport) => {
     const tableData = new Map();
 
     stats.individual.forEach((stats, site) => {
+        const name = showSiteNames ? site : `Site ${stats.siteNumber}`;
         const data = [
-            showSiteNames ? site : `Site ${stats.siteNumber}`,
+            isExport ? `"${name}"` : name,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
             stats.lnStdErr.toFixed(decimal), stats.irr.toFixed(decimal),
             stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
@@ -502,7 +503,7 @@ const populateTableProbabilities = (decimal) => {
     $('#p_value').text(aggr.pValue < 0.0001 ? '< 0.0001' : aggr.pValue.toFixed(decimal));
 };
 const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
-    const tableData = getStatsTableData(decimal, showSiteNames);
+    const tableData = getStatsTableData(decimal, showSiteNames, false);
 
     const tbody = document.querySelector('#stats tbody');
     tbody.innerHTML = '';
@@ -963,7 +964,50 @@ const generateTableAndPlot = () => {
     return true;
 };
 
-const getIndividualDataContents = () => {
+const getAggregateDataContents = () => {
+    const content = [];
+
+    const row1Label = $('.row1LabelText').first().text();
+    const row2Label = $('.row2LabelText').first().text();
+    const col1Label = $('.col1LabelText').first().text();
+    const col2Label = $('.col2LabelText').first().text();
+    const header = [
+        `"${row1Label}: ${col1Label}"`,
+        `"${row1Label}: ${col2Label}"`,
+        `"${row2Label}: ${col1Label}"`,
+        `"${row2Label}: ${col2Label}"`,
+        `"${row1Label}: Total # per 100 persons"`,
+        `"${row2Label}: Total # per 100 persons"`,
+        '"Incidence rate ratio (95% CI)*"',
+        '"SE for ln(IRR)"',
+        '"Incidence rate ratio"',
+        '"Lower bound 95% CI"',
+        '"Upper bound 95% CI"',
+        '"P-Value"'
+    ];
+    content.push(header.join(','));
+
+    const decimal = parseInt($('#decimal').val());
+    const aggr = stats.aggregate;
+    const data = [
+        aggr.r1c1.toFixed(decimal),
+        aggr.r1c2.toFixed(decimal),
+        aggr.r2c1.toFixed(decimal),
+        aggr.r2c2.toFixed(decimal),
+        aggr.r1c3.toFixed(decimal),
+        aggr.r2c3.toFixed(decimal),
+        `${aggr.irr.toFixed(decimal)} (${aggr.lower95CI.toFixed(decimal)}-${aggr.upper95CI.toFixed(decimal)})`,
+        aggr.lnStdErr.toFixed(decimal),
+        aggr.irr.toFixed(decimal),
+        aggr.lower95CI.toFixed(decimal),
+        aggr.upper95CI.toFixed(decimal),
+        aggr.pValue < 0.0001 ? '< 0.0001' : aggr.pValue.toFixed(decimal)
+    ];
+    content.push(data.join(','));
+
+    return content.join('\r\n');
+};
+const getIndividualDataContents = (isExport) => {
     const content = [];
 
     const rowLabel = $('.rowLabelText').first().text();
@@ -973,19 +1017,19 @@ const getIndividualDataContents = () => {
     const col1Label = $('.col1LabelText').first().text();
     const col2Label = $('.col2LabelText').first().text();
     const header = [
-        'Site',
-        `${rowLabel} ${row1Label}: ${col1Label}`,
-        `${rowLabel} ${row1Label}: ${col2Label}`,
-        `${colLabel} ${row2Label}: ${col1Label}`,
-        `${colLabel} ${row2Label}: ${col2Label}`,
-        'SE ln(IRR)',
-        'IRR',
-        'Lower 95% CI',
-        'Upper 95% CI',
-        'Fixed Weight',
-        'Fixed Weight %',
-        'Random Weight',
-        'Random Weight %'
+        '"Site"',
+        `"${rowLabel} ${row1Label}: ${col1Label}"`,
+        `"${rowLabel} ${row1Label}: ${col2Label}"`,
+        `"${colLabel} ${row2Label}: ${col1Label}"`,
+        `"${colLabel} ${row2Label}: ${col2Label}"`,
+        '"SE ln(IRR)"',
+        '"IRR"',
+        '"Lower 95% CI"',
+        '"Upper 95% CI"',
+        '"Fixed Weight"',
+        '"Fixed Weight %"',
+        '"Random Weight"',
+        '"Random Weight %"'
     ];
     content.push(header.join(','));
 
@@ -994,7 +1038,7 @@ const getIndividualDataContents = () => {
     const showSiteNames = $('#showSiteNames').prop('checked');
     const sortSiteNames = $('#sortSiteNames').prop('checked');
 
-    const tableData = getStatsTableData(decimal, showSiteNames);
+    const tableData = getStatsTableData(decimal, showSiteNames, isExport);
     const data = sortSiteNames
             ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
             : [...tableData.keys()];
@@ -1205,14 +1249,26 @@ const addSettingsEventListeners = () => {
     $('#sortSiteNames').on('change', handleSiteNameChange);
 };
 const addExportEventListeners = () => {
-    $('#exportIndividualData').on('click', (event) => {
+    $('#exportAggregateData').on('click', (event) => {
         event.preventDefault();
 
-        const content = getIndividualDataContents();
+        const content = getAggregateDataContents();
         const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
 
         const downloadLink = document.createElement('a');
-        downloadLink.download = 'stats.csv';
+        downloadLink.download = 'aggregate_stats.csv';
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.click();
+    });
+
+    $('#exportIndividualData').on('click', (event) => {
+        event.preventDefault();
+
+        const content = getIndividualDataContents(true);
+        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'meta-analysis.csv';
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.click();
     });
@@ -1248,7 +1304,7 @@ const addExportEventListeners = () => {
 
         const image = new Image();
         image.addEventListener('load', () => {
-            context.drawImage(image, 0, 0, width, height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
             const downloadLink = document.createElement('a');
             downloadLink.download = outputFilename;
