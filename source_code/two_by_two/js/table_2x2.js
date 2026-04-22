@@ -429,7 +429,9 @@ const getStatsTableData = (decimal, showSiteNames, isExport) => {
             stats.lnStdErr.toFixed(decimal), stats.irr.toFixed(decimal),
             stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
             stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
-            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal)
+            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal),
+            stats.zScore.toFixed(decimal),
+            stats.pValue < 0.0001 ? '< 0.0001' : stats.pValue.toFixed(decimal)
         ];
 
         if (showSiteNames) {
@@ -521,10 +523,12 @@ const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
         row.cells[2].classList.add('table-success');
         row.cells[3].classList.add('table-warning');
         row.cells[4].classList.add('table-warning');
-        row.cells[7].classList.add('table-info');
-        row.cells[8].classList.add('table-info');
-        row.cells[9].classList.add('table-secondary');
-        row.cells[10].classList.add('table-secondary');
+        row.cells[7].classList.add('table-secondary');
+        row.cells[8].classList.add('table-secondary');
+        row.cells[9].classList.add('table-info');
+        row.cells[10].classList.add('table-info');
+        row.cells[11].classList.add('table-primary');
+        row.cells[12].classList.add('table-primary');
     });
 };
 const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal) => {
@@ -1027,7 +1031,9 @@ const getIndividualDataContents = (isExport) => {
         '"Fixed Weight"',
         '"Fixed Weight %"',
         '"Random Weight"',
-        '"Random Weight %"'
+        '"Random Weight %"',
+        'Z-Score',
+        'P-Value'
     ];
     content.push(header.join(','));
 
