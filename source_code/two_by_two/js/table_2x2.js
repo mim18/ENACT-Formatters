@@ -374,7 +374,7 @@ const computeIndividualSiteStats = () => {
     const tauSq1 = sumQ - (indiv.size - 1);
     const tauSq2 = sumFixedWgt - (sumFixedWgtSq / sumFixedWgt);
     const tauSq = tauSq1 / tauSq2;
-    heterogeneity.df = degreeFreedom
+    heterogeneity.df = degreeFreedom;
     heterogeneity.Q = sumQ;
     heterogeneity.tauSq = tauSq;
     heterogeneity.ISq = ((sumQ - degreeFreedom) / sumQ) * 100;

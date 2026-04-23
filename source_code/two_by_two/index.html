@@ -25,7 +25,7 @@
                 background-color: #f3f5f7;
             }
             table#stats tbody tr:hover td {
-                background-color: yellow;
+                background-color: yellow !important;
             }
         </style>
     </head>
@@ -325,9 +325,9 @@
                                                         <th scope="col" colspan="2" class="text-center table-warning"><span class="row2LabelText">Control</span></th>
                                                         <th scope="col"></th>
                                                         <th scope="col"></th>
-                                                        <th scope="col" colspan="2" class="table-secondary text-center">95% CI</th>
-                                                        <th scope="col" colspan="2" class="text-center table-info">Fixed</th>
-                                                        <th scope="col" colspan="2" class="text-center table-primary">Random</th>
+                                                        <th scope="col" colspan="2" class="table-secondary text-center">95% CI for ln(IRR)</th>
+                                                        <th scope="col" colspan="2" class="text-center table-info">Fixed Weight</th>
+                                                        <th scope="col" colspan="2" class="text-center table-primary">Random Weight</th>
                                                         <th scope="col" colspan="2" class="text-center">Significance</th>
                                                     </tr>
                                                     <tr>
@@ -338,17 +338,17 @@
                                                         <th scope="col" class="table-warning"><span class="col2LabelText">Total</span></th>
                                                         <th scope="col">SE ln(IRR)</th>
                                                         <th scope="col">IRR</th>
-                                                        <th scope="col" class="table-secondary">Low ln(IRR)</th>
-                                                        <th scope="col" class="table-secondary">High ln(IRR)</th>
-                                                        <th scope="col" class="table-info">Weight</th>
-                                                        <th scope="col" class="table-info">Weight %</th>
-                                                        <th scope="col" class="table-primary">Weight</th>
-                                                        <th scope="col" class="table-primary">Weight %</th>
+                                                        <th scope="col" class="table-secondary">Low</th>
+                                                        <th scope="col" class="table-secondary">High</th>
+                                                        <th scope="col" class="table-info">W</th>
+                                                        <th scope="col" class="table-info">W %</th>
+                                                        <th scope="col" class="table-primary">W</th>
+                                                        <th scope="col" class="table-primary">W %</th>
                                                         <th scope="col">Z-Score</th>
                                                         <th scope="col">P-Value</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody class="table-group-divider"></tbody>
+                                                <tbody></tbody>
                                             </table>
                                         </div>
                                     </div>
