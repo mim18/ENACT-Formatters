@@ -931,11 +931,15 @@ const saveInputData = (fileId, csvFile) => {
     if (fileId && csvFile) {
         dataFiles.set(fileId, csvFile);
 
-        const htmlCode = `<div class="alert alert-success p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
+        const htmlCode = `<div class="alert alert-light p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
         $(`#filename_${fileId}`).html(htmlCode);
 
         // remove error alerts
-        $(`#droparea_${fileId}`).removeClass('bg-danger-subtle');
+        $(`#droparea_${fileId}`)
+                .removeClass('bg-danger-subtle')
+                .removeClass('highlight')
+                .addClass('bg-dropped');
+
         if (dataFiles.size >= 4) {
             $('#dataErrorMsg').hide();
         }
