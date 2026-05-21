@@ -735,6 +735,13 @@ const hasMetAllRequirements = () => {
 
     if (isAllValid) {
         $('#dataErrorMsg').hide();
+
+        // clear all error in drop areas
+        for (let colNum = 1; colNum < numOfCols; colNum++) {
+            $(`#c${colNum}_total_droparea`).removeClass('bg-danger-subtle');
+            $(`#c${colNum}_demo_droparea`).removeClass('bg-danger-subtle');
+            $(`#c${colNum}_comorb_droparea`).removeClass('bg-danger-subtle');
+        }
     }
 
     return isAllValid;
@@ -753,6 +760,19 @@ const calculateNumberOfVariablesRequired = () => {
     return maxVarItems;
 };
 
+const removeFile = (trashObj) => {
+    const elementId = trashObj.parentElement.parentElement.id;
+    $(`#${elementId}`).empty();
+
+    const fileId = elementId.split('_', 2).join('_');
+    if (fileId.includes('total')) {
+        totalFiles.delete(fileId);
+    } else if (fileId.includes('demo')) {
+        demoFiles.delete(fileId);
+    } else if (fileId.includes('comorb')) {
+        comorbFiles.delete(fileId);
+    }
+};
 const removeDemVar = (trashObj) => {
     const listItem = trashObj.parentElement;
     const listItemId = listItem.id;
@@ -790,14 +810,20 @@ const saveInputData = (fileId, csvFile) => {
             case '_total':
                 totalFiles.set(fileId, csvFile);
 
-                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
+                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
+                                <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
+                                <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
+                            </div>`;
                 $(`#${fileId}_filename`).html(htmlCode);
                 break;
             case '_demo':
                 if (isBreakdownQuery) {
                     demoFiles.set(fileId, csvFile);
 
-                    htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
+                    htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
+                                    <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
+                                    <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
+                                </div>`;
                     $(`#${fileId}_filename`).html(htmlCode);
                 } else {
                     const varFileListId = `${fileId}_var`;
@@ -851,7 +877,10 @@ const saveInputData = (fileId, csvFile) => {
             case '_comorb':
                 comorbFiles.set(fileId, csvFile);
 
-                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
+                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
+                                <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
+                                <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
+                            </div>`;
                 $(`#${fileId}_filename`).html(htmlCode);
                 break;
         }
