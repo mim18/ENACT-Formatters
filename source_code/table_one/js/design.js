@@ -504,6 +504,25 @@ Drag &amp; Drop or
 `;
 };
 
+const removeExtraDemographicVars = () => {
+    const numOfVarsRequired = calculateNumberOfVariablesRequired();
+    let length = $('ul#demo_var_list li').length;
+    while (length > numOfVarsRequired) {
+        $('ul#demo_var_list li:last-child').remove();
+        length--;
+    }
+
+    // remove error notification
+    for (let colNum = 1; colNum < numOfCols; colNum++) {
+        const fileId = `c${colNum}_demo`;
+        const files = demoVarFiles.get(fileId);
+        if (files.size === numOfVarsRequired) {
+            const dropAreaId = `#${fileId}_droparea`;
+            $(dropAreaId).removeClass('bg-danger-subtle');
+        }
+    }
+};
+
 const addColumns = () => {
     const table = document.getElementById('tableInput');
     const tbodies = table.tBodies;
@@ -548,6 +567,20 @@ const removeColumns = () => {
                 rows[r].deleteCell(-1);
             }
         }
+    }
+
+    if (isBreakdownQuery) {
+        const numOfRequiredFiles = numOfCols - 1;
+        if (demoFiles.size === 0) {
+            // remove error notification
+            for (let colNum = 1; colNum < numOfCols; colNum++) {
+                const fileId = `c${colNum}_demo`;
+                const dropAreaId = `#${fileId}_droparea`;
+                $(dropAreaId).removeClass('bg-danger-subtle');
+            }
+        }
+    } else {
+        removeExtraDemographicVars();
     }
 };
 const adjustNumberOfColumns = () => {
@@ -794,12 +827,7 @@ const removeDemVar = (trashObj) => {
         list.classList.remove('mt-2');
     }
 
-    const numOfVarsRequired = calculateNumberOfVariablesRequired();
-    let length = $('ul#demo_var_list li').length;
-    while (length > numOfVarsRequired) {
-        $('ul#demo_var_list li:last-child').remove();
-        length--;
-    }
+    removeExtraDemographicVars();
 };
 
 const saveInputData = (fileId, csvFile) => {
