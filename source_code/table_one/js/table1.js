@@ -644,8 +644,8 @@ const removeDemVar = (trashObj) => {
 const createFileDroppedHtml = (filename) => {
     return `
 <div class="alert alert-info p-2 mb-0 mt-2" role="alert">
-    <i class="bi bi-file-earmark-arrow-up"></i> ${filename}
-    <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
+<i class="bi bi-file-earmark-arrow-up"></i> ${filename}
+<a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
 </div>
 `;
 };
@@ -684,9 +684,9 @@ const saveInputData = (fileId, csvFile) => {
                 li.id = varFileId;
                 li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
                 li.innerHTML = `
-                        <span><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</span>
-                        <a class="text-danger float-end" title="Delete" onclick="removeDemVar(this);"><i class="bi bi-trash3"></i></a>
-                        `;
+<span><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</span>
+<a class="text-danger float-end" title="Delete" onclick="removeDemVar(this);"><i class="bi bi-trash3"></i></a>
+`;
                 let ul = document.getElementById(`${varFileListId}_list`);
                 ul.classList.add('mt-2');
                 ul.appendChild(li);
@@ -704,11 +704,11 @@ const saveInputData = (fileId, csvFile) => {
                 li.id = liVarNameId;
                 li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
                 li.innerHTML = `
-                        <label for="${name}_input">
-                            <span class="h6" id="${name}">Variable ${rowNum} <i class="bi bi-pencil"></i></span>
-                            <input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
-                        </label>
-                        `;
+<label for="${name}_input">
+<span class="h6" id="${name}">Variable ${rowNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
+</label>
+`;
 
                 ul = document.getElementById('demo_var_list');
                 ul.classList.add('mt-2');
@@ -806,6 +806,41 @@ const preventDefaults = (event) => {
     event.preventDefault();
     event.stopPropagation();
 };
+const highlight = (event) => event.target.classList.add('highlight');
+const unhighlight = (event) => event.target.classList.remove('highlight');
+const handleFileDrop = (event) => {
+    if (event.originalEvent.dataTransfer.items) {
+        // use DataTransferItemList interface to access the file(s)
+        [...event.originalEvent.dataTransfer.items].forEach(item => {
+            // If dropped items aren't files, reject them
+            if (item.kind === 'file' && item.type === 'text/csv') {
+                const fileId = event.target.id.replace('_droparea', '').trim();
+                saveInputData(fileId, item.getAsFile());
+            }
+        });
+    } else {
+        // use DataTransfer interface to access the file(s)
+        [...event.originalEvent.dataTransfer.files].forEach(file => {
+            if (file.type === 'text/csv') {
+                const fileId = event.target.id.replace('_droparea', '').trim();
+                saveInputData(fileId, file);
+            }
+        });
+    }
+};
+const handleFileSelect = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.target.files.length > 0) {
+        const file = event.target.files[0];
+        if (file.type === 'text/csv') {
+            const fileId = event.target.id.replace('_file', '').trim();
+            saveInputData(fileId, event.target.files[0]);
+        }
+    }
+    event.target.value = "";
+};
 
 const addFileDrapDropEventListeners = (colNum) => {
     const totalDropArea = `#c${colNum}_total_droparea`;
@@ -819,7 +854,6 @@ const addFileDrapDropEventListeners = (colNum) => {
     });
 
     // highlighting drop area when item is dragged over it
-    const highlight = (event) => event.target.classList.add('highlight');
     ['dragenter', 'dragover'].forEach(event => {
         $(totalDropArea).on(event, highlight);
         $(demoDropArea).on(event, highlight);
@@ -827,7 +861,6 @@ const addFileDrapDropEventListeners = (colNum) => {
     });
 
     // remove highlighting from drop area when item is dropped
-    const unhighlight = (event) => event.target.classList.remove('highlight');
     ['dragleave'].forEach(event => {
         $(totalDropArea).on(event, unhighlight);
         $(demoDropArea).on(event, unhighlight);
@@ -835,26 +868,6 @@ const addFileDrapDropEventListeners = (colNum) => {
     });
 
     // file drop action
-    const handleFileDrop = (event) => {
-        if (event.originalEvent.dataTransfer.items) {
-            // use DataTransferItemList interface to access the file(s)
-            [...event.originalEvent.dataTransfer.items].forEach(item => {
-                // If dropped items aren't files, reject them
-                if (item.kind === 'file' && item.type === 'text/csv') {
-                    const fileId = event.target.id.replace('_droparea', '').trim();
-                    saveInputData(fileId, item.getAsFile());
-                }
-            });
-        } else {
-            // use DataTransfer interface to access the file(s)
-            [...event.originalEvent.dataTransfer.files].forEach(file => {
-                if (file.type === 'text/csv') {
-                    const fileId = event.target.id.replace('_droparea', '').trim();
-                    saveInputData(fileId, file);
-                }
-            });
-        }
-    };
     ['drop'].forEach(event => {
         $(totalDropArea).on(event, handleFileDrop);
         $(demoDropArea).on(event, handleFileDrop);
@@ -866,19 +879,7 @@ const addFileSelectEventListeners = (colNum) => {
     const demoDropArea = `#c${colNum}_demo_droparea`;
     const comorbDropArea = `#c${colNum}_comorb_droparea`;
 
-    const handleFileSelect = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (event.target.files.length > 0) {
-            const file = event.target.files[0];
-            if (file.type === 'text/csv') {
-                const fileId = event.target.id.replace('_file', '').trim();
-                saveInputData(fileId, event.target.files[0]);
-            }
-        }
-        event.target.value = "";
-    };
+    // file select action
     ['change'].forEach(event => {
         $(totalDropArea).on(event, handleFileSelect);
         $(demoDropArea).on(event, handleFileSelect);
@@ -895,8 +896,8 @@ const addLabelColumn = (tbody, colNum) => {
     column.classList.add('text-center');
     column.innerHTML = `
 <label for="c${colNum}_label_input">
-    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
 </label>
 `;
 
@@ -907,10 +908,10 @@ const addTotalColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="c${colNum}_total_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="c${colNum}_total_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="c${colNum}_total_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="c${colNum}_total_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="c${colNum}_total_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <div id="c${colNum}_total_filename"></div>
 `;
@@ -920,10 +921,10 @@ const addDemographicsColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="c${colNum}_demo_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="c${colNum}_demo_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="c${colNum}_demo_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="c${colNum}_demo_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="c${colNum}_demo_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="c${colNum}_demo_filename"></div>
 <ul class="list-group" id="c${colNum}_demo_var_list"></ul>
@@ -934,10 +935,10 @@ const addComorbColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="c${colNum}_comorb_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="c${colNum}_comorb_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="c${colNum}_comorb_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="c${colNum}_comorb_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="c${colNum}_comorb_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
 </div>
 <div id="c${colNum}_comorb_filename"></div>
 `;
@@ -1066,7 +1067,7 @@ const resetToDefault = () => {
     $('#numOfCols option').eq(0).prop('selected', true);
     $('#selectPatientCounts option').eq(10).prop('selected', true);
     $('#demo_breakdown_query').prop('checked', true);
-//    $('#demo_reg_query').prop('checked', true);
+    //    $('#demo_reg_query').prop('checked', true);
 
     numOfCols = parseInt($('#numOfCols').val());
     currentNumOfCols = 1;
