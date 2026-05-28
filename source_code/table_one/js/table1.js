@@ -127,7 +127,7 @@ const getBreakdownQueryValidSitesTask = (csvFile) => {
 const getValidSiteTasks = () => {
     const tasks = [];
 
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         // total counts
         tasks.push(getRegularQueryValidSitesTask(totalFiles.get(`c${colNum}_total`)));
 
@@ -141,18 +141,6 @@ const getValidSiteTasks = () => {
     }
 
     return tasks;
-};
-const tallyCounts = (rawData, countsForTenOrLess) => {
-    let total = 0;
-    rawData.forEach(count => {
-        if (count === '10 patients or fewer') {
-            total += countsForTenOrLess;
-        } else {
-            total += parseInt(count);
-        }
-    });
-
-    return total;
 };
 
 const readInRegularQueryData = (csvFile, index, rawData) => {
@@ -227,18 +215,6 @@ const readInBreakdownQueryData = (csvFile, index, rawData, variables) => {
     });
 };
 
-const moveToNextTab = () => {
-    const nextTab = $('.nav-link.active').parent().next().find('button');
-    nextTab.removeClass('disabled');
-
-    (new bootstrap.Tab(nextTab)).show();
-};
-const moveToPreviousTab = () => {
-    const prevTab = $('.nav-link.active').parent().prev().find('button');
-
-    (new bootstrap.Tab(prevTab)).show();
-};
-
 const addVariableDataToTable = (tbody, variables, counts, totals) => {
     const numOfVars = variables.length;
 
@@ -254,7 +230,7 @@ const addVariableDataToTable = (tbody, variables, counts, totals) => {
     }
 
     // add columns with counts
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         for (let i = 0; i < numOfVars; i++) {
             const count = counts[colNum][i];
             const total = totals[colNum];
@@ -272,7 +248,7 @@ const addTableOneHeader = (thead) => {
     theadRow.insertCell(0).outerHTML = '<th></th>';
 
     // add column labels
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         const name = `c${colNum}_label`;
         const label = $(`#${name}`).text();
         theadRow.insertCell(colNum).outerHTML = `<th class="${name}_text">${label}</th>`;
@@ -285,7 +261,7 @@ const addTableOneRowTotal = (tbody) => {
     const label = $(`#${id}`).text();
     tbodyRow.insertCell(0).outerHTML = `<th class="${id}_text">${label}</th>`;
 
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         tbodyRow.insertCell(colNum).innerText = `(n=${totalCounts[colNum]})`;
     }
 };
@@ -295,7 +271,7 @@ const addTableOneRowDemographics = (table) => {
 
     const tbodyRow = tbody.insertRow(-1);
     tbodyRow.className = 'table-info';
-    tbodyRow.insertCell(0).outerHTML = `<th class="demo_label_text" colspan="${numOfCols}">${$('#demo_label').text()}</th>`;
+    tbodyRow.insertCell(0).outerHTML = `<th class="demo_label_text" colspan="${numOfCols + 1}">${$('#demo_label').text()}</th>`;
 
     addVariableDataToTable(tbody, demoVars, demoCounts, totalCounts);
 };
@@ -305,7 +281,7 @@ const addTableOneRowComorbidity = (table) => {
 
     const tbodyRow = tbody.insertRow(-1);
     tbodyRow.className = 'table-info';
-    tbodyRow.insertCell(0).outerHTML = `<th class="comorb_label_text" colspan="${numOfCols}">${$('#comorb_label').text()}</th>`;
+    tbodyRow.insertCell(0).outerHTML = `<th class="comorb_label_text" colspan="${numOfCols + 1}">${$('#comorb_label').text()}</th>`;
 
     addVariableDataToTable(tbody, comorbVars, comorbCounts, totalCounts);
 };
@@ -334,20 +310,20 @@ const constructTableOne = () => {
 };
 
 const getTotalCountsTasks = (tasks) => {
-    totalRawData = new Array(numOfCols).fill(null);
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    totalRawData = new Array(numOfCols + 1).fill(null);
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         tasks.push(readInRegularQueryData(totalFiles.get(`c${colNum}_total`), colNum, totalRawData));
     }
 };
 const getDemographicsCountsTasks = (tasks) => {
-    demoRawData = new Array(numOfCols).fill(null);
+    demoRawData = new Array(numOfCols + 1).fill(null);
     demoVars = [];
     if (isBreakdownQuery) {
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
             tasks.push(readInBreakdownQueryData(demoFiles.get(`c${colNum}_demo`), colNum, demoRawData, demoVars));
         }
     } else {
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
             const varFiles = demoVarFiles.get(`c${colNum}_demo`);
             if (varFiles) {
                 demoRawData[colNum] = new Array(varFiles.size).fill(null);
@@ -364,15 +340,15 @@ const getDemographicsCountsTasks = (tasks) => {
     }
 };
 const getComorbidityCountsTasks = (tasks) => {
-    comorbRawData = new Array(numOfCols).fill(null);
+    comorbRawData = new Array(numOfCols + 1).fill(null);
     comorbVars = [];
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         tasks.push(readInBreakdownQueryData(comorbFiles.get(`c${colNum}_comorb`), colNum, comorbRawData, comorbVars));
     }
 };
 const computeAggregateTotals = (countsForTenOrLess, rawData) => {
-    const counts = new Array(numOfCols).fill(0);
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    const counts = new Array(numOfCols + 1).fill(0);
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         counts[colNum] = 0;
         rawData[colNum].forEach(count => {
             if (count === '10 patients or fewer') {
@@ -386,8 +362,8 @@ const computeAggregateTotals = (countsForTenOrLess, rawData) => {
     return counts;
 };
 const computeIndividualTotals = (countsForTenOrLess, rawData) => {
-    const counts = new Array(numOfCols).fill(null);
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    const counts = new Array(numOfCols + 1).fill(null);
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         const lineData = rawData[colNum];
         counts[colNum] = new Array(lineData.length).fill(0);
         for (let varNum = 0; varNum < lineData.length; varNum++) {
@@ -414,6 +390,18 @@ const computeCounts = () => {
     constructTableOne();
 };
 
+const moveToNextTab = () => {
+    const nextTab = $('.nav-link.active').parent().next().find('button');
+    nextTab.removeClass('disabled');
+
+    (new bootstrap.Tab(nextTab)).show();
+};
+const moveToPreviousTab = () => {
+    const prevTab = $('.nav-link.active').parent().prev().find('button');
+
+    (new bootstrap.Tab(prevTab)).show();
+};
+
 const loadData = () => {
     const tasks = [];
     getTotalCountsTasks(tasks);
@@ -429,6 +417,103 @@ const loadData = () => {
         moveToNextTab();
     });
 };
+
+const getCurrentMaxNumOfDemoVarFiles = () => {
+    let maxVarItems = 0;
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        const files = demoVarFiles.get(`c${colNum}_demo`);
+        if (files && (files.size > maxVarItems)) {
+            maxVarItems = files.size;
+        }
+    }
+
+    return maxVarItems;
+};
+
+const hasMetAllRequirements = () => {
+    let isAllValid = true;
+
+    // check files for total counts (required files)
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        const fileId = `c${colNum}_total`;
+        const dropAreaId = `#${fileId}_droparea`;
+        if (totalFiles.has(fileId)) {
+            $(dropAreaId).removeClass('bg-danger-subtle');
+        } else {
+            $(dropAreaId).addClass('bg-danger-subtle');
+            isAllValid = false;
+        }
+    }
+
+    // check demographic files (optional files)
+    if (isBreakdownQuery) {
+        if (demoFiles.size > 0) {
+            for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                const fileId = `c${colNum}_demo`;
+                if (!demoFiles.has(fileId)) {
+                    $(`#${fileId}_droparea`).addClass('bg-danger-subtle');
+                    $('#dataErrorMsg').show();
+
+                    isAllValid = false;
+                }
+            }
+        }
+    } else {
+        if (demoVarFiles.size > 0) {
+            const numOfVarsRequired = getCurrentMaxNumOfDemoVarFiles();
+            for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                const fileId = `c${colNum}_demo`;
+                const dropAreaId = `#${fileId}_droparea`;
+                if (demoVarFiles.has(fileId)) {
+                    const varFiles = demoVarFiles.get(fileId);
+                    if (varFiles.size === numOfVarsRequired) {
+                        $(dropAreaId).removeClass('bg-danger-subtle');
+                    } else {
+                        $(dropAreaId).addClass('bg-danger-subtle');
+                        $('#dataErrorMsg').show();
+
+                        isAllValid = false;
+                    }
+                } else {
+                    $(dropAreaId).addClass('bg-danger-subtle');
+                    $('#dataErrorMsg').show();
+
+                    isAllValid = false;
+                }
+            }
+        }
+    }
+    if (comorbFiles.size > 0) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const fileId = `c${colNum}_comorb`;
+            const dropAreaId = `#${fileId}_droparea`;
+            if (comorbFiles.has(fileId)) {
+                $(dropAreaId).removeClass('bg-danger-subtle');
+            } else {
+                $(dropAreaId).addClass('bg-danger-subtle');
+                $('#dataErrorMsg').show();
+
+                isAllValid = false;
+            }
+        }
+    }
+
+    if (isAllValid) {
+        $('#dataErrorMsg').hide();
+
+        // clear all error in drop areas
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            $(`#c${colNum}_total_droparea`).removeClass('bg-danger-subtle');
+            $(`#c${colNum}_demo_droparea`).removeClass('bg-danger-subtle');
+            $(`#c${colNum}_comorb_droparea`).removeClass('bg-danger-subtle');
+        }
+    } else {
+        $('#dataErrorMsg').show();
+    }
+
+    return isAllValid;
+};
+
 const generateTableOne = () => {
     if ($('#input_labels').valid() && hasMetAllRequirements()) {
         Promise.all(getValidSiteTasks()).then((siteNames) => {
@@ -446,178 +531,206 @@ const generateTableOne = () => {
     }
 };
 
-const preventDefaults = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-};
-
-const addLabelColumn = (tbody, colNum) => {
-    const column = tbody.rows[0].cells[colNum];
-    column.classList.add('text-center');
-    column.innerHTML = `
-<label for="c${colNum}_label_input">
-<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
-</label>
-`;
-
-    addLabelEventListener(`c${colNum}_label`);
-};
-const addTotalColumn = (tbody, colNum) => {
-    const column = tbody.rows[0].cells[colNum];
-    column.classList.add('border', 'border-black', 'border-2');
-    column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_total_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_total_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_total_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
-</div>
-<div id="c${colNum}_total_filename"></div>
-`;
-};
-const addDemographicsColumn = (tbody, colNum) => {
-    const column = tbody.rows[0].cells[colNum];
-    column.classList.add('border', 'border-black', 'border-2');
-    column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_demo_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_demo_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_demo_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
-</div>
-<div id="c${colNum}_demo_filename"></div>
-<ul class="list-group" id="c${colNum}_demo_var_list"></ul>
-`;
-};
-const addComorbColumn = (tbody, colNum) => {
-    const column = tbody.rows[0].cells[colNum];
-    column.classList.add('border', 'border-black', 'border-2');
-    column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_comorb_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_comorb_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_comorb_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
-</div>
-<div id="c${colNum}_comorb_filename"></div>
-`;
-};
-
-const removeExtraDemographicVars = () => {
-    const numOfVarsRequired = calculateNumberOfVariablesRequired();
-    let length = $('ul#demo_var_list li').length;
-    while (length > numOfVarsRequired) {
-        $('ul#demo_var_list li:last-child').remove();
-        length--;
+const isCurrentlyMetRequirements = () => {
+    if (totalFiles.size !== numOfCols) {
+        return false;
     }
 
-    // remove error notification
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    if (isBreakdownQuery) {
+        if ((demoFiles.size > 0) && (demoFiles.size !== numOfCols)) {
+            return false;
+        }
+    } else {
+        if (demoVarFiles.size > 0) {
+            if ((demoVarFiles.size === numOfCols)) {
+                const numOfVarsRequired = getCurrentMaxNumOfDemoVarFiles();
+                for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                    const fileId = `c${colNum}_demo`;
+                    const varFiles = demoVarFiles.get(fileId);
+                    if (varFiles.size !== numOfVarsRequired) {
+                        return false;
+                    }
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
+    if ((comorbFiles.size > 0) && (comorbFiles.size !== numOfCols)) {
+        return false;
+    }
+
+    return true;
+};
+
+const removeDemographicVariableErrorNotifications = () => {
+    const numOfVarsRequired = getCurrentMaxNumOfDemoVarFiles();
+    // remove all error notification
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         const fileId = `c${colNum}_demo`;
         const files = demoVarFiles.get(fileId);
-        if (files.size === numOfVarsRequired) {
+        if (files && (files.size === numOfVarsRequired)) {
+            const dropAreaId = `#${fileId}_droparea`;
+            $(dropAreaId).removeClass('bg-danger-subtle');
+        }
+    }
+};
+const removeDemographicErrorNotifications = () => {
+    // remove all error notifications if there's no data
+    if (demoFiles.size === 0) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const fileId = `c${colNum}_demo`;
+            const dropAreaId = `#${fileId}_droparea`;
+            $(dropAreaId).removeClass('bg-danger-subtle');
+        }
+    }
+};
+const removeComorbidityErrorNotifications = () => {
+    // remove all error notifications if there's no data
+    if (comorbFiles.size === 0) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const fileId = `c${colNum}_comorb`;
             const dropAreaId = `#${fileId}_droparea`;
             $(dropAreaId).removeClass('bg-danger-subtle');
         }
     }
 };
 
-const addColumns = () => {
-    const table = document.getElementById('tableInput');
-    const tbodies = table.tBodies;
-    for (let t = 0; t < tbodies.length; t++) {
-        const rows = tbodies[t].rows;
-        for (let r = 0; r < rows.length; r++) {
-            for (let c = currentNumOfCols; c < numOfCols; c++) {
-                rows[r].insertCell(-1);
+const removeFile = (trashObj) => {
+    const elementId = trashObj.parentElement.parentElement.id;
+    $(`#${elementId}`).empty();
+
+    const fileId = elementId.split('_', 2).join('_');
+    if (fileId.includes('total')) {
+        totalFiles.delete(fileId);
+    } else if (fileId.includes('demo')) {
+        demoFiles.delete(fileId);
+        removeDemographicErrorNotifications();
+    } else if (fileId.includes('comorb')) {
+        comorbFiles.delete(fileId);
+        removeComorbidityErrorNotifications();
+    }
+
+    if (isCurrentlyMetRequirements()) {
+        $('#dataErrorMsg').hide();
+    }
+};
+const removeDemVar = (trashObj) => {
+    const listItem = trashObj.parentElement;
+    const listItemId = listItem.id;
+    const fileId = listItemId.split('_', 2).join('_');
+
+    // remove file
+    const varFiles = demoVarFiles.get(fileId);
+    if (varFiles) {
+        varFiles.delete(listItemId);
+        if (varFiles.size === 0) {
+            demoVarFiles.delete(fileId);
+        }
+    }
+
+    // remove item from variable file list
+    const list = trashObj.parentElement.parentElement;
+    list.removeChild(listItem);
+    if (list.children.length === 0) {
+        list.classList.remove('mt-2');
+    }
+
+    removeExtraDemographicVars();
+    removeDemographicVariableErrorNotifications();
+};
+
+const createFileDroppedHtml = (filename) => {
+    return `
+<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
+    <i class="bi bi-file-earmark-arrow-up"></i> ${filename}
+    <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
+</div>
+`;
+};
+
+const saveInputData = (fileId, csvFile) => {
+    // return if either does not exist
+    if (!(fileId && csvFile)) {
+        return;
+    }
+
+    const type = fileId.replace(/.*(?=_)/, '');
+    switch (type) {
+        case '_total':
+            totalFiles.set(fileId, csvFile);
+
+            $(`#${fileId}_filename`).html(createFileDroppedHtml(csvFile.name));
+            break;
+        case '_demo':
+            if (isBreakdownQuery) {
+                demoFiles.set(fileId, csvFile);
+
+                $(`#${fileId}_filename`).html(createFileDroppedHtml(csvFile.name));
+            } else {
+                const varFileListId = `${fileId}_var`;
+                const varFileId = `${varFileListId}_${++demVarIdNum}`;
+
+                let varFiles = demoVarFiles.get(fileId);
+                if (!varFiles) {
+                    varFiles = new Map();
+                    demoVarFiles.set(fileId, varFiles);
+                }
+                varFiles.set(varFileId, csvFile);
+
+                // create list item for variable file
+                let li = document.createElement('li');
+                li.id = varFileId;
+                li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
+                li.innerHTML = `
+                        <span><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</span>
+                        <a class="text-danger float-end" title="Delete" onclick="removeDemVar(this);"><i class="bi bi-trash3"></i></a>
+                        `;
+                let ul = document.getElementById(`${varFileListId}_list`);
+                ul.classList.add('mt-2');
+                ul.appendChild(li);
+
+                const rowNum = varFiles.size;
+                const liVarNameId = `var_${rowNum}`;
+                li = document.getElementById(liVarNameId);
+                if (li) {
+                    // already have variable name label
+                    break;
+                }
+
+                const name = `${liVarNameId}_label`;
+                li = document.createElement('li');
+                li.id = liVarNameId;
+                li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
+                li.innerHTML = `
+                        <label for="${name}_input">
+                            <span class="h6" id="${name}">Variable ${rowNum} <i class="bi bi-pencil"></i></span>
+                            <input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
+                        </label>
+                        `;
+
+                ul = document.getElementById('demo_var_list');
+                ul.classList.add('mt-2');
+                ul.appendChild(li);
+
+                addLabelEventListener(name);
             }
-        }
+            break;
+        case '_comorb':
+            comorbFiles.set(fileId, csvFile);
+
+            $(`#${fileId}_filename`).html(createFileDroppedHtml(csvFile.name));
+            break;
     }
 
-    for (let colNum = currentNumOfCols; colNum < numOfCols; colNum++) {
-        addLabelColumn(tbodies[0], colNum);
-        addTotalColumn(tbodies[1], colNum);
-        addDemographicsColumn(tbodies[2], colNum);
-        addComorbColumn(tbodies[3], colNum);
+    // remove error alerts
+    $(`#${fileId}_droparea`)
+            .removeClass('bg-danger-subtle')
+            .removeClass('highlight');
 
-        addFileEventListeners(colNum);
-    }
-    adjustDataType();
-};
-const removeColumns = () => {
-    // remove previous data files
-    let prevNumOfCols = currentNumOfCols;
-    while (prevNumOfCols > numOfCols) {
-        prevNumOfCols--;
-        totalFiles.delete(`c${prevNumOfCols}_total`);
-        comorbFiles.delete(`c${prevNumOfCols}_comorb`);
-
-        const demoFileId = `c${prevNumOfCols}_demo`;
-        demoFiles.delete(demoFileId);
-        demoVarFiles.delete(demoFileId);
-    }
-
-    const table = document.getElementById('tableInput');
-    const tbodies = table.tBodies;
-    for (let t = 0; t < tbodies.length; t++) {
-        const rows = tbodies[t].rows;
-        for (let r = 0; r < rows.length; r++) {
-            while (rows[r].cells.length > numOfCols) {
-                rows[r].deleteCell(-1);
-            }
-        }
-    }
-
-    if (isBreakdownQuery) {
-        const numOfRequiredFiles = numOfCols - 1;
-        if (demoFiles.size === 0) {
-            // remove error notification
-            for (let colNum = 1; colNum < numOfCols; colNum++) {
-                const fileId = `c${colNum}_demo`;
-                const dropAreaId = `#${fileId}_droparea`;
-                $(dropAreaId).removeClass('bg-danger-subtle');
-            }
-        }
-    } else {
-        removeExtraDemographicVars();
-    }
-};
-const adjustNumberOfColumns = () => {
-    numOfCols = parseInt($('#numOfCols').val()) + 1;
-    if (currentNumOfCols < numOfCols) {
-        addColumns();
-    } else if (currentNumOfCols > numOfCols) {
-        removeColumns();
-    }
-    currentNumOfCols = numOfCols;
-};
-const adjustPatientCountChange = () => {
-    computeCounts();
-};
-const adjustDataType = () => {
-    isBreakdownQuery = $('#demo_breakdown_query').is(':checked');
-    if (isBreakdownQuery) {
-        $('.query_type').text('Breakdown');
-
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
-            const list = `#c${colNum}_demo_var_list`;
-            $(list).empty();
-            $(list).removeClass('mt-2');
-        }
-        demVarIdNum = 0;
-        demoVarFiles.clear();
-
-        const list = '#demo_var_list';
-        $(list).empty();
-        $(list).removeClass('mt-2');
-    } else {
-        $('.query_type').text('Regular');
-
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
-            $(`#c${colNum}_demo_filename`).text('');
-        }
-        demoFiles.clear();
+    if (isCurrentlyMetRequirements()) {
+        $('#dataErrorMsg').hide();
     }
 };
 
@@ -663,290 +776,37 @@ const saveOnEnter = (event, name) => {
     }
 };
 
-const isCurrentlyMetRequirements = () => {
-    const numOfRequiredFiles = numOfCols - 1;
-    if (totalFiles.size !== numOfRequiredFiles) {
-        return false;
-    }
-
+const adjustDataType = () => {
+    isBreakdownQuery = $('#demo_breakdown_query').is(':checked');
     if (isBreakdownQuery) {
-        if ((demoFiles.size > 0) && (demoFiles.size !== numOfRequiredFiles)) {
-            return false;
+        $('.query_type').text('Breakdown');
+
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const list = `#c${colNum}_demo_var_list`;
+            $(list).empty();
+            $(list).removeClass('mt-2');
         }
+        demVarIdNum = 0;
+        demoVarFiles.clear();
+
+        const list = '#demo_var_list';
+        $(list).empty();
+        $(list).removeClass('mt-2');
     } else {
-        if (demoVarFiles.size > 0) {
-            if ((demoVarFiles.size === numOfRequiredFiles)) {
-                const numOfVarsRequired = calculateNumberOfVariablesRequired();
-                for (let colNum = 1; colNum < numOfCols; colNum++) {
-                    const fileId = `c${colNum}_demo`;
-                    const varFiles = demoVarFiles.get(fileId);
-                    if (varFiles.size !== numOfVarsRequired) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
+        $('.query_type').text('Regular');
+
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            $(`#c${colNum}_demo_filename`).text('');
         }
-    }
-
-    if ((comorbFiles.size > 0) && (comorbFiles.size !== numOfRequiredFiles)) {
-        return false;
-    }
-
-    return true;
-};
-const hasMetAllRequirements = () => {
-    let isAllValid = true;
-
-    // check required files
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
-        const fileId = `c${colNum}_total`;
-        const dropAreaId = `#${fileId}_droparea`;
-        if (totalFiles.has(fileId)) {
-            $(dropAreaId).removeClass('bg-danger-subtle');
-        } else {
-            $(dropAreaId).addClass('bg-danger-subtle');
-            $('#dataErrorMsg').show();
-
-            isAllValid = false;
-        }
-    }
-
-    // check optional files
-    if (isBreakdownQuery) {
-        if (demoFiles.size > 0) {
-            for (let colNum = 1; colNum < numOfCols; colNum++) {
-                const fileId = `c${colNum}_demo`;
-                if (!demoFiles.has(fileId)) {
-                    $(`#${fileId}_droparea`).addClass('bg-danger-subtle');
-                    $('#dataErrorMsg').show();
-
-                    isAllValid = false;
-                }
-            }
-        }
-    } else {
-        if (demoVarFiles.size > 0) {
-            const numOfVarsRequired = calculateNumberOfVariablesRequired();
-            for (let colNum = 1; colNum < numOfCols; colNum++) {
-                const fileId = `c${colNum}_demo`;
-                const dropAreaId = `#${fileId}_droparea`;
-                if (demoVarFiles.has(fileId)) {
-                    const varFiles = demoVarFiles.get(fileId);
-                    if (varFiles.size === numOfVarsRequired) {
-                        $(dropAreaId).removeClass('bg-danger-subtle');
-                    } else {
-                        $(dropAreaId).addClass('bg-danger-subtle');
-                        $('#dataErrorMsg').show();
-
-                        isAllValid = false;
-                    }
-                } else {
-                    $(dropAreaId).addClass('bg-danger-subtle');
-                    $('#dataErrorMsg').show();
-
-                    isAllValid = false;
-                }
-            }
-        }
-    }
-    if (comorbFiles.size > 0) {
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
-            const fileId = `c${colNum}_comorb`;
-            const dropAreaId = `#${fileId}_droparea`;
-            if (comorbFiles.has(fileId)) {
-                $(dropAreaId).removeClass('bg-danger-subtle');
-            } else {
-                $(dropAreaId).addClass('bg-danger-subtle');
-                $('#dataErrorMsg').show();
-
-                isAllValid = false;
-            }
-        }
-    }
-
-    if (isAllValid) {
-        $('#dataErrorMsg').hide();
-
-        // clear all error in drop areas
-        for (let colNum = 1; colNum < numOfCols; colNum++) {
-            $(`#c${colNum}_total_droparea`).removeClass('bg-danger-subtle');
-            $(`#c${colNum}_demo_droparea`).removeClass('bg-danger-subtle');
-            $(`#c${colNum}_comorb_droparea`).removeClass('bg-danger-subtle');
-        }
-    }
-
-    return isAllValid;
-};
-
-const calculateNumberOfVariablesRequired = () => {
-    let maxVarItems = 0;
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
-        const id = `c${colNum}_demo`;
-        const files = demoVarFiles.get(id);
-        if (files && (files.size > maxVarItems)) {
-            maxVarItems = files.size;
-        }
-    }
-
-    return maxVarItems;
-};
-
-const removeFile = (trashObj) => {
-    const elementId = trashObj.parentElement.parentElement.id;
-    $(`#${elementId}`).empty();
-
-    const fileId = elementId.split('_', 2).join('_');
-    if (fileId.includes('total')) {
-        totalFiles.delete(fileId);
-    } else if (fileId.includes('demo')) {
-        demoFiles.delete(fileId);
-    } else if (fileId.includes('comorb')) {
-        comorbFiles.delete(fileId);
-    }
-};
-const removeDemVar = (trashObj) => {
-    const listItem = trashObj.parentElement;
-    const listItemId = listItem.id;
-    const fileId = listItemId.split('_', 2).join('_');
-
-    // remove file
-    const varFiles = demoVarFiles.get(fileId);
-    if (varFiles) {
-        varFiles.delete(listItemId);
-        if (varFiles.size === 0) {
-            demoVarFiles.delete(fileId);
-        }
-    }
-
-    // remove item from variable file list
-    const list = trashObj.parentElement.parentElement;
-    list.removeChild(listItem);
-    if (list.children.length === 0) {
-        list.classList.remove('mt-2');
-    }
-
-    removeExtraDemographicVars();
-};
-
-const saveInputData = (fileId, csvFile) => {
-    if (fileId && csvFile) {
-        const type = fileId.replace(/.*(?=_)/, '');
-        let htmlCode;
-        switch (type) {
-            case '_total':
-                totalFiles.set(fileId, csvFile);
-
-                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
-                                <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
-                                <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
-                            </div>`;
-                $(`#${fileId}_filename`).html(htmlCode);
-                break;
-            case '_demo':
-                if (isBreakdownQuery) {
-                    demoFiles.set(fileId, csvFile);
-
-                    htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
-                                    <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
-                                    <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
-                                </div>`;
-                    $(`#${fileId}_filename`).html(htmlCode);
-                } else {
-                    const varFileListId = `${fileId}_var`;
-                    const varFileId = `${varFileListId}_${++demVarIdNum}`;
-
-                    let varFiles = demoVarFiles.get(fileId);
-                    if (!varFiles) {
-                        varFiles = new Map();
-                        demoVarFiles.set(fileId, varFiles);
-                    }
-                    varFiles.set(varFileId, csvFile);
-
-                    // create list item for variable file
-                    let li = document.createElement('li');
-                    li.id = varFileId;
-                    li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
-                    li.innerHTML = `
-                        <span><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</span>
-                        <a class="text-danger float-end" title="Delete" onclick="removeDemVar(this);"><i class="bi bi-trash3"></i></a>
-                        `;
-                    let ul = document.getElementById(`${varFileListId}_list`);
-                    ul.classList.add('mt-2');
-                    ul.appendChild(li);
-
-                    const rowNum = varFiles.size;
-                    const liVarNameId = `var_${rowNum}`;
-                    li = document.getElementById(liVarNameId);
-                    if (li) {
-                        // already have variable name label
-                        break;
-                    }
-
-                    const name = `${liVarNameId}_label`;
-                    li = document.createElement('li');
-                    li.id = liVarNameId;
-                    li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
-                    li.innerHTML = `
-                        <label for="${name}_input">
-                            <span class="h6" id="${name}">Variable ${rowNum} <i class="bi bi-pencil"></i></span>
-                            <input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
-                        </label>
-                        `;
-
-                    ul = document.getElementById('demo_var_list');
-                    ul.classList.add('mt-2');
-                    ul.appendChild(li);
-
-                    addLabelEventListener(name);
-                }
-                break;
-            case '_comorb':
-                comorbFiles.set(fileId, csvFile);
-
-                htmlCode = `<div class="alert alert-info p-2 mb-0 mt-2" role="alert">
-                                <i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}
-                                <a class="text-danger float-end" title="Delete" onclick="removeFile(this);"><i class="bi bi-trash3"></i></a>
-                            </div>`;
-                $(`#${fileId}_filename`).html(htmlCode);
-                break;
-        }
-
-        // remove error alerts
-        $(`#${fileId}_droparea`)
-                .removeClass('bg-danger-subtle')
-                .removeClass('highlight');
-
-        if (isCurrentlyMetRequirements()) {
-            $('#dataErrorMsg').hide();
-        }
+        demoFiles.clear();
     }
 };
 
-const addWizardEventListeners = () => {
-    $('#nextStep').on('click', generateTableOne);
-    $('#prevStep').on('click', moveToPreviousTab);
+const preventDefaults = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
 };
-const addLabelEventListener = (name) => {
-    $(`#${name}`).on('dblclick', () => switchToEditMode(name));
-    $(`#${name}_input`).on('focusout', () => switchToLabelMode(name));
-    $(`#${name}_input`).on('keypress', event => saveOnEnter(event, name));
-};
-const addLabelEventListeners = () => {
-    for (let i = 1; i <= numOfCols; i++) {
-        addLabelEventListener(`c${i}_label`);
-    }
 
-    addLabelEventListener('total_label');
-    addLabelEventListener('demo_label');
-    addLabelEventListener('comorb_label');
-};
-const addSettingsEventListeners = () => {
-    $('#numOfCols').on('change', adjustNumberOfColumns);
-    $('#selectPatientCounts').on('change', adjustPatientCountChange);
-    $('input[name="datatype"]').on('change', adjustDataType);
-};
 const addFileDrapDropEventListeners = (colNum) => {
     const totalDropArea = `#c${colNum}_total_droparea`;
     const demoDropArea = `#c${colNum}_demo_droparea`;
@@ -1029,12 +889,173 @@ const addFileEventListeners = (colNum) => {
     addFileDrapDropEventListeners(colNum);
     addFileSelectEventListeners(colNum);
 };
+
+const addLabelColumn = (tbody, colNum) => {
+    const column = tbody.rows[0].cells[colNum];
+    column.classList.add('text-center');
+    column.innerHTML = `
+<label for="c${colNum}_label_input">
+    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+</label>
+`;
+
+    addLabelEventListener(`c${colNum}_label`);
+};
+const addTotalColumn = (tbody, colNum) => {
+    const column = tbody.rows[0].cells[colNum];
+    column.classList.add('border', 'border-black', 'border-2');
+    column.innerHTML = `
+<div class="text-center align-middle p-4 dropArea" id="c${colNum}_total_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="c${colNum}_total_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="c${colNum}_total_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+</div>
+<div id="c${colNum}_total_filename"></div>
+`;
+};
+const addDemographicsColumn = (tbody, colNum) => {
+    const column = tbody.rows[0].cells[colNum];
+    column.classList.add('border', 'border-black', 'border-2');
+    column.innerHTML = `
+<div class="text-center align-middle p-4 dropArea" id="c${colNum}_demo_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="c${colNum}_demo_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="c${colNum}_demo_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+</div>
+<div id="c${colNum}_demo_filename"></div>
+<ul class="list-group" id="c${colNum}_demo_var_list"></ul>
+`;
+};
+const addComorbColumn = (tbody, colNum) => {
+    const column = tbody.rows[0].cells[colNum];
+    column.classList.add('border', 'border-black', 'border-2');
+    column.innerHTML = `
+<div class="text-center align-middle p-4 dropArea" id="c${colNum}_comorb_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="c${colNum}_comorb_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="c${colNum}_comorb_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+</div>
+<div id="c${colNum}_comorb_filename"></div>
+`;
+};
+const addColumns = () => {
+    const table = document.getElementById('tableInput');
+    const tbodies = table.tBodies;
+    for (let t = 0; t < tbodies.length; t++) {
+        const rows = tbodies[t].rows;
+        for (let r = 0; r < rows.length; r++) {
+            for (let c = currentNumOfCols; c < numOfCols; c++) {
+                rows[r].insertCell(-1);
+            }
+        }
+    }
+
+    for (let colNum = currentNumOfCols + 1; colNum <= numOfCols; colNum++) {
+        addLabelColumn(tbodies[0], colNum);
+        addTotalColumn(tbodies[1], colNum);
+        addDemographicsColumn(tbodies[2], colNum);
+        addComorbColumn(tbodies[3], colNum);
+
+        addFileEventListeners(colNum);
+    }
+    adjustDataType();
+};
+
+const removeExtraDemographicVars = () => {
+    const numOfVarsRequired = getCurrentMaxNumOfDemoVarFiles();
+    let length = $('ul#demo_var_list li').length;
+    while (length > numOfVarsRequired) {
+        $('ul#demo_var_list li:last-child').remove();
+        length--;
+    }
+};
+
+const removeColumns = () => {
+    // remove columns
+    const numOfColsToKeep = numOfCols + 1;
+    const table = document.getElementById('tableInput');
+    const tbodies = table.tBodies;
+    for (let t = 0; t < tbodies.length; t++) {
+        const rows = tbodies[t].rows;
+        for (let r = 0; r < rows.length; r++) {
+            while (rows[r].cells.length > numOfColsToKeep) {
+                rows[r].deleteCell(-1);
+            }
+        }
+    }
+
+    // remove previous data files
+    let colNum = currentNumOfCols;
+    while (colNum > numOfCols) {
+        totalFiles.delete(`c${colNum}_total`);
+        comorbFiles.delete(`c${colNum}_comorb`);
+
+        const demoFileId = `c${colNum}_demo`;
+        demoFiles.delete(demoFileId);
+        demoVarFiles.delete(demoFileId);
+
+        colNum--;
+    }
+
+    // remove demographic variables
+    if (isBreakdownQuery) {
+        removeDemographicErrorNotifications();
+    } else {
+        removeExtraDemographicVars();
+        removeDemographicVariableErrorNotifications();
+    }
+
+    removeComorbidityErrorNotifications();
+
+    if (isCurrentlyMetRequirements()) {
+        $('#dataErrorMsg').hide();
+    }
+};
+
+const adjustNumberOfColumns = () => {
+    numOfCols = parseInt($('#numOfCols').val());
+    if (currentNumOfCols < numOfCols) {
+        addColumns();
+    } else if (currentNumOfCols > numOfCols) {
+        removeColumns();
+    }
+    currentNumOfCols = numOfCols;
+};
+
+const addLabelEventListener = (name) => {
+    $(`#${name}`).on('dblclick', () => switchToEditMode(name));
+    $(`#${name}_input`).on('focusout', () => switchToLabelMode(name));
+    $(`#${name}_input`).on('keypress', event => saveOnEnter(event, name));
+};
+
+const addWizardEventListeners = () => {
+    $('#nextStep').on('click', generateTableOne);
+    $('#prevStep').on('click', moveToPreviousTab);
+};
+const addLabelEventListeners = () => {
+    for (let i = 1; i <= numOfCols; i++) {
+        addLabelEventListener(`c${i}_label`);
+    }
+
+    addLabelEventListener('total_label');
+    addLabelEventListener('demo_label');
+    addLabelEventListener('comorb_label');
+};
+const addSettingsEventListeners = () => {
+    $('#numOfCols').on('change', adjustNumberOfColumns);
+    $('input[name="datatype"]').on('change', adjustDataType);
+    $('#selectPatientCounts').on('change', computeCounts);
+};
 const addEventListeners = () => {
     addWizardEventListeners();
     addLabelEventListeners();
     addSettingsEventListeners();
 
-    for (let colNum = 1; colNum < numOfCols; colNum++) {
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
         addFileEventListeners(colNum);
     }
 
@@ -1047,7 +1068,7 @@ const resetToDefault = () => {
     $('#demo_breakdown_query').prop('checked', true);
 //    $('#demo_reg_query').prop('checked', true);
 
-    numOfCols = parseInt($('#numOfCols').val()) + 1;
+    numOfCols = parseInt($('#numOfCols').val());
     currentNumOfCols = 1;
 
     validSites.clear();
