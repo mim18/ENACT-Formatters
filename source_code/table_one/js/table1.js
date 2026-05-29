@@ -29,6 +29,10 @@ let currentNumOfCols = 0;
 
 let isBreakdownQuery = true;
 
+const addVarFiles = new Map();
+let numOfGroups = 1;
+let groupVarIdNum = 0;
+
 /**
  * Fisher-Yates Shuffle
  *
@@ -429,6 +433,21 @@ const getCurrentMaxNumOfDemoVarFiles = () => {
 
     return maxVarItems;
 };
+const getCurrentMaxNumOfGroupVarFiles = (groupId) => {
+    let maxVarItems = 0;
+
+    const groupFiles = addVarFiles.get(groupId);
+    if (groupFiles) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const files = groupFiles.get(`${groupId}c${colNum}_addvar`);
+            if (files && (files.size > maxVarItems)) {
+                maxVarItems = files.size;
+            }
+        }
+    }
+
+    return maxVarItems;
+};
 
 const hasMetAllRequirements = () => {
     let isAllValid = true;
@@ -564,6 +583,22 @@ const isCurrentlyMetRequirements = () => {
     return true;
 };
 
+const removeGroupVariableErrorNotifications = (groupId) => {
+    const groupFiles = addVarFiles.get(groupId);
+    if (groupFiles) {
+        const numOfVarsRequired = getCurrentMaxNumOfGroupVarFiles(groupId);
+
+        // remove all error notification
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const fileId = `${groupId}c${colNum}_addvar`;
+            const files = groupFiles.get(fileId);
+            if (files && (files.size === numOfVarsRequired)) {
+                const dropAreaId = `#${fileId}_droparea`;
+                $(dropAreaId).removeClass('bg-danger-subtle');
+            }
+        }
+    }
+};
 const removeDemographicVariableErrorNotifications = () => {
     const numOfVarsRequired = getCurrentMaxNumOfDemoVarFiles();
     // remove all error notification
@@ -618,13 +653,13 @@ const removeFile = (trashObj) => {
 };
 const removeDemVar = (trashObj) => {
     const listItem = trashObj.parentElement;
-    const listItemId = listItem.id;
-    const fileId = listItemId.split('_', 2).join('_');
+    const varFileId = listItem.id;
+    const fileId = varFileId.split('_', 2).join('_');
 
     // remove file
     const varFiles = demoVarFiles.get(fileId);
     if (varFiles) {
-        varFiles.delete(listItemId);
+        varFiles.delete(varFileId);
         if (varFiles.size === 0) {
             demoVarFiles.delete(fileId);
         }
@@ -639,6 +674,42 @@ const removeDemVar = (trashObj) => {
 
     removeExtraDemographicVars();
     removeDemographicVariableErrorNotifications();
+};
+const removeGroupVar = (trashObj) => {
+    const listItem = trashObj.parentElement;
+    const varFileId = listItem.id;
+    const fileId = varFileId.split('_', 2).join('_');
+
+    const id = fileId.replace('_addvar', '');
+    const pos = id.indexOf('c');
+    const groupId = id.substring(0, pos);
+    const columnId = id.substring(pos);
+
+    // remove file
+    let groupFiles = addVarFiles.get(groupId);
+    if (groupFiles) {
+        let varFiles = groupFiles.get(fileId);
+        if (varFiles) {
+            varFiles.delete(varFileId);
+            if (varFiles.size === 0) {
+                groupFiles.delete(fileId);
+            }
+        }
+
+        if (groupFiles.size === 0) {
+            addVarFiles.delete(groupId);
+        }
+    }
+
+    // remove item from variable file list
+    const list = trashObj.parentElement.parentElement;
+    list.removeChild(listItem);
+    if (list.children.length === 0) {
+        list.classList.remove('mt-2');
+    }
+
+    removeExtraGroupVars(groupId);
+    removeGroupVariableErrorNotifications(groupId);
 };
 
 const createFileDroppedHtml = (filename) => {
@@ -669,8 +740,8 @@ const saveInputData = (fileId, csvFile) => {
 
                 $(`#${fileId}_filename`).html(createFileDroppedHtml(csvFile.name));
             } else {
-                const varFileListId = `${fileId}_var`;
-                const varFileId = `${varFileListId}_${++demVarIdNum}`;
+                let varFileListId = `${fileId}_var`;
+                let varFileId = `${varFileListId}_${++demVarIdNum}`;
 
                 let varFiles = demoVarFiles.get(fileId);
                 if (!varFiles) {
@@ -721,6 +792,65 @@ const saveInputData = (fileId, csvFile) => {
             comorbFiles.set(fileId, csvFile);
 
             $(`#${fileId}_filename`).html(createFileDroppedHtml(csvFile.name));
+            break;
+        case '_addvar':
+            const id = fileId.replace('_addvar', '');
+            const pos = id.indexOf('c');
+            const groupId = id.substring(0, pos);
+            const columnId = id.substring(pos);
+
+            const varFileListId = `${fileId}_var`;
+            const varFileId = `${varFileListId}_${++groupVarIdNum}`;
+
+            let groupFiles = addVarFiles.get(groupId);
+            if (!groupFiles) {
+                groupFiles = new Map();
+                addVarFiles.set(groupId, groupFiles);
+            }
+
+            let varFiles = groupFiles.get(fileId);
+            if (!varFiles) {
+                varFiles = new Map();
+                groupFiles.set(fileId, varFiles);
+            }
+            varFiles.set(varFileId, csvFile);
+
+            // create list item for variable file
+            let li = document.createElement('li');
+            li.id = varFileId;
+            li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
+            li.innerHTML = `
+<span><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</span>
+<a class="text-danger float-end" title="Delete" onclick="removeGroupVar(this);"><i class="bi bi-trash3"></i></a>
+`;
+            let ul = document.getElementById(`${varFileListId}_list`);
+            ul.classList.add('mt-2');
+            ul.appendChild(li);
+
+            const rowNum = varFiles.size;
+            const liVarNameId = `${groupId}_var_${rowNum}`;
+            li = document.getElementById(liVarNameId);
+            if (li) {
+                // already have variable name label
+                break;
+            }
+
+            const name = `${liVarNameId}_label`;
+            li = document.createElement('li');
+            li.id = liVarNameId;
+            li.className = 'list-group-item list-group-item-info bg-opacity-10 border border-info';
+            li.innerHTML = `
+<label for="${name}_input">
+<span class="h6" id="${name}">Variable ${rowNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
+</label>
+`;
+
+            ul = document.getElementById(`${groupId}_var_list`);
+            ul.classList.add('mt-2');
+            ul.appendChild(li);
+
+            addLabelEventListener(name);
             break;
     }
 
@@ -842,6 +972,36 @@ const handleFileSelect = (event) => {
     event.target.value = "";
 };
 
+const addGroupFileDrapDropEventListeners = (groupNum, colNum) => {
+    const groupDropArea = `#g${groupNum}c${colNum}_addvar_droparea`;
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+        $(groupDropArea).on(event, preventDefaults);
+    });
+
+    // highlighting drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(event => {
+        $(groupDropArea).on(event, highlight);
+    });
+
+    // remove highlighting from drop area when item is dropped
+    ['dragleave'].forEach(event => {
+        $(groupDropArea).on(event, unhighlight);
+    });
+
+    // file drop action
+    ['drop'].forEach(event => {
+        $(groupDropArea).on(event, handleFileDrop);
+    });
+};
+const addGroupFileSelectEventListeners = (groupNum, colNum) => {
+    const groupDropArea = `#g${groupNum}c${colNum}_addvar_droparea`;
+
+    // file select action
+    ['change'].forEach(event => {
+        $(groupDropArea).on(event, handleFileSelect);
+    });
+};
 const addFileDrapDropEventListeners = (colNum) => {
     const totalDropArea = `#c${colNum}_total_droparea`;
     const demoDropArea = `#c${colNum}_demo_droparea`;
@@ -889,6 +1049,10 @@ const addFileSelectEventListeners = (colNum) => {
 const addFileEventListeners = (colNum) => {
     addFileDrapDropEventListeners(colNum);
     addFileSelectEventListeners(colNum);
+};
+const addGroupFileEventListeners = (groupNum, colNum) => {
+    addGroupFileDrapDropEventListeners(groupNum, colNum);
+    addGroupFileSelectEventListeners(groupNum, colNum);
 };
 
 const addLabelColumn = (tbody, colNum) => {
@@ -948,9 +1112,13 @@ const addColumns = () => {
     const tbodies = table.tBodies;
     for (let t = 0; t < tbodies.length; t++) {
         const rows = tbodies[t].rows;
-        for (let r = 0; r < rows.length; r++) {
-            for (let c = currentNumOfCols; c < numOfCols; c++) {
-                rows[r].insertCell(-1);
+        if (t === 4) {
+            rows[0].cells[0].colSpan = numOfCols + 1;
+        } else {
+            for (let r = 0; r < rows.length; r++) {
+                for (let c = currentNumOfCols; c < numOfCols; c++) {
+                    rows[r].insertCell(-1);
+                }
             }
         }
     }
@@ -974,6 +1142,14 @@ const removeExtraDemographicVars = () => {
         length--;
     }
 };
+const removeExtraGroupVars = (groupId) => {
+    const numOfVarsRequired = getCurrentMaxNumOfGroupVarFiles(groupId);
+    let length = $('ul#g1_var_list li').length;
+    while (length > numOfVarsRequired) {
+        $('ul#g1_var_list li:last-child').remove();
+        length--;
+    }
+};
 
 const removeColumns = () => {
     // remove columns
@@ -982,9 +1158,13 @@ const removeColumns = () => {
     const tbodies = table.tBodies;
     for (let t = 0; t < tbodies.length; t++) {
         const rows = tbodies[t].rows;
-        for (let r = 0; r < rows.length; r++) {
-            while (rows[r].cells.length > numOfColsToKeep) {
-                rows[r].deleteCell(-1);
+        if (t === 4) {
+            rows[0].cells[0].colSpan = numOfCols + 1;
+        } else {
+            for (let r = 0; r < rows.length; r++) {
+                while (rows[r].cells.length > numOfColsToKeep) {
+                    rows[r].deleteCell(-1);
+                }
             }
         }
     }
@@ -1045,6 +1225,10 @@ const addLabelEventListeners = () => {
     addLabelEventListener('total_label');
     addLabelEventListener('demo_label');
     addLabelEventListener('comorb_label');
+
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        addLabelEventListener(`group_${groupNum}_label`);
+    }
 };
 const addSettingsEventListeners = () => {
     $('#numOfCols').on('change', adjustNumberOfColumns);
@@ -1058,6 +1242,11 @@ const addEventListeners = () => {
 
     for (let colNum = 1; colNum <= numOfCols; colNum++) {
         addFileEventListeners(colNum);
+    }
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            addGroupFileEventListeners(groupNum, colNum);
+        }
     }
 
     $('#input_labels').on('submit', preventDefaults);
@@ -1089,6 +1278,9 @@ const resetToDefault = () => {
     comorbRawData = [];
     comorbCounts = [];
     comorbVars = [];
+
+    numOfGroups = 1;
+    groupVarIdNum = 0;
 };
 
 $(document).ready(function () {
