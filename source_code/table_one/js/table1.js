@@ -516,6 +516,35 @@ const hasMetAllRequirements = () => {
             }
         }
     }
+    if (addVarFiles.size > 0) {
+        for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+            const groupId = `g${groupNum}`;
+            const groupFiles = addVarFiles.get(groupId);
+            if (groupFiles && groupFiles.size > 0) {
+                const numOfVarsRequired = getCurrentMaxNumOfGroupVarFiles(groupId);
+                for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                    const fileId = `g${groupNum}c${colNum}_addvar`;
+                    const dropAreaId = `#${fileId}_droparea`;
+                    if (groupFiles.has(fileId)) {
+                        const varFiles = groupFiles.get(fileId);
+                        if (varFiles.size === numOfVarsRequired) {
+                            $(dropAreaId).removeClass('bg-danger-subtle');
+                        } else {
+                            $(dropAreaId).addClass('bg-danger-subtle');
+                            $('#dataErrorMsg').show();
+
+                            isAllValid = false;
+                        }
+                    } else {
+                        $(dropAreaId).addClass('bg-danger-subtle');
+                        $('#dataErrorMsg').show();
+
+                        isAllValid = false;
+                    }
+                }
+            }
+        }
+    }
 
     if (isAllValid) {
         $('#dataErrorMsg').hide();
@@ -525,6 +554,11 @@ const hasMetAllRequirements = () => {
             $(`#c${colNum}_total_droparea`).removeClass('bg-danger-subtle');
             $(`#c${colNum}_demo_droparea`).removeClass('bg-danger-subtle');
             $(`#c${colNum}_comorb_droparea`).removeClass('bg-danger-subtle');
+        }
+        for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+            for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                $(`#g${groupNum}c${colNum}_addvar_droparea`).removeClass('bg-danger-subtle');
+            }
         }
     } else {
         $('#dataErrorMsg').show();
@@ -1060,51 +1094,72 @@ const addLabelColumn = (tbody, colNum) => {
     column.classList.add('text-center');
     column.innerHTML = `
 <label for="c${colNum}_label_input">
-<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
 </label>
 `;
 
     addLabelEventListener(`c${colNum}_label`);
 };
 const addTotalColumn = (tbody, colNum) => {
+    const name = `c${colNum}_total`;
+
     const column = tbody.rows[0].cells[colNum];
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_total_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_total_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_total_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+<div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
-<div id="c${colNum}_total_filename"></div>
+<div id="${name}_filename"></div>
 `;
 };
 const addDemographicsColumn = (tbody, colNum) => {
+    const name = `c${colNum}_demo`;
+
     const column = tbody.rows[0].cells[colNum];
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_demo_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_demo_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_demo_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+<div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
-<div id="c${colNum}_demo_filename"></div>
-<ul class="list-group" id="c${colNum}_demo_var_list"></ul>
+<div id="${name}_filename"></div>
+<ul class="list-group" id="${name}_var_list"></ul>
 `;
 };
 const addComorbColumn = (tbody, colNum) => {
+    const name = `c${colNum}_comorb`;
+
     const column = tbody.rows[0].cells[colNum];
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
-<div class="text-center align-middle p-4 dropArea" id="c${colNum}_comorb_droparea">
-Drag &amp; Drop or
-<input class="position-absolute invisible" id="c${colNum}_comorb_file" type="file" accept=".csv" />
-<label class="btn btn-success" for="c${colNum}_comorb_file">Choose CSV File</label>
-<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+<div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
 </div>
-<div id="c${colNum}_comorb_filename"></div>
+<div id="${name}_filename"></div>
+`;
+};
+const addGroupColumn = (tbody, colNum, groupNum) => {
+    const name = `g${groupNum}c${colNum}_addvar`;
+
+    const column = tbody.rows[0].cells[colNum];
+    column.classList.add('border', 'border-black', 'border-2');
+    column.innerHTML = `
+<div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
+    Drag &amp; Drop or
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+</div>
+<ul class="list-group" id="${name}_var_list"></ul>
 `;
 };
 const addColumns = () => {
@@ -1130,6 +1185,12 @@ const addColumns = () => {
         addComorbColumn(tbodies[3], colNum);
 
         addFileEventListeners(colNum);
+
+        const groupCounts = numOfGroups + 4;
+        for (let i = 5, groupNum = 1; i <= groupCounts, groupNum <= numOfGroups; i++, groupNum++) {
+            addGroupColumn(tbodies[i], colNum, groupNum);
+            addGroupFileEventListeners(groupNum, colNum);
+        }
     }
     adjustDataType();
 };
