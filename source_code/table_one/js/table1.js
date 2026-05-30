@@ -1250,8 +1250,23 @@ const removeColumns = () => {
         removeExtraDemographicVars();
         removeDemographicVariableErrorNotifications();
     }
-
     removeComorbidityErrorNotifications();
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        const groupId = `g${groupNum}`;
+
+        const groupFiles = addVarFiles.get(groupId);
+        if (groupFiles && groupFiles.size > 0) {
+            colNum = currentNumOfCols;
+            while (colNum > numOfCols) {
+                groupFiles.delete(`g${groupNum}c${colNum}_addvar`);
+
+                colNum--;
+            }
+        }
+
+        removeExtraGroupVars(groupId);
+        removeGroupVariableErrorNotifications(groupId);
+    }
 
     if (isCurrentlyMetRequirements()) {
         $('#dataErrorMsg').hide();
@@ -1288,7 +1303,7 @@ const addLabelEventListeners = () => {
     addLabelEventListener('comorb_label');
 
     for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
-        addLabelEventListener(`group_${groupNum}_label`);
+        addLabelEventListener(`g${groupNum}_label`);
     }
 };
 const addSettingsEventListeners = () => {
