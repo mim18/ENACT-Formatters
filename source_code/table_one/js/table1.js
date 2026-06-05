@@ -30,6 +30,9 @@ let currentNumOfCols = 0;
 let isBreakdownQuery = true;
 
 const addVarFiles = new Map();
+const addVarNames = new Set();
+const addVarRawData = new Map();
+let addVarCounts = [];
 let numOfGroups = 1;
 let groupVarIdNum = 0;
 
@@ -350,6 +353,27 @@ const getComorbidityCountsTasks = (tasks) => {
         tasks.push(readInBreakdownQueryData(comorbFiles.get(`c${colNum}_comorb`), colNum, comorbRawData, comorbVars));
     }
 };
+const getAdditionalVarCountsTasks = (tasks) => {
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        const groupId = `g${groupNum}`;
+        const groupFiles = addVarFiles.get(groupId);
+        if (groupFiles && groupFiles.size > 0) {
+            const columnRawData = [];
+            for (let colNum = 1; colNum <= numOfCols; colNum++) {
+                const varFiles = groupFiles.get(`g${groupNum}c${colNum}_addvar`);
+                if (varFiles) {
+                    columnRawData[colNum] = new Array(varFiles.size).fill(null);
+                    let index = 0;
+                    for (const [key, file] of varFiles.entries()) {
+                        tasks.push(readInRegularQueryData(file, index++, columnRawData[colNum]));
+                    }
+                }
+            }
+            addVarRawData.set(groupId, columnRawData);
+        }
+    }
+};
+
 const computeAggregateTotals = (countsForTenOrLess, rawData) => {
     const counts = new Array(numOfCols + 1).fill(0);
     for (let colNum = 1; colNum <= numOfCols; colNum++) {
@@ -414,6 +438,9 @@ const loadData = () => {
     }
     if (comorbFiles.size > 0) {
         getComorbidityCountsTasks(tasks);
+    }
+    if (addVarFiles.size > 0) {
+        getAdditionalVarCountsTasks(tasks);
     }
 
     Promise.all(tasks).then(() => {
@@ -1355,6 +1382,10 @@ const resetToDefault = () => {
     comorbCounts = [];
     comorbVars = [];
 
+    addVarFiles.clear();
+    addVarNames.clear();
+    addVarRawData.clear();
+    addVarCounts = [];
     numOfGroups = 1;
     groupVarIdNum = 0;
 };
