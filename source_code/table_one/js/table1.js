@@ -30,9 +30,9 @@ let currentNumOfCols = 0;
 let isBreakdownQuery = true;
 
 const addVarFiles = new Map();
-const addVarNames = new Set();
+const addVarsVarNames = new Map();
 const addVarRawData = new Map();
-let addVarCounts = [];
+const addVarCounts = new Map();
 let numOfGroups = 1;
 let groupVarIdNum = 0;
 
@@ -292,6 +292,21 @@ const addTableOneRowComorbidity = (table) => {
 
     addVariableDataToTable(tbody, comorbVars, comorbCounts, totalCounts);
 };
+const addTableOneRowAdditionalVars = (table) => {
+    const tbody = table.createTBody();
+    tbody.className = 'table-group-divider';
+
+    const tbodyRow = tbody.insertRow(-1);
+    tbodyRow.className = 'table-info';
+    tbodyRow.insertCell(0).outerHTML = `<th class="g1_label_text" colspan="${numOfCols + 1}">${$('#g1_label').text()}</th>`;
+
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        const groupId = `g${groupNum}`;
+        const variables = addVarsVarNames.get(groupId);
+        const counts = addVarCounts.get(groupId);
+        addVariableDataToTable(tbody, variables, counts, totalCounts);
+    }
+};
 
 const constructTableOne = () => {
     // clear table
@@ -313,6 +328,9 @@ const constructTableOne = () => {
     }
     if (comorbFiles.size > 0) {
         addTableOneRowComorbidity(table);
+    }
+    if (addVarFiles.size > 0) {
+        addTableOneRowAdditionalVars(table);
     }
 };
 
@@ -370,6 +388,12 @@ const getAdditionalVarCountsTasks = (tasks) => {
                 }
             }
             addVarRawData.set(groupId, columnRawData);
+
+            const varNames = [];
+            $(`#${groupId}_var_list li`).each(function (index) {
+                varNames.push($(`#${groupId}_var_${index + 1}_label`).text());
+            });
+            addVarsVarNames.set(groupId, varNames);
         }
     }
 };
@@ -413,6 +437,16 @@ const computeCounts = () => {
     }
     if (comorbFiles.size > 0) {
         comorbCounts = computeIndividualTotals(countsForTenOrLess, comorbRawData);
+    }
+    if (addVarFiles.size > 0) {
+        for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+            const groupId = `g${groupNum}`;
+            const groupFiles = addVarFiles.get(groupId);
+            if (groupFiles && groupFiles.size > 0) {
+                const columnRawData = addVarRawData.get(groupId);
+                addVarCounts.set(groupId, computeIndividualTotals(countsForTenOrLess, columnRawData));
+            }
+        }
     }
 
     constructTableOne();
@@ -1383,9 +1417,9 @@ const resetToDefault = () => {
     comorbVars = [];
 
     addVarFiles.clear();
-    addVarNames.clear();
+    addVarsVarNames.clear();
     addVarRawData.clear();
-    addVarCounts = [];
+    addVarCounts.clear();
     numOfGroups = 1;
     groupVarIdNum = 0;
 };
