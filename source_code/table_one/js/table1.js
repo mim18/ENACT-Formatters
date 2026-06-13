@@ -246,6 +246,30 @@ const addVariableDataToTable = (tbody, variables, counts, totals) => {
         }
     }
 };
+const addGroupVariableDataToTable = (tbody, variables, counts, totals, groupId) => {
+    const numOfVars = variables.length;
+
+    // add new rows
+    const tableRows = [];
+    for (let i = 0; i < numOfVars; i++) {
+        tableRows.push(tbody.insertRow(-1));
+    }
+
+    // add variable names
+    for (let i = 0; i < numOfVars; i++) {
+        tableRows[i].insertCell(0).outerHTML = `<td class="${groupId}_var_${i + 1}_label_text">${variables[i]}</td>`;
+    }
+
+    // add columns with counts
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        for (let i = 0; i < numOfVars; i++) {
+            const count = counts[colNum][i];
+            const total = totals[colNum];
+            const percentage = (total > 0) ? Math.round((count / total) * 100) : 0;
+            tableRows[i].insertCell(colNum).innerHTML = `<span class="me-2">${count}</span> (${percentage}%)`;
+        }
+    }
+};
 
 // construct table 1
 const addTableOneHeader = (thead) => {
@@ -293,18 +317,19 @@ const addTableOneRowComorbidity = (table) => {
     addVariableDataToTable(tbody, comorbVars, comorbCounts, totalCounts);
 };
 const addTableOneRowAdditionalVars = (table) => {
-    const tbody = table.createTBody();
-    tbody.className = 'table-group-divider';
-
-    const tbodyRow = tbody.insertRow(-1);
-    tbodyRow.className = 'table-info';
-    tbodyRow.insertCell(0).outerHTML = `<th class="g1_label_text" colspan="${numOfCols + 1}">${$('#g1_label').text()}</th>`;
-
     for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
         const groupId = `g${groupNum}`;
+
+        const tbody = table.createTBody();
+        tbody.className = 'table-group-divider';
+
+        const tbodyRow = tbody.insertRow(-1);
+        tbodyRow.className = 'table-info';
+        tbodyRow.insertCell(0).outerHTML = `<th class="${groupId}_label_text" colspan="${numOfCols + 1}">${$(`#${groupId}_label`).text()}</th>`;
+
         const variables = addVarsVarNames.get(groupId);
         const counts = addVarCounts.get(groupId);
-        addVariableDataToTable(tbody, variables, counts, totalCounts);
+        addGroupVariableDataToTable(tbody, variables, counts, totalCounts, groupId);
     }
 };
 
@@ -1266,9 +1291,9 @@ const removeExtraDemographicVars = () => {
 };
 const removeExtraGroupVars = (groupId) => {
     const numOfVarsRequired = getCurrentMaxNumOfGroupVarFiles(groupId);
-    let length = $('ul#g1_var_list li').length;
+    let length = $(`ul#${groupId}_var_list li`).length;
     while (length > numOfVarsRequired) {
-        $('ul#g1_var_list li:last-child').remove();
+        $(`ul#${groupId}_var_list li:last-child`).remove();
         length--;
     }
 };
@@ -1344,6 +1369,35 @@ const adjustNumberOfColumns = () => {
     currentNumOfCols = numOfCols;
 };
 
+const addAdditionalVars = () => {
+    const groupNum = ++numOfGroups;
+    const groupId = `g${groupNum}`;
+
+    const table = document.getElementById('tableInput');
+    const tbody = table.createTBody();
+    const tbodyRow = tbody.insertRow(-1);
+    tbodyRow.insertCell(0).outerHTML = `
+<td>
+    <label for="${groupId}_label_input">
+        <span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
+        <input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
+    </label>
+    <div class="row g-2 align-items-center mt-2 pb-5">
+        <div class="col p-2">&nbsp;</div>
+    </div>
+    <ul class="list-group" id="${groupId}_var_list"></ul>
+</td>
+`;
+    addLabelEventListener(`${groupId}_label`);
+
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        tbodyRow.insertCell(colNum);
+
+        addGroupColumn(tbody, colNum, groupNum);
+        addGroupFileEventListeners(groupNum, colNum);
+    }
+};
+
 const addLabelEventListener = (name) => {
     $(`#${name}`).on('dblclick', () => switchToEditMode(name));
     $(`#${name}_input`).on('focusout', () => switchToLabelMode(name));
@@ -1371,6 +1425,7 @@ const addSettingsEventListeners = () => {
     $('#numOfCols').on('change', adjustNumberOfColumns);
     $('input[name="datatype"]').on('change', adjustDataType);
     $('#selectPatientCounts').on('change', computeCounts);
+    $('#add_additional_vars').on("click", addAdditionalVars);
 };
 const addEventListeners = () => {
     addWizardEventListeners();
