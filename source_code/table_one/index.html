@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Design</title>
+        <title>Table 1</title>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" />
@@ -128,7 +128,7 @@
                                                     <div class="text-center align-middle p-4 dropArea" id="c1_demo_droparea">
                                                         Drag &amp; Drop or
                                                         <input class="position-absolute invisible" id="c1_demo_file" type="file" accept=".csv" />
-                                                        <label class="btn btn-success" for="c1_demo_file">Choose CSV File</label>
+                                                        <label class="btn btn-success demo_choose_file_label" for="c1_demo_file">Choose CSV File</label>
                                                         <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
                                                     </div>
                                                     <div id="c1_demo_filename"></div>
@@ -157,9 +157,10 @@
                                         </tbody>
                                         <tbody>
                                             <tr>
-                                                <td class="bg-secondary-subtle" colspan="2">
+                                                <td class="bg-warning-subtle" colspan="2">
                                                     <div class="d-flex justify-content-between">
                                                         <h6 class="m-0">Additional Variables</h6>
+                                                        <div>Drag and drop multiple files below to add additional variables.</div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -179,8 +180,8 @@
                                                 <td class="border border-black border-2">
                                                     <div class="text-center align-middle p-4 dropArea" id="g1c1_addvar_droparea">
                                                         Drag &amp; Drop or
-                                                        <input class="position-absolute invisible" id="g1c1_addvar_file" type="file" accept=".csv" />
-                                                        <label class="btn btn-success" for="g1c1_addvar_file">Choose CSV File</label>
+                                                        <input class="position-absolute invisible" id="g1c1_addvar_file" type="file" accept=".csv" multiple="multiple" />
+                                                        <label class="btn btn-success" for="g1c1_addvar_file">Choose Multiple CSV Files</label>
                                                         <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
                                                     </div>
                                                     <ul class="list-group" id="g1c1_addvar_var_list"></ul>
@@ -190,7 +191,7 @@
                                     </table>
                                 </form>
                                 <div class="d-flex flex-row-reverse">
-                                    <button type="button" class="btn btn-info" id="add_additional_vars"><i class="bi bi-plus-circle"></i> Add Additional Variables</button>
+                                    <button type="button" class="btn btn-info" id="add_additional_vars"><i class="bi bi-plus-circle"></i> Create New Group For Additional Variables</button>
                                 </div>
                             </div>
                             <!-- end of table design -->

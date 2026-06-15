@@ -1030,6 +1030,7 @@ const adjustDataType = () => {
     isBreakdownQuery = $('#demo_breakdown_query').is(':checked');
     if (isBreakdownQuery) {
         $('.query_type').text('Breakdown');
+        $('.demo_choose_file_label').text('Choose CSV File');
 
         for (let colNum = 1; colNum <= numOfCols; colNum++) {
             const list = `#c${colNum}_demo_var_list`;
@@ -1042,10 +1043,16 @@ const adjustDataType = () => {
         const list = '#demo_var_list';
         $(list).empty();
         $(list).removeClass('mt-2');
-    } else {
-        $('.query_type').text('Regular');
 
         for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            $(`#c${colNum}_demo_file`).removeAttr('multiple');
+        }
+    } else {
+        $('.query_type').text('Regular');
+        $('.demo_choose_file_label').text('Choose Multiple CSV Files');
+
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            $(`#c${colNum}_demo_file`).attr('multiple', 'multiple');
             $(`#c${colNum}_demo_filename`).text('');
         }
         demoFiles.clear();
@@ -1059,12 +1066,12 @@ const preventDefaults = (event) => {
 const highlight = (event) => event.target.classList.add('highlight');
 const unhighlight = (event) => event.target.classList.remove('highlight');
 const handleFileDrop = (event) => {
+    const fileId = event.target.id.replace('_droparea', '').trim();
     if (event.originalEvent.dataTransfer.items) {
         // use DataTransferItemList interface to access the file(s)
         [...event.originalEvent.dataTransfer.items].forEach(item => {
             // If dropped items aren't files, reject them
             if (item.kind === 'file' && item.type === 'text/csv') {
-                const fileId = event.target.id.replace('_droparea', '').trim();
                 saveInputData(fileId, item.getAsFile());
             }
         });
@@ -1072,7 +1079,6 @@ const handleFileDrop = (event) => {
         // use DataTransfer interface to access the file(s)
         [...event.originalEvent.dataTransfer.files].forEach(file => {
             if (file.type === 'text/csv') {
-                const fileId = event.target.id.replace('_droparea', '').trim();
                 saveInputData(fileId, file);
             }
         });
@@ -1083,11 +1089,12 @@ const handleFileSelect = (event) => {
     event.stopPropagation();
 
     if (event.target.files.length > 0) {
-        const file = event.target.files[0];
-        if (file.type === 'text/csv') {
-            const fileId = event.target.id.replace('_file', '').trim();
-            saveInputData(fileId, event.target.files[0]);
-        }
+        const fileId = event.target.id.replace('_file', '').trim();
+        [...event.target.files].forEach(file => {
+            if (file.type === 'text/csv') {
+                saveInputData(fileId, file);
+            }
+        });
     }
     event.target.value = "";
 };
@@ -1211,7 +1218,7 @@ const addDemographicsColumn = (tbody, colNum) => {
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
     Drag &amp; Drop or
     <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
     <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="${name}_filename"></div>
@@ -1241,8 +1248,8 @@ const addGroupColumn = (tbody, colNum, groupNum) => {
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
     Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
+    <label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
     <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <ul class="list-group" id="${name}_var_list"></ul>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Table One</title>
+        <title>Table 1</title>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
@@ -113,7 +113,7 @@
                                                     <div class="text-center align-middle p-4 dropArea" id="c1_demo_droparea">
                                                         Drag &amp; Drop or
                                                         <input class="position-absolute invisible" id="c1_demo_file" type="file" accept=".csv" />
-                                                        <label class="btn btn-success" for="c1_demo_file">Choose CSV File</label>
+                                                        <label class="btn btn-success demo_choose_file_label" for="c1_demo_file">Choose CSV File</label>
                                                         <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
                                                     </div>
                                                     <div id="c1_demo_filename"></div>
@@ -142,9 +142,10 @@
                                         </tbody>
                                         <tbody>
                                             <tr>
-                                                <td class="bg-secondary-subtle" colspan="2">
+                                                <td class="bg-warning-subtle" colspan="2">
                                                     <div class="d-flex justify-content-between">
                                                         <h6 class="m-0">Additional Variables</h6>
+                                                        <div>Drag and drop multiple files below to add additional variables.</div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -164,8 +165,8 @@
                                                 <td class="border border-black border-2">
                                                     <div class="text-center align-middle p-4 dropArea" id="g1c1_addvar_droparea">
                                                         Drag &amp; Drop or
-                                                        <input class="position-absolute invisible" id="g1c1_addvar_file" type="file" accept=".csv" />
-                                                        <label class="btn btn-success" for="g1c1_addvar_file">Choose CSV File</label>
+                                                        <input class="position-absolute invisible" id="g1c1_addvar_file" type="file" accept=".csv" multiple="multiple" />
+                                                        <label class="btn btn-success" for="g1c1_addvar_file">Choose Multiple CSV Files</label>
                                                         <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
                                                     </div>
                                                     <ul class="list-group" id="g1c1_addvar_var_list"></ul>
@@ -175,7 +176,7 @@
                                     </table>
                                 </form>
                                 <div class="d-flex flex-row-reverse">
-                                    <button type="button" class="btn btn-info" id="add_additional_vars"><i class="bi bi-plus-circle"></i> Add Additional Variables</button>
+                                    <button type="button" class="btn btn-info" id="add_additional_vars"><i class="bi bi-plus-circle"></i> Create New Group For Additional Variables</button>
                                 </div>
                             </div>
                             <!-- end of table design -->
@@ -310,9 +311,9 @@ const name=`${liVarNameId}_label`;li=document.createElement('li');li.id=liVarNam
 <input type="text" aria-label="Demographic Variable" class="form-control" id="${name}_input" name="${name}_input" value="" required="required" style="display: none;" />
 </label>
 `;ul=document.getElementById(`${groupId}_var_list`);ul.classList.add('mt-2');ul.appendChild(li);addLabelEventListener(name);break}
-$(`#${fileId}_droparea`).removeClass('bg-danger-subtle').removeClass('highlight');if(isCurrentlyMetRequirements()){$('#dataErrorMsg').hide()}};const switchToEditMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}_input`);inputElement.val(labelElement.text().trim());labelElement.hide();inputElement.show();inputElement.focus()};const switchToLabelMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}_input`);const textElement=$(`.${name}_text`);const value=inputElement.val().trim();labelElement.html(`${value} <i class="bi bi-pencil"></i>`);textElement.text(value);if($('#input_labels').valid()){inputElement.hide();labelElement.show();$('#step2btn').prop('disabled',!1);$('#nextStep').prop('disabled',!1)}else{$('#step2btn').prop('disabled',!0);$('#nextStep').prop('disabled',!0)}};const saveOnEnter=(event,name)=>{if(event.key==='Enter'){switchToLabelMode(name)}};const adjustDataType=()=>{isBreakdownQuery=$('#demo_breakdown_query').is(':checked');if(isBreakdownQuery){$('.query_type').text('Breakdown');for(let colNum=1;colNum<=numOfCols;colNum++){const list=`#c${colNum}_demo_var_list`;$(list).empty();$(list).removeClass('mt-2')}
-demVarIdNum=0;demoVarFiles.clear();const list='#demo_var_list';$(list).empty();$(list).removeClass('mt-2')}else{$('.query_type').text('Regular');for(let colNum=1;colNum<=numOfCols;colNum++){$(`#c${colNum}_demo_filename`).text('')}
-demoFiles.clear()}};const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};const highlight=(event)=>event.target.classList.add('highlight');const unhighlight=(event)=>event.target.classList.remove('highlight');const handleFileDrop=(event)=>{if(event.originalEvent.dataTransfer.items){[...event.originalEvent.dataTransfer.items].forEach(item=>{if(item.kind==='file'&&item.type==='text/csv'){const fileId=event.target.id.replace('_droparea','').trim();saveInputData(fileId,item.getAsFile())}})}else{[...event.originalEvent.dataTransfer.files].forEach(file=>{if(file.type==='text/csv'){const fileId=event.target.id.replace('_droparea','').trim();saveInputData(fileId,file)}})}};const handleFileSelect=(event)=>{event.preventDefault();event.stopPropagation();if(event.target.files.length>0){const file=event.target.files[0];if(file.type==='text/csv'){const fileId=event.target.id.replace('_file','').trim();saveInputData(fileId,event.target.files[0])}}
+$(`#${fileId}_droparea`).removeClass('bg-danger-subtle').removeClass('highlight');if(isCurrentlyMetRequirements()){$('#dataErrorMsg').hide()}};const switchToEditMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}_input`);inputElement.val(labelElement.text().trim());labelElement.hide();inputElement.show();inputElement.focus()};const switchToLabelMode=(name)=>{const labelElement=$(`#${name}`);const inputElement=$(`#${name}_input`);const textElement=$(`.${name}_text`);const value=inputElement.val().trim();labelElement.html(`${value} <i class="bi bi-pencil"></i>`);textElement.text(value);if($('#input_labels').valid()){inputElement.hide();labelElement.show();$('#step2btn').prop('disabled',!1);$('#nextStep').prop('disabled',!1)}else{$('#step2btn').prop('disabled',!0);$('#nextStep').prop('disabled',!0)}};const saveOnEnter=(event,name)=>{if(event.key==='Enter'){switchToLabelMode(name)}};const adjustDataType=()=>{isBreakdownQuery=$('#demo_breakdown_query').is(':checked');if(isBreakdownQuery){$('.query_type').text('Breakdown');$('.demo_choose_file_label').text('Choose CSV File');for(let colNum=1;colNum<=numOfCols;colNum++){const list=`#c${colNum}_demo_var_list`;$(list).empty();$(list).removeClass('mt-2')}
+demVarIdNum=0;demoVarFiles.clear();const list='#demo_var_list';$(list).empty();$(list).removeClass('mt-2');for(let colNum=1;colNum<=numOfCols;colNum++){$(`#c${colNum}_demo_file`).removeAttr('multiple')}}else{$('.query_type').text('Regular');$('.demo_choose_file_label').text('Choose Multiple CSV Files');for(let colNum=1;colNum<=numOfCols;colNum++){$(`#c${colNum}_demo_file`).attr('multiple','multiple');$(`#c${colNum}_demo_filename`).text('')}
+demoFiles.clear()}};const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};const highlight=(event)=>event.target.classList.add('highlight');const unhighlight=(event)=>event.target.classList.remove('highlight');const handleFileDrop=(event)=>{const fileId=event.target.id.replace('_droparea','').trim();if(event.originalEvent.dataTransfer.items){[...event.originalEvent.dataTransfer.items].forEach(item=>{if(item.kind==='file'&&item.type==='text/csv'){saveInputData(fileId,item.getAsFile())}})}else{[...event.originalEvent.dataTransfer.files].forEach(file=>{if(file.type==='text/csv'){saveInputData(fileId,file)}})}};const handleFileSelect=(event)=>{event.preventDefault();event.stopPropagation();if(event.target.files.length>0){const fileId=event.target.id.replace('_file','').trim();[...event.target.files].forEach(file=>{if(file.type==='text/csv'){saveInputData(fileId,file)}})}
 event.target.value=""};const addGroupFileDrapDropEventListeners=(groupNum,colNum)=>{const groupDropArea=`#g${groupNum}c${colNum}_addvar_droparea`;['dragenter','dragover','dragleave','drop'].forEach(event=>{$(groupDropArea).on(event,preventDefaults)});['dragenter','dragover'].forEach(event=>{$(groupDropArea).on(event,highlight)});['dragleave'].forEach(event=>{$(groupDropArea).on(event,unhighlight)});['drop'].forEach(event=>{$(groupDropArea).on(event,handleFileDrop)})};const addGroupFileSelectEventListeners=(groupNum,colNum)=>{const groupDropArea=`#g${groupNum}c${colNum}_addvar_droparea`;['change'].forEach(event=>{$(groupDropArea).on(event,handleFileSelect)})};const addFileDrapDropEventListeners=(colNum)=>{const totalDropArea=`#c${colNum}_total_droparea`;const demoDropArea=`#c${colNum}_demo_droparea`;const comorbDropArea=`#c${colNum}_comorb_droparea`;['dragenter','dragover','dragleave','drop'].forEach(event=>{$(totalDropArea).on(event,preventDefaults);$(demoDropArea).on(event,preventDefaults);$(comorbDropArea).on(event,preventDefaults)});['dragenter','dragover'].forEach(event=>{$(totalDropArea).on(event,highlight);$(demoDropArea).on(event,highlight);$(comorbDropArea).on(event,highlight)});['dragleave'].forEach(event=>{$(totalDropArea).on(event,unhighlight);$(demoDropArea).on(event,unhighlight);$(comorbDropArea).on(event,unhighlight)});['drop'].forEach(event=>{$(totalDropArea).on(event,handleFileDrop);$(demoDropArea).on(event,handleFileDrop);$(comorbDropArea).on(event,handleFileDrop)})};const addFileSelectEventListeners=(colNum)=>{const totalDropArea=`#c${colNum}_total_droparea`;const demoDropArea=`#c${colNum}_demo_droparea`;const comorbDropArea=`#c${colNum}_comorb_droparea`;['change'].forEach(event=>{$(totalDropArea).on(event,handleFileSelect);$(demoDropArea).on(event,handleFileSelect);$(comorbDropArea).on(event,handleFileSelect)})};const addFileEventListeners=(colNum)=>{addFileDrapDropEventListeners(colNum);addFileSelectEventListeners(colNum)};const addGroupFileEventListeners=(groupNum,colNum)=>{addGroupFileDrapDropEventListeners(groupNum,colNum);addGroupFileSelectEventListeners(groupNum,colNum)};const addLabelColumn=(tbody,colNum)=>{const column=tbody.rows[0].cells[colNum];column.classList.add('text-center');column.innerHTML=`
 <label for="c${colNum}_label_input">
     <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
@@ -330,7 +331,7 @@ event.target.value=""};const addGroupFileDrapDropEventListeners=(groupNum,colNum
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
     Drag &amp; Drop or
     <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
     <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="${name}_filename"></div>
@@ -346,8 +347,8 @@ event.target.value=""};const addGroupFileDrapDropEventListeners=(groupNum,colNum
 `};const addGroupColumn=(tbody,colNum,groupNum)=>{const name=`g${groupNum}c${colNum}_addvar`;const column=tbody.rows[0].cells[colNum];column.classList.add('border','border-black','border-2');column.innerHTML=`
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
     Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
+    <label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
     <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <ul class="list-group" id="${name}_var_list"></ul>
