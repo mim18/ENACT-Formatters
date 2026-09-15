@@ -8,3 +8,5 @@
 - Allow user to edit the Yes/ No labels
 - Example Exposure = Sex, Outcome = Atenolol, Exposure Yes= Female, Exposure No = Male, Outcome Yes = Yes (Atenolol), Outcome No = No (atenolol)
 - File placement is in file names
+- Display the list w/name and w/o name (site substituted) list of included sites
+examples https://www.openepi.com/TwobyTwo/TwobyTwo.htm
