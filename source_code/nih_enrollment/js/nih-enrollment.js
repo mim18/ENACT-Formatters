@@ -1,26 +1,130 @@
 /**
  * enact-formatter.js
- * 
+ *
  * @description This file contains methods for formatting data for display and
  * export.
  * @author Kevin V. Bui
  */
 
-const enrollments = [];
+/**
+ * HTML elements.
+ */
+const fileNameDisplay = document.getElementById('file_name');
+const csvFileSelect = document.getElementById('select_csv_file');
+const formTypeSelect = document.getElementById('select_form_type');
+const exportData = document.getElementById('export_data');
+const patientCountsSelect = document.getElementById('select_patient_counts');
+const siteCounts = document.getElementById('site_counts');
+const cumulativeEnrollmentTable = document.getElementById('cumulative_enrollment');
+const plannedEnrollmentTable = document.getElementById('planned_enrollment');
+
+
+// list of variables to exclude from data
+const varsToExclude = [
+    'NIH Enrollment American Indian or Alaska Native-Female-No Ethnicity Info',
+    'NIH Enrollment White-No Sex Info-No Ethnicity Info',
+    'NIH Enrollment White-No Sex Info-Not Hispanic'
+];
+const excludedVars = new Set(varsToExclude.map(item => item.replace('NIH Enrollment', '').trim()));
+
 const rawInputData = [];
+const enrollments = [];
 
-const dropArea = document.getElementById('dropArea');
-const csvFileSelect = document.getElementById('selectCsvFile');
-const formTypeSelect = document.getElementById('selectFormType');
-const exportData = document.getElementById('exportData');
-const patientCountsSelect = document.getElementById('selectPatientCounts');
+const sitesIncluded = new Set();
 
-const preventDefaults = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+const getBreakdownQueryValidSitesTask = (csvFile, sitesIncluded) => {
+    // clear existing data
+    sitesIncluded.clear();
+
+    return new Promise((resolve, reject) => {
+        Papa.parse(csvFile, {
+            complete: function (results) {
+                const rows = results.data;
+                if (rows.length > 1) {
+                    const sites = rows[0];
+                    for (let r = 2; r < rows.length; r++) {
+                        const cols = rows[r];
+                        if (cols.length === sites.length) {
+                            const variable = cols[0].replace('NIH Enrollment', '').trim();
+                            if (excludedVars.has(variable)) {
+                                continue;
+                            }
+
+                            for (let c = 2; c < cols.length; c++) {
+                                const count = cols[c].trim().toLowerCase();
+                                if (!(count === '10 patients or fewer' || !isNaN(count))) {
+                                    sites[c] = null;
+                                }
+                            }
+                        }
+                    }
+
+                    // get left over sites to include
+                    for (let i = 2; i < sites.length; i++) {
+                        if (sites[i]) {
+                            sitesIncluded.add(sites[i].trim());
+                        }
+                    }
+                }
+
+                resolve();
+            }
+        });
+    });
 };
-const highlight = (event) => event.target.classList.add('highlight');
-const unhighlight = (event) => event.target.classList.remove('highlight');
+const readInBreakdownQueryData = (csvFile, validSites, rawInputData) => {
+    // clear existing data
+    rawInputData.length = 0;
+
+    return new Promise((resolve, reject) => {
+        Papa.parse(csvFile, {
+            complete: function (results) {
+                const lines = results.data;
+                // at least 2 lines
+                if (lines.length > 1) {
+                    // get valid columns (sites)
+                    const sites = lines[0];
+                    const isValidSites = new Array(sites.length).fill(false);
+                    for (let i = 2; i < sites.length; i++) {
+                        isValidSites[i] = validSites.has(sites[i].trim());
+                    }
+
+                    for (let i = 2; i < lines.length; i++) {
+                        const data = lines[i];
+                        if (data.length !== sites.length) {
+                            continue;
+                        }
+
+                        const variable = data[0].replace('NIH Enrollment', '').trim();
+                        if (excludedVars.has(variable)) {
+                            continue;
+                        }
+
+                        const lineData = [variable];
+                        for (let j = 2; j < data.length; j++) {
+                            if (isValidSites[j]) {
+                                lineData.push(data[j].trim().toLowerCase());
+                            }
+                        }
+                        rawInputData.push(lineData);
+                    }
+                }
+
+                resolve();
+            }
+        });
+    });
+};
+
+const populateSiteNames = (sites) => {
+    siteCounts.textContent = sites.size;
+
+    const data = [...sites].sort();
+
+    const tbody = document.querySelector('#site_names tbody');
+    tbody.innerHTML = '';
+    data.forEach(name => tbody.insertRow(-1).insertCell(0).textContent = name);
+};
 
 const tallyCounts = (data) => {
     return data
@@ -29,7 +133,7 @@ const tallyCounts = (data) => {
             .reduce((accumulator, currentValue) => accumulator + currentValue);
 };
 const getCounts = (line, enrollments, countsForTenOrLess) => {
-    const data = Papa.parse(line).data[0]
+    const data = line
             .map(line => line.trim())
             .filter(line => line !== '')
             .map(line => (line === 'unavailable') ? "0" : line)
@@ -113,7 +217,7 @@ const getCumulativeInclusionData = (enrollments) => {
     enrollmentData.set(race, data);
 
     // create enrollment data from map to array
-    return  Array.from(enrollmentData, ([key, value]) => value);
+    return Array.from(enrollmentData, ([key, value]) => value);
 };
 
 const getEthnicPlannedData = (enrollments) => {
@@ -153,7 +257,7 @@ const getEthnicPlannedData = (enrollments) => {
 
     // tally the row counts
     const data = Array(4).fill(0);
-    ethnicity = 'Ethnic Category: Total of All Subjects *';
+    ethnicity = 'Ethnic Category: Total of All Subjects **';
     data[0] = ethnicity;
     enrollmentData.forEach((values, keys) => {
         // tally counts down rows
@@ -164,7 +268,7 @@ const getEthnicPlannedData = (enrollments) => {
     enrollmentData.set(ethnicity, data);
 
     // create enrollment data from map to array
-    return  Array.from(enrollmentData, ([key, value]) => value);
+    return Array.from(enrollmentData, ([key, value]) => value);
 };
 
 const getRacialPlannedData = (enrollments) => {
@@ -201,7 +305,7 @@ const getRacialPlannedData = (enrollments) => {
 
     // tally the row counts
     const data = Array(4).fill(0);
-    race = 'Racial Categories: Total of All Subjects *';
+    race = 'Racial Categories: Total of All Subjects **';
     data[0] = race;
     enrollmentData.forEach((values, keys) => {
         // tally counts down rows
@@ -212,7 +316,7 @@ const getRacialPlannedData = (enrollments) => {
     enrollmentData.set(race, data);
 
     // create enrollment data from map to array
-    return  Array.from(enrollmentData, ([key, value]) => value);
+    return Array.from(enrollmentData, ([key, value]) => value);
 };
 
 const addRowToCumulativeTable = (values, tbody) => {
@@ -237,16 +341,15 @@ const addRowToCumulativeTable = (values, tbody) => {
 };
 
 const addToCumulativeTable = (data) => {
-    const table = document.getElementById('cumulativeEnrollment');
-
-    let tbody = table.getElementsByTagName('tbody')[0];
+    let tbody = cumulativeEnrollmentTable.getElementsByTagName('tbody')[0];
     tbody.innerHTML = '';
+
     const lastIndex = data.length - 1;
     for (let i = 0; i < lastIndex; i++) {
         addRowToCumulativeTable(data[i], tbody);
     }
 
-    let tfoot = table.getElementsByTagName('tfoot')[0];
+    let tfoot = cumulativeEnrollmentTable.getElementsByTagName('tfoot')[0];
     tfoot.innerHTML = '';
     addRowToCumulativeTable(data[lastIndex], tfoot);
 };
@@ -265,9 +368,7 @@ const addRowToPlannedTable = (values, tbody) => {
 };
 
 const addToPlannedTable = (ethnicPlannedData, racialPlannedData) => {
-    const table = document.getElementById('plannedEnrollment');
-
-    let tbody = table.getElementsByTagName('tbody')[0];
+    let tbody = plannedEnrollmentTable.getElementsByTagName('tbody')[0];
     tbody.innerHTML = '';
 
     let lastIndex = ethnicPlannedData.length - 1;
@@ -316,13 +417,12 @@ const addToPlannedTable = (ethnicPlannedData, racialPlannedData) => {
         addRowToPlannedTable(racialPlannedData[i], tbody);
     }
 
-    let tfoot = table.getElementsByTagName('tfoot')[0];
+    let tfoot = plannedEnrollmentTable.getElementsByTagName('tfoot')[0];
     tfoot.innerHTML = '';
     addRowToPlannedTable(racialPlannedData[lastIndex], tfoot);
 };
-
 const loadData = (rawInputData) => {
-    // clear the array
+    // clear existing data
     enrollments.length = 0;
 
     const countsForTenOrLess = patientCountsSelect.options[patientCountsSelect.selectedIndex].value;
@@ -337,69 +437,116 @@ const loadData = (rawInputData) => {
     const racialPlannedData = getRacialPlannedData(enrollments);
     addToPlannedTable(ethnicPlannedData, racialPlannedData);
 };
-const loadCsvFile = (event) => {
-    // clear the array
+const clearAllData = () => {
+    sitesIncluded.clear();
     rawInputData.length = 0;
+    enrollments.length = 0;
 
-    // populate the enrollments array with the data
-    event.target.result
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line !== '')
-            .slice(2)
-            .forEach(line => rawInputData.push(line));
+    if (cumulativeEnrollmentTable) {
+        cumulativeEnrollmentTable.getElementsByTagName('tbody')[0].innerHTML = '';
+        cumulativeEnrollmentTable.getElementsByTagName('tfoot')[0].innerHTML = '';
+    }
+    if (plannedEnrollmentTable) {
+        plannedEnrollmentTable.getElementsByTagName('tbody')[0].innerHTML = '';
+        plannedEnrollmentTable.getElementsByTagName('tfoot')[0].innerHTML = '';
+    }
+};
+const buildForms = async (csvFile) => {
+    // display file name
+    fileNameDisplay.textContent = csvFile.name;
+    fileNameDisplay.style.display = 'block';
 
-    loadData(rawInputData);
+    // clear existing data
+    clearAllData();
+
+    await getBreakdownQueryValidSitesTask(csvFile, sitesIncluded);
+    await readInBreakdownQueryData(csvFile, sitesIncluded, rawInputData);
+
+    populateSiteNames(sitesIncluded);
+
+    try {
+        loadData(rawInputData);
+    } catch (err) {
+        const messageModal = new bootstrap.Modal(document.getElementById('message_modal'));
+        messageModal.show();
+    }
 };
 
-const readInData = (csvFile) => {
-    const reader = new FileReader();
-    reader.onload = loadCsvFile;
-    reader.readAsText(csvFile);
-};
+const addFileDrapDropEventListeners = () => {
+    const dropArea = document.getElementById('drop_area');
+    if (!dropArea) {
+        return;
+    }
 
-const handleDrop = (event) => {
-    if (event.dataTransfer.items) {
-        // use DataTransferItemList interface to access the file(s)
-        [...event.dataTransfer.items].forEach((item, i) => {
-            // If dropped items aren't files, reject them
-            if (item.kind === "file") {
-                const file = item.getAsFile();
-                if (file.type === 'text/csv') {
-                    readInData(file);
+    // prevent default drag behaviors
+    const preventDefaults = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => dropArea.addEventListener(event, preventDefaults, false));
+
+    // highlighting drop area when item is dragged over it
+    const highlight = (event) => event.target.classList.add('highlight');
+    ['dragenter', 'dragover'].forEach(event => dropArea.addEventListener(event, highlight, false));
+
+    // remove highlighting from drop area when item is dropped
+    const unhighlight = (event) => event.target.classList.remove('highlight');
+    dropArea.addEventListener('dragleave', unhighlight, false);
+
+    const handleFileDrop = (event) => {
+        event.target.classList.remove('highlight');
+
+        if (event.dataTransfer.items) {
+            // use DataTransferItemList interface to access the file(s)
+            [...event.dataTransfer.items].forEach((item, i) => {
+                // If dropped items aren't files, reject them
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+                    if (file.type === 'text/csv') {
+                        buildForms(file);
+                    }
                 }
+            });
+        } else {
+            // use DataTransfer interface to access the file(s)
+            [...event.dataTransfer.files].forEach((file, i) => {
+                buildForms(file);
+            });
+        }
+    };
+    dropArea.addEventListener('drop', handleFileDrop, false);
+};
+const addFileSelectEventListeners = () => {
+    const fileSelect = document.getElementById('select_csv_file');
+    if (!fileSelect) {
+        return;
+    }
+
+    const handleFileSelect = (event) => {
+        if (event.target.files.length > 0) {
+            const file = event.target.files[0];
+            if (file.type === 'text/csv') {
+                buildForms(file);
             }
-        });
-    } else {
-        // use DataTransfer interface to access the file(s)
-        [...event.dataTransfer.files].forEach((file, i) => {
-            readInData(file);
-        });
-    }
-};
-const handleFileSelect = (event) => {
-    if (event.target.files.length > 0) {
-        readInData(event.target.files[0]);
-    }
-    event.target.value = "";
+        }
+    };
+    fileSelect.addEventListener('change', handleFileSelect);
 };
 
-const handleFormSwitch = (event) => {
-    const cumulativeEnrollment = document.getElementById('cumulativeEnrollment');
-    const plannedEnrollment = document.getElementById('plannedEnrollmentForm');
+const handleFormSwitch = () => {
+    const cumulativeEnrollment = document.getElementById('cumulative_enrollment_form');
+    const plannedEnrollment = document.getElementById('planned_enrollment_form');
 
-    const formTypeSelect = document.getElementById('selectFormType');
     const formType = formTypeSelect.options[formTypeSelect.selectedIndex].value;
     if (formType === 'cier') {
+        cumulativeEnrollment.style.display = 'block';
         plannedEnrollment.style.display = 'none';
-        cumulativeEnrollment.style.display = 'table';
     } else {
         cumulativeEnrollment.style.display = 'none';
         plannedEnrollment.style.display = 'block';
     }
 };
-
-const handlePatientCountChange = (event) => {
+const handlePatientCountChange = () => {
     if (rawInputData.length > 0) {
         loadData(rawInputData);
     }
@@ -471,7 +618,6 @@ const exportPlannedTableToCsv = (ethnicPlannedData, racialPlannedData) => {
 };
 
 const handleExportData = () => {
-    const formTypeSelect = document.getElementById('selectFormType');
     const formType = formTypeSelect.options[formTypeSelect.selectedIndex].value;
 
     let content = (formType === 'cier')
@@ -487,33 +633,20 @@ const handleExportData = () => {
 };
 
 /**
- * Prevent default drag behaviors.
- */
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-    dropArea.addEventListener(event, preventDefaults, false);
-});
-
-/**
- * Highlighting drop area when item is dragged over it.
- */
-['dragenter', 'dragover'].forEach(event => {
-    dropArea.addEventListener(event, highlight, false);
-});
-
-/**
- * Remove highlighting from drop area when item is dropped.
- */
-['dragleave', 'drop'].forEach(event => {
-    dropArea.addEventListener(event, unhighlight, false);
-});
-
-/**
  * Add event listeners.
  */
-dropArea.addEventListener('drop', handleDrop, false);
-csvFileSelect.addEventListener('change', handleFileSelect, false);
-formTypeSelect.addEventListener('change', handleFormSwitch, false);
-patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
-exportData.addEventListener('click', handleExportData, false);
+const addEventListeners = () => {
+    addFileDrapDropEventListeners();
+    addFileSelectEventListeners();
 
-handleFormSwitch();
+    formTypeSelect.addEventListener('change', handleFormSwitch, false);
+    patientCountsSelect.addEventListener('change', handlePatientCountChange, false);
+    exportData.addEventListener('click', handleExportData, false);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('copyright_year').textContent = new Date().getFullYear();
+
+    addEventListeners();
+    handleFormSwitch();
+});

@@ -1,121 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Enact Formatter</title>
+        <meta name="author" content="Kevin V. Bui" />
+        <meta name="revised" content="1.1.0" />
+        <meta name="description" content="Generate NIH enrollment forms using SHRINE exported CSV file." />
         <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css" />
         <link rel="stylesheet" href="../vendor/bootstrap-icons/bootstrap-icons.min.css" />
         <link rel="stylesheet" href="css/nih-enrollment.css" />
     </head>
     <body>
-        <div class="container">
-            <main>
-                <div class="py-2 g-5">
-                    <form>
-                        <fieldset class="text-center mb-3 p-4" id="dropArea">
-                            <p class="my-2">Drag &amp; Drop CSV file here<br><i>or</i></p>
-                            <input id="selectCsvFile" class="position-absolute invisible" type="file" accept=".csv" />
-                            <label class="btn btn-primary mb-3" for="selectCsvFile">Choose CSV file</label>
-                        </fieldset>
-                    </form>
-                    <div class="card border-secondary">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <h6 class="m-0">NIH Enrollment</h6>
-                            <nav class="navbar navbar-expand-sm m-0 p-0">
-                                <div class="container-fluid">
-                                    <div class="input-group flex-nowrap me-3">
-                                        <label class="form-label m-1 me-2" for="selectFormType">Form Type:</label>
-                                        <select class="form-select form-select-sm" id="selectFormType">
-                                            <option value="cier" selected="selected">Cumulative Inclusion Enrollment Report</option>
-                                            <option value="tpet">Targeted/Planned Enrollment Table</option>
-                                        </select>
+        <div class="container my-5">
+            <header class="d-flex flex-wrap justify-content-between mb-2 border-bottom border-2 py-2">
+                <h5 class="m-0">NIH Enrollment</h5>
+                <ul class="list-unstyled list-inline m-0">
+                    <li class="list-inline-item">Version 1.1</li>
+                    <li class="list-inline-item">
+                        <a href="https://github.com/mim18/ENACT-Formatters" class="d-inline-flex link-body-emphasis" target="_blank">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </header>
+            <p>Create NIH Enrollment Forms tables using CSV files exported from the SHRINE Cohort Explorer.</p>
+            <main class="py-5">
+                <form class="mb-5">
+                    <fieldset class="text-center p-4" id="drop_area">
+                        <p class="my-2">Drag &amp; Drop CSV file here<br><i>or</i></p>
+                        <input id="select_csv_file" class="position-absolute invisible" type="file" accept=".csv" />
+                        <label class="btn btn-primary mb-3" for="select_csv_file">Choose CSV file</label>
+                        <div class="alert alert-success p-2" id="file_name" role="alert" style="display: none;">File Name</div>
+                    </fieldset>
+                </form>
+                <!-- card -->
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="input-group flex-nowrap">
+                            <label class="form-label m-1 me-2" for="select_form_type">Form Type:</label>
+                            <select class="form-select form-select-sm me-3" id="select_form_type" style="max-width: 320px;">
+                                <option value="cier" selected="selected">Cumulative Inclusion Enrollment Report</option>
+                                <option value="tpet">Targeted/Planned Enrollment Table</option>
+                            </select>
+                        </div>
+                        <a class="text-decoration-none" id="export_data" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
+                            <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                        </a>
+                    </div>
+                    <!-- card body -->
+                    <div class="card-body">
+                        <div class="container">
+                            <div class="row gy-5">
+                                <!-- main first row -->
+                                <div class="col-12">
+                                    <!-- select custom patient counts -->
+                                    <div class="d-flex flex-row-reverse">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-auto">
+                                                *<label for="select_patient_counts" class="form-label m-1">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <select class="form-select" id="select_patient_counts" aria-label="Default select example">
+                                                    <option value="0">0</option>
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                    <option value="4">4</option>
+                                                    <option value="5">5</option>
+                                                    <option value="6">6</option>
+                                                    <option value="7">7</option>
+                                                    <option value="8">8</option>
+                                                    <option value="9">9</option>
+                                                    <option value="10" selected="selected">10</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="collapse navbar-collapse">
-                                        <ul class="navbar-nav">
-                                            <li class="nav-item">
-                                                <a class="nav-link active" id="exportData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
-                                                    <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                </a>
-                                            </li>
+                                    <!-- end of select custom patient counts -->
+                                </div>
+                                <!-- end of main first row -->
+                                <!-- main second row -->
+                                <div class="col-12">
+                                    <!-- cumulative enrollment form -->
+                                    <div class="table-responsive mb-2" id="cumulative_enrollment_form">
+                                        <table class="table table-sm table-bordered border-secondary table-striped caption-top mb-0" id="cumulative_enrollment">
+                                            <caption>Cumulative Inclusion Enrollment Report</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" rowspan="3" class="text-center align-middle">Racial Category</th>
+                                                    <th scope="col" colspan="9" class="text-center">Ethnic Categories</th>
+                                                    <th scope="col" rowspan="3" class="text-center align-middle">Total</th>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="col" colspan="3" class="text-center table-secondary">Not Hispanic or Latino</th>
+                                                    <th scope="col" colspan="3" class="text-center">Hispanic or Latino</th>
+                                                    <th scope="col" colspan="3" class="text-center table-secondary">Unknown/Not Reported Ethnicity</th>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="col" class="text-center table-secondary">Female</th>
+                                                    <th scope="col" class="text-center table-secondary">Male</th>
+                                                    <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
+                                                    <th scope="col" class="text-center">Female</th>
+                                                    <th scope="col" class="text-center">Male</th>
+                                                    <th scope="col" class="text-center">Unknown/Not Reported</th>
+                                                    <th scope="col" class="text-center table-secondary">Female</th>
+                                                    <th scope="col" class="text-center table-secondary">Male</th>
+                                                    <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider"></tbody>
+                                            <tfoot class="table-group-divider"></tfoot>
+                                        </table>
+                                    </div>
+                                    <!-- end of cumulative enrollment form -->
+                                    <!-- planned enrollment form -->
+                                    <div class="table-responsive mb-2" id="planned_enrollment_form" style="display: none;">
+                                        <table class="table table-sm table-bordered border-secondary table-striped-1 table-striped-start-5 caption-top" id="planned_enrollment">
+                                            <caption>Targeted/Planned Enrollment Table</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" class="text-center align-middle">Ethnic Category</th>
+                                                    <th scope="col" class="text-center align-middle">Females</th>
+                                                    <th scope="col" class="text-center align-middle">Males</th>
+                                                    <th scope="col" class="text-center align-middle">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider"></tbody>
+                                            <tfoot class="table-group-divider"></tfoot>
+                                        </table>
+                                    </div>
+                                    <!-- end of planned enrollment form -->
+                                    <!-- footnotes -->
+                                    <div class="text-body-secondary" style="font-size: 0.9em;">
+                                        <ul class="list-unstyled">
+                                            <li>* Values reported as <i>"10 patients or fewer"</i> will be recoded to the user-specified value.</li>
+                                            <li>** The “Ethnic Category: Total of All Subjects” must be equal to the “Racial Categories: Total of All Subjects.”</li>
                                         </ul>
                                     </div>
+                                    <!-- end of footnotes -->
                                 </div>
-                            </nav>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-bg-light p-3">
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-auto">
-                                        <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                <!-- end of main second row -->
+                                <!-- main third row -->
+                                <div class="col-sm-12 col-md-12 col-lg-6">
+                                    <!-- show included sites -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="m-0">Sites Included <span class="badge text-bg-secondary" id="site_counts">0</span></h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="overflow-scroll" style="max-height: 400px;">
+                                                <table class="table table-striped table-sm caption-top w-100" id="site_names">
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-auto">
-                                        <select class="form-select" id="selectPatientCounts" aria-label="Default select example">
-                                            <option value="0">0</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4</option>
-                                            <option value="5">5</option>
-                                            <option value="6">6</option>
-                                            <option value="7">7</option>
-                                            <option value="8">8</option>
-                                            <option value="9">9</option>
-                                            <option value="10" selected="selected">10</option>
-                                        </select>
-                                    </div>
+                                    <!-- end of show included sites -->
                                 </div>
-                            </div>
-                            <div class="table-responsive" id="cumulativeEnrollmentForm">
-                                <table class="table table-sm table-bordered border-secondary table-striped caption-top mb-0" id="cumulativeEnrollment">
-                                    <caption>Cumulative Inclusion Enrollment Report</caption>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" rowspan="3" class="text-center align-middle">Racial Category</th>
-                                            <th scope="col" colspan="9" class="text-center">Ethnic Categories</th>
-                                            <th scope="col" rowspan="3" class="text-center align-middle">Total</th>
-                                        </tr>
-                                        <tr>
-                                            <th scope="col" colspan="3" class="text-center table-secondary">Not Hispanic or Latino</th>
-                                            <th scope="col" colspan="3" class="text-center">Hispanic or Latino</th>
-                                            <th scope="col" colspan="3" class="text-center table-secondary">Unknown/Not Reported Ethnicity</th>
-                                        </tr>
-                                        <tr>
-                                            <th scope="col" class="text-center table-secondary">Female</th>
-                                            <th scope="col" class="text-center table-secondary">Male</th>
-                                            <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
-                                            <th scope="col" class="text-center">Female</th>
-                                            <th scope="col" class="text-center">Male</th>
-                                            <th scope="col" class="text-center">Unknown/Not Reported</th>
-                                            <th scope="col" class="text-center table-secondary">Female</th>
-                                            <th scope="col" class="text-center table-secondary">Male</th>
-                                            <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider"></tbody>
-                                    <tfoot class="table-group-divider"></tfoot>
-                                </table>
-                            </div>
-                            <div class="table-responsive" id="plannedEnrollmentForm">
-                                <table class="table table-sm table-bordered border-secondary table-striped-1 table-striped-start-5 caption-top mb-0" id="plannedEnrollment">
-                                    <caption>Targeted/Planned Enrollment Table</caption>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" class="text-center align-middle">Ethnic Category</th>
-                                            <th scope="col" class="text-center align-middle">Females</th>
-                                            <th scope="col" class="text-center align-middle">Males</th>
-                                            <th scope="col" class="text-center align-middle">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider"></tbody>
-                                    <tfoot class="table-group-divider"></tfoot>
-                                </table>
-                                * The “Ethnic Category: Total of All Subjects” must be equal to the “Racial Categories: Total of All Subjects.”
+                                <!-- end of main third row -->
                             </div>
                         </div>
                     </div>
+                    <!-- end of card body -->
                 </div>
+                <!-- card -->
             </main>
+            <footer class="d-flex flex-wrap justify-content-between text-body-secondary border-top border-2 pt-2" style="font-size: 0.9em;">
+                <ul class="nav flex-column">
+                    <li class="nav-item">&copy; <span id="copyright_year">2025</span> University of Pittsburgh</li>
+                    <li class="nav-item">Department of Biomedical Informatics</li>
+                </ul>
+                <ul class="nav flex-column">
+                    <li class="nav-item">This work was supported in part by the National Institutes of Health under grant U24TR004111.</li>
+                </ul>
+            </footer>
+        </div>
+        <div class="modal fade" id="message_modal" tabindex="-1" aria-labelledby="message_modal_title" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title" id="message_modal_title"><i class="bi bi-exclamation-circle"></i> Invalid Data Format</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger m-0" role="alert">Please make sure that your CSV file is exported from SHRINE Cohort Explorer for NIH enrollment.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../vendor/papaparse/papaparse.min.js"></script>

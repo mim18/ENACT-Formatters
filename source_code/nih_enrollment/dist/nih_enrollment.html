@@ -1,124 +1,226 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Enact Formatter</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-        <style>body{margin:24px}#dropArea{color:#0f3c4b;background-color:#f9f9fa;outline:#0f3c4b dashed 4px;outline-offset:-12px;transition:outline-offset .2s ease-out,outline-color .3s ease-in-out,background-color .2s ease-out}#dropArea.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#f3f5f7}.table-striped-1>tbody>tr:first-of-type>*,.table-striped-start-5>tbody>tr:nth-of-type(2n+6)>*{--bs-table-color-type:var(--bs-table-striped-color);--bs-table-bg-type:var(--bs-table-striped-bg)}</style>
+        <meta name="author" content="Kevin V. Bui" />
+        <meta name="revised" content="1.1.0" />
+        <meta name="description" content="Generate NIH enrollment forms using SHRINE exported CSV file." />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+        <style>#drop_area{color:#0f3c4b;background-color:#f3f5f7;outline:4px dashed #0f3c4b;outline-offset:-12px;transition:outline-offset 0.2s ease-out,outline-color 0.3s ease-in-out,background-color 0.2s ease-out}#drop_area.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#cff4fc!important}.table-striped-1>tbody>tr:nth-of-type(1)>*{--bs-table-color-type:var(--bs-table-striped-color);--bs-table-bg-type:var(--bs-table-striped-bg)}.table-striped-start-5>tbody>tr:nth-of-type(2n+6)>*{--bs-table-color-type:var(--bs-table-striped-color);--bs-table-bg-type:var(--bs-table-striped-bg)}</style>
     </head>
     <body>
-        <div class="container">
-            <main>
-                <div class="py-2 g-5">
-                    <form>
-                        <fieldset class="text-center mb-3 p-4" id="dropArea">
-                            <p class="my-2">Drag &amp; Drop CSV file here<br><i>or</i></p>
-                            <input id="selectCsvFile" class="position-absolute invisible" type="file" accept=".csv" />
-                            <label class="btn btn-primary mb-3" for="selectCsvFile">Choose CSV file</label>
-                        </fieldset>
-                    </form>
-                    <div class="card border-secondary">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <h6 class="m-0">NIH Enrollment</h6>
-                            <nav class="navbar navbar-expand-sm m-0 p-0">
-                                <div class="container-fluid">
-                                    <div class="input-group flex-nowrap me-3">
-                                        <label class="form-label m-1 me-2" for="selectFormType">Form Type:</label>
-                                        <select class="form-select form-select-sm" id="selectFormType">
-                                            <option value="cier" selected="selected">Cumulative Inclusion Enrollment Report</option>
-                                            <option value="tpet">Targeted/Planned Enrollment Table</option>
-                                        </select>
+        <div class="container my-5">
+            <header class="d-flex flex-wrap justify-content-between mb-2 border-bottom border-2 py-2">
+                <h5 class="m-0">NIH Enrollment</h5>
+                <ul class="list-unstyled list-inline m-0">
+                    <li class="list-inline-item">Version 1.1</li>
+                    <li class="list-inline-item">
+                        <a href="https://github.com/mim18/ENACT-Formatters" class="d-inline-flex link-body-emphasis" target="_blank">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </header>
+            <p>Create NIH Enrollment Forms tables using CSV files exported from the SHRINE Cohort Explorer.</p>
+            <main class="py-5">
+                <form class="mb-5">
+                    <fieldset class="text-center p-4" id="drop_area">
+                        <p class="my-2">Drag &amp; Drop CSV file here<br><i>or</i></p>
+                        <input id="select_csv_file" class="position-absolute invisible" type="file" accept=".csv" />
+                        <label class="btn btn-primary mb-3" for="select_csv_file">Choose CSV file</label>
+                        <div class="alert alert-success p-2" id="file_name" role="alert" style="display: none;">File Name</div>
+                    </fieldset>
+                </form>
+                <!-- card -->
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="input-group flex-nowrap">
+                            <label class="form-label m-1 me-2" for="select_form_type">Form Type:</label>
+                            <select class="form-select form-select-sm me-3" id="select_form_type" style="max-width: 320px;">
+                                <option value="cier" selected="selected">Cumulative Inclusion Enrollment Report</option>
+                                <option value="tpet">Targeted/Planned Enrollment Table</option>
+                            </select>
+                        </div>
+                        <a class="text-decoration-none" id="export_data" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
+                            <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                        </a>
+                    </div>
+                    <!-- card body -->
+                    <div class="card-body">
+                        <div class="container">
+                            <div class="row gy-5">
+                                <!-- main first row -->
+                                <div class="col-12">
+                                    <!-- select custom patient counts -->
+                                    <div class="d-flex flex-row-reverse">
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-auto">
+                                                *<label for="select_patient_counts" class="form-label m-1">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <select class="form-select" id="select_patient_counts" aria-label="Default select example">
+                                                    <option value="0">0</option>
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                    <option value="4">4</option>
+                                                    <option value="5">5</option>
+                                                    <option value="6">6</option>
+                                                    <option value="7">7</option>
+                                                    <option value="8">8</option>
+                                                    <option value="9">9</option>
+                                                    <option value="10" selected="selected">10</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="collapse navbar-collapse">
-                                        <ul class="navbar-nav">
-                                            <li class="nav-item">
-                                                <a class="nav-link active" id="exportData" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
-                                                    <i class="bi bi-file-earmark-arrow-down fs-4"></i>
-                                                </a>
-                                            </li>
+                                    <!-- end of select custom patient counts -->
+                                </div>
+                                <!-- end of main first row -->
+                                <!-- main second row -->
+                                <div class="col-12">
+                                    <!-- cumulative enrollment form -->
+                                    <div class="table-responsive mb-2" id="cumulative_enrollment_form">
+                                        <table class="table table-sm table-bordered border-secondary table-striped caption-top mb-0" id="cumulative_enrollment">
+                                            <caption>Cumulative Inclusion Enrollment Report</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" rowspan="3" class="text-center align-middle">Racial Category</th>
+                                                    <th scope="col" colspan="9" class="text-center">Ethnic Categories</th>
+                                                    <th scope="col" rowspan="3" class="text-center align-middle">Total</th>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="col" colspan="3" class="text-center table-secondary">Not Hispanic or Latino</th>
+                                                    <th scope="col" colspan="3" class="text-center">Hispanic or Latino</th>
+                                                    <th scope="col" colspan="3" class="text-center table-secondary">Unknown/Not Reported Ethnicity</th>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="col" class="text-center table-secondary">Female</th>
+                                                    <th scope="col" class="text-center table-secondary">Male</th>
+                                                    <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
+                                                    <th scope="col" class="text-center">Female</th>
+                                                    <th scope="col" class="text-center">Male</th>
+                                                    <th scope="col" class="text-center">Unknown/Not Reported</th>
+                                                    <th scope="col" class="text-center table-secondary">Female</th>
+                                                    <th scope="col" class="text-center table-secondary">Male</th>
+                                                    <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider"></tbody>
+                                            <tfoot class="table-group-divider"></tfoot>
+                                        </table>
+                                    </div>
+                                    <!-- end of cumulative enrollment form -->
+                                    <!-- planned enrollment form -->
+                                    <div class="table-responsive mb-2" id="planned_enrollment_form" style="display: none;">
+                                        <table class="table table-sm table-bordered border-secondary table-striped-1 table-striped-start-5 caption-top" id="planned_enrollment">
+                                            <caption>Targeted/Planned Enrollment Table</caption>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" class="text-center align-middle">Ethnic Category</th>
+                                                    <th scope="col" class="text-center align-middle">Females</th>
+                                                    <th scope="col" class="text-center align-middle">Males</th>
+                                                    <th scope="col" class="text-center align-middle">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider"></tbody>
+                                            <tfoot class="table-group-divider"></tfoot>
+                                        </table>
+                                    </div>
+                                    <!-- end of planned enrollment form -->
+                                    <!-- footnotes -->
+                                    <div class="text-body-secondary" style="font-size: 0.9em;">
+                                        <ul class="list-unstyled">
+                                            <li>* Values reported as <i>"10 patients or fewer"</i> will be recoded to the user-specified value.</li>
+                                            <li>** The “Ethnic Category: Total of All Subjects” must be equal to the “Racial Categories: Total of All Subjects.”</li>
                                         </ul>
                                     </div>
+                                    <!-- end of footnotes -->
                                 </div>
-                            </nav>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-bg-light p-3">
-                                <div class="row g-3 align-items-center">
-                                    <div class="col-auto">
-                                        <label for="selectPatientCounts" class="form-label">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                <!-- end of main second row -->
+                                <!-- main third row -->
+                                <div class="col-sm-12 col-md-12 col-lg-6">
+                                    <!-- show included sites -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="m-0">Sites Included <span class="badge text-bg-secondary" id="site_counts">0</span></h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="overflow-scroll" style="max-height: 400px;">
+                                                <table class="table table-striped table-sm caption-top w-100" id="site_names">
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-auto">
-                                        <select class="form-select" id="selectPatientCounts" aria-label="Default select example">
-                                            <option value="0">0</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4</option>
-                                            <option value="5">5</option>
-                                            <option value="6">6</option>
-                                            <option value="7">7</option>
-                                            <option value="8">8</option>
-                                            <option value="9">9</option>
-                                            <option value="10" selected="selected">10</option>
-                                        </select>
-                                    </div>
+                                    <!-- end of show included sites -->
                                 </div>
-                            </div>
-                            <div class="table-responsive" id="cumulativeEnrollmentForm">
-                                <table class="table table-sm table-bordered border-secondary table-striped caption-top mb-0" id="cumulativeEnrollment">
-                                    <caption>Cumulative Inclusion Enrollment Report</caption>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" rowspan="3" class="text-center align-middle">Racial Category</th>
-                                            <th scope="col" colspan="9" class="text-center">Ethnic Categories</th>
-                                            <th scope="col" rowspan="3" class="text-center align-middle">Total</th>
-                                        </tr>
-                                        <tr>
-                                            <th scope="col" colspan="3" class="text-center table-secondary">Not Hispanic or Latino</th>
-                                            <th scope="col" colspan="3" class="text-center">Hispanic or Latino</th>
-                                            <th scope="col" colspan="3" class="text-center table-secondary">Unknown/Not Reported Ethnicity</th>
-                                        </tr>
-                                        <tr>
-                                            <th scope="col" class="text-center table-secondary">Female</th>
-                                            <th scope="col" class="text-center table-secondary">Male</th>
-                                            <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
-                                            <th scope="col" class="text-center">Female</th>
-                                            <th scope="col" class="text-center">Male</th>
-                                            <th scope="col" class="text-center">Unknown/Not Reported</th>
-                                            <th scope="col" class="text-center table-secondary">Female</th>
-                                            <th scope="col" class="text-center table-secondary">Male</th>
-                                            <th scope="col" class="text-center table-secondary">Unknown/Not Reported</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider"></tbody>
-                                    <tfoot class="table-group-divider"></tfoot>
-                                </table>
-                            </div>
-                            <div class="table-responsive" id="plannedEnrollmentForm">
-                                <table class="table table-sm table-bordered border-secondary table-striped-1 table-striped-start-5 caption-top mb-0" id="plannedEnrollment">
-                                    <caption>Targeted/Planned Enrollment Table</caption>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" class="text-center align-middle">Ethnic Category</th>
-                                            <th scope="col" class="text-center align-middle">Females</th>
-                                            <th scope="col" class="text-center align-middle">Males</th>
-                                            <th scope="col" class="text-center align-middle">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider"></tbody>
-                                    <tfoot class="table-group-divider"></tfoot>
-                                </table>
-                                * The “Ethnic Category: Total of All Subjects” must be equal to the “Racial Categories: Total of All Subjects.”
+                                <!-- end of main third row -->
                             </div>
                         </div>
                     </div>
+                    <!-- end of card body -->
                 </div>
+                <!-- card -->
             </main>
+            <footer class="d-flex flex-wrap justify-content-between text-body-secondary border-top border-2 pt-2" style="font-size: 0.9em;">
+                <ul class="nav flex-column">
+                    <li class="nav-item">&copy; <span id="copyright_year">2025</span> University of Pittsburgh</li>
+                    <li class="nav-item">Department of Biomedical Informatics</li>
+                </ul>
+                <ul class="nav flex-column">
+                    <li class="nav-item">This work was supported in part by the National Institutes of Health under grant U24TR004111.</li>
+                </ul>
+            </footer>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-        <script>const enrollments = [], rawInputData = [], dropArea = document.getElementById("dropArea"), csvFileSelect = document.getElementById("selectCsvFile"), formTypeSelect = document.getElementById("selectFormType"), exportData = document.getElementById("exportData"), patientCountsSelect = document.getElementById("selectPatientCounts"), preventDefaults = e => {e.preventDefault(), e.stopPropagation()}, highlight = e => e.target.classList.add("highlight"), unhighlight = e => e.target.classList.remove("highlight"), tallyCounts = e => e.filter(e => "" !== e).map(e => parseInt(e)).reduce((e, t) => e + t), getCounts = (e, t, a) => {let l = Papa.parse(e).data[0].map(e => e.trim()).filter(e => "" !== e).map(e => "unavailable" === e?"0":e).map(e => "10 patients or fewer" === e?a:e), n = tallyCounts(l.slice(1)), o = l[0].replace("NIH Enrollment", "").trim(), r = o.split("-"); r[0].replace("Multiple race", "More than One Race").replace("No Race Info", "Unknown or Not Reported"), r[1].toLowerCase(), r[2].toLowerCase(), t.push({race:r[0].replace("Multiple race", "More than One Race").replace("No Race Info", "Unknown or Not Reported"), gender:r[1].toLowerCase(), ethnicity:r[2].toLowerCase(), counts:n})}, getCumulativeInclusionData = e => {let t = new Map; for (let a of e){let l = a.ethnicity, n = a.gender, o = a.counts, r = a.race; if (!t.has(r)){let s = Array(11).fill(0); s[0] = r, t.set(r, s)}let i = t.get(r); "not hispanic" === l?"female" === n?i[1] = o:"male" === n?i[2] = o:i[3] = o:"hispanic" === l?"female" === n?i[4] = o:"male" === n?i[5] = o:i[6] = o:"female" === n?i[7] = o:"male" === n?i[8] = o:i[9] = o, i[10] += o}let d = Array(11).fill(0); return race = "Total", d[0] = race, t.forEach((e, t) => {for (let a = 1; a < e.length; a++)d[a] += e[a]}), t.set(race, d), Array.from(t, ([e, t]) => t)}, getEthnicPlannedData = e => {let t = new Map; for (let a of e){let l = a.race; if ("More than One Race" === l || "Unknown or Not Reported" === l)continue; let n = a.gender, o = a.counts, r = a.ethnicity; if ("hispanic" === r || "not hispanic" === r){if (r = "hispanic" === r?"Hispanic or Latino":"Not Hispanic or Latino", !t.has(r)){let s = [, , , , ].fill(0); s[0] = r, t.set(r, s)}let i = t.get(r); "female" === n?(i[1] += o, i[3] += o):"male" === n && (i[2] += o, i[3] += o)}}let d = [, , , , ].fill(0); return ethnicity = "Ethnic Category: Total of All Subjects *", d[0] = ethnicity, t.forEach((e, t) => {for (let a = 1; a < e.length; a++)d[a] += e[a]}), t.set(ethnicity, d), Array.from(t, ([e, t]) => t)}, getRacialPlannedData = e => {let t = new Map; for (let a of e){let l = a.ethnicity; if ("no ethnicity info" === l)continue; let n = a.gender, o = a.counts, r = a.race; if (!t.has(r)){let s = [, , , , ].fill(0); s[0] = r, t.set(r, s)}let i = t.get(r); "female" === n?(i[1] += o, i[3] += o):"male" === n && (i[2] += o, i[3] += o)}t.delete("More than One Race"), t.delete("Unknown or Not Reported"); let d = [, , , , ].fill(0); return race = "Racial Categories: Total of All Subjects *", d[0] = race, t.forEach((e, t) => {for (let a = 1; a < e.length; a++)d[a] += e[a]}), t.set(race, d), Array.from(t, ([e, t]) => t)}, addRowToCumulativeTable = (e, t) => {let a = [], l = t.insertRow( - 1); for (let n = 0; n < e.length; n++)a[n] = l.insertCell(n), 0 === n?a[n].outerHTML = `<th scope="row">${e[n]}</th>`:a[n].innerHTML = e[n]; a[1].classList.add("table-secondary"), a[2].classList.add("table-secondary"), a[3].classList.add("table-secondary"), a[7].classList.add("table-secondary"), a[8].classList.add("table-secondary"), a[9].classList.add("table-secondary")}, addToCumulativeTable = e => {let t = document.getElementById("cumulativeEnrollment"), a = t.getElementsByTagName("tbody")[0]; a.innerHTML = ""; let l = e.length - 1; for (let n = 0; n < l; n++)addRowToCumulativeTable(e[n], a); let o = t.getElementsByTagName("tfoot")[0]; o.innerHTML = "", addRowToCumulativeTable(e[l], o)}, addRowToPlannedTable = (e, t) => {let a = [], l = t.insertRow( - 1); for (let n = 0; n < e.length; n++)a[n] = l.insertCell(n), 0 === n?a[n].outerHTML = `<th scope="row">${e[n]}</th>`:a[n].innerHTML = e[n]}, addToPlannedTable = (e, t) => {let a = document.getElementById("plannedEnrollment"), l = a.getElementsByTagName("tbody")[0]; l.innerHTML = ""; let n = e.length - 1; for (let o = 0; o < n; o++)addRowToPlannedTable(e[o], l); let r = e[n], s = l.insertRow( - 1); s.classList.add("border"), s.classList.add("border-2"), s.classList.add("border-end-0"), s.classList.add("border-bottom-0"), s.classList.add("border-start-0"), s.classList.add("border-black"); for (let i = 0; i < r.length; i++){let d = s.insertCell(i); 0 === i?d.outerHTML = `<th scope="row">${r[i]}</th>`:d.innerHTML = r[i]}(column = (s = l.insertRow( - 1)).insertCell(0)).setAttribute("colspan", "4"), column.classList.add("p-0"), (s = l.insertRow( - 1)).classList.add("border"), s.classList.add("border-2"), s.classList.add("border-top-0"), s.classList.add("border-end-0"), s.classList.add("border-start-0"), s.classList.add("border-black"), s.classList.add("text-center"), s.classList.add("align-middle"), (column = s.insertCell(0)).outerHTML = '<th scope="row">Racial Categories</th>', (column = s.insertCell(1)).setAttribute("colspan", "3"), n = t.length - 1; for (let c = 0; c < n; c++)addRowToPlannedTable(t[c], l); let h = a.getElementsByTagName("tfoot")[0]; h.innerHTML = "", addRowToPlannedTable(t[n], h)}, loadData = e => {enrollments.length = 0; let t = patientCountsSelect.options[patientCountsSelect.selectedIndex].value; for (let a of e)getCounts(a, enrollments, t); let l = getCumulativeInclusionData(enrollments); addToCumulativeTable(l); let n = getEthnicPlannedData(enrollments), o = getRacialPlannedData(enrollments); addToPlannedTable(n, o)}, loadCsvFile = e => {rawInputData.length = 0, e.target.result.split("\n").map(e => e.trim()).filter(e => "" !== e).slice(2).forEach(e => rawInputData.push(e)), loadData(rawInputData)}, readInData = e => {let t = new FileReader; t.onload = loadCsvFile, t.readAsText(e)}, handleDrop = e => {e.dataTransfer.items?[...e.dataTransfer.items].forEach((e, t) => {if ("file" === e.kind){let a = e.getAsFile(); "text/csv" === a.type && readInData(a)}}):[...e.dataTransfer.files].forEach((e, t) => {readInData(e)})}, handleFileSelect = e => {e.target.files.length > 0 && readInData(e.target.files[0]), e.target.value = ""}, handleFormSwitch = e => {let t = document.getElementById("cumulativeEnrollment"), a = document.getElementById("plannedEnrollmentForm"), l = document.getElementById("selectFormType"), n = l.options[l.selectedIndex].value; "cier" === n?(a.style.display = "none", t.style.display = "table"):(t.style.display = "none", a.style.display = "block")}, handlePatientCountChange = e => {rawInputData.length > 0 && loadData(rawInputData)}, exportCumulativeTableToCsv = e => {let t = ["", "Not Hispanic", "Not Hispanic", "Not Hispanic", "Hispanic", "Hispanic", "Hispanic", "Unknown/Not Reported Ethnicity", "Unknown/Not Reported Ethnicity", "Unknown/Not Reported Ethnicity", ""], a = ["Racial Category", "Female", "Male", "Unknown/Not Reported", "Female", "Male", "Unknown/Not Reported", "Female", "Male", "Unknown/Not Reported", "Total"], l = []; return l.push(t.join(",")), l.push(a.join(",")), e.forEach(e => l.push(e.join(","))), l.join("\r\n")}, exportPlannedTableToCsv = (e, t) => {let a = ["Ethnic Category", "Females", "Males", "Total"], l = ["Racial Categories", "Females", "Males", "Total"], n = []; return n.push(a.join(",")), e.forEach(e => n.push(e.join(","))), n.push(l.join(",")), t.forEach(e => n.push(e.join(","))), n.push(""), n.push('* The "Ethnic Category: Total of All Subjects" must be equal to the "Racial Categories: Total of All Subjects."'), n.join("\r\n")}, handleExportData = () => {let e = document.getElementById("selectFormType"), t = e.options[e.selectedIndex].value, a = "cier" === t?exportCumulativeTableToCsv(getCumulativeInclusionData(enrollments)):exportPlannedTableToCsv(getEthnicPlannedData(enrollments), getRacialPlannedData(enrollments)), l = new Blob([a], {type:"text/csv;charset=utf-8;"}), n = document.createElement("a"); n.download = "nih_enrollment.csv", n.href = URL.createObjectURL(l), n.click()}; ["dragenter", "dragover", "dragleave", "drop"].forEach(e => {dropArea.addEventListener(e, preventDefaults, !1)}), ["dragenter", "dragover"].forEach(e => {dropArea.addEventListener(e, highlight, !1)}), ["dragleave", "drop"].forEach(e => {dropArea.addEventListener(e, unhighlight, !1)}), dropArea.addEventListener("drop", handleDrop, !1), csvFileSelect.addEventListener("change", handleFileSelect, !1), formTypeSelect.addEventListener("change", handleFormSwitch, !1), patientCountsSelect.addEventListener("change", handlePatientCountChange, !1), exportData.addEventListener("click", handleExportData, !1), handleFormSwitch();</script>
+        <div class="modal fade" id="message_modal" tabindex="-1" aria-labelledby="message_modal_title" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title" id="message_modal_title"><i class="bi bi-exclamation-circle"></i> Invalid Data Format</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger m-0" role="alert">Please make sure that your CSV file is exported from SHRINE Cohort Explorer for NIH enrollment.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.7.0/papaparse.min.js"></script>
+        <script>const fileNameDisplay=document.getElementById('file_name');const csvFileSelect=document.getElementById('select_csv_file');const formTypeSelect=document.getElementById('select_form_type');const exportData=document.getElementById('export_data');const patientCountsSelect=document.getElementById('select_patient_counts');const siteCounts=document.getElementById('site_counts');const cumulativeEnrollmentTable=document.getElementById('cumulative_enrollment');const plannedEnrollmentTable=document.getElementById('planned_enrollment');const varsToExclude=['NIH Enrollment American Indian or Alaska Native-Female-No Ethnicity Info','NIH Enrollment White-No Sex Info-No Ethnicity Info','NIH Enrollment White-No Sex Info-Not Hispanic'];const excludedVars=new Set(varsToExclude.map(item=>item.replace('NIH Enrollment','').trim()));const rawInputData=[];const enrollments=[];const sitesIncluded=new Set();const getBreakdownQueryValidSitesTask=(csvFile,sitesIncluded)=>{sitesIncluded.clear();return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const rows=results.data;if(rows.length>1){const sites=rows[0];for(let r=2;r<rows.length;r++){const cols=rows[r];if(cols.length===sites.length){const variable=cols[0].replace('NIH Enrollment','').trim();if(excludedVars.has(variable)){continue}
+for(let c=2;c<cols.length;c++){const count=cols[c].trim().toLowerCase();if(!(count==='10 patients or fewer'||!isNaN(count))){sites[c]=null}}}}
+for(let i=2;i<sites.length;i++){if(sites[i]){sitesIncluded.add(sites[i].trim())}}}
+resolve()}})})};const readInBreakdownQueryData=(csvFile,validSites,rawInputData)=>{rawInputData.length=0;return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const lines=results.data;if(lines.length>1){const sites=lines[0];const isValidSites=new Array(sites.length).fill(!1);for(let i=2;i<sites.length;i++){isValidSites[i]=validSites.has(sites[i].trim())}
+for(let i=2;i<lines.length;i++){const data=lines[i];if(data.length!==sites.length){continue}
+const variable=data[0].replace('NIH Enrollment','').trim();if(excludedVars.has(variable)){continue}
+const lineData=[variable];for(let j=2;j<data.length;j++){if(isValidSites[j]){lineData.push(data[j].trim().toLowerCase())}}
+rawInputData.push(lineData)}}
+resolve()}})})};const populateSiteNames=(sites)=>{siteCounts.textContent=sites.size;const data=[...sites].sort();const tbody=document.querySelector('#site_names tbody');tbody.innerHTML='';data.forEach(name=>tbody.insertRow(-1).insertCell(0).textContent=name)};const tallyCounts=(data)=>{return data.filter(num=>num!=='').map(num=>parseInt(num)).reduce((accumulator,currentValue)=>accumulator+currentValue)};const getCounts=(line,enrollments,countsForTenOrLess)=>{const data=line.map(line=>line.trim()).filter(line=>line!=='').map(line=>(line==='unavailable')?"0":line).map(line=>(line==='10 patients or fewer')?countsForTenOrLess:line);const counts=tallyCounts(data.slice(1));const category=data[0].replace('NIH Enrollment','').trim();const categories=category.split('-');const race=categories[0].replace('Multiple race','More than One Race').replace('No Race Info','Unknown or Not Reported');const gender=categories[1].toLowerCase();const ethnicity=categories[2].toLowerCase();enrollments.push({race:categories[0].replace('Multiple race','More than One Race').replace('No Race Info','Unknown or Not Reported'),gender:categories[1].toLowerCase(),ethnicity:categories[2].toLowerCase(),counts:counts})};const getCumulativeInclusionData=(enrollments)=>{const enrollmentData=new Map();for(const enrollment of enrollments){const ethnicity=enrollment.ethnicity;const gender=enrollment.gender;const counts=enrollment.counts;let race=enrollment.race;if(!enrollmentData.has(race)){const data=Array(11).fill(0);data[0]=race;enrollmentData.set(race,data)}
+const data=enrollmentData.get(race);if(ethnicity==='not hispanic'){if(gender==='female'){data[1]=counts}else if(gender==='male'){data[2]=counts}else{data[3]=counts}}else if(ethnicity==='hispanic'){if(gender==='female'){data[4]=counts}else if(gender==='male'){data[5]=counts}else{data[6]=counts}}else{if(gender==='female'){data[7]=counts}else if(gender==='male'){data[8]=counts}else{data[9]=counts}}
+data[10]+=counts}
+const data=Array(11).fill(0);race='Total';data[0]=race;enrollmentData.forEach((values,keys)=>{for(let i=1;i<values.length;i++){data[i]+=values[i]}});enrollmentData.set(race,data);return Array.from(enrollmentData,([key,value])=>value)};const getEthnicPlannedData=(enrollments)=>{const enrollmentData=new Map();for(const enrollment of enrollments){const race=enrollment.race;if(race==='More than One Race'||race==='Unknown or Not Reported'){continue}
+const gender=enrollment.gender;const counts=enrollment.counts;let ethnicity=enrollment.ethnicity;if(ethnicity==='hispanic'||ethnicity==='not hispanic'){if(ethnicity==='hispanic'){ethnicity='Hispanic or Latino'}else{ethnicity='Not Hispanic or Latino'}
+if(!enrollmentData.has(ethnicity)){const data=Array(4).fill(0);data[0]=ethnicity;enrollmentData.set(ethnicity,data)}
+const data=enrollmentData.get(ethnicity);if(gender==='female'){data[1]+=counts;data[3]+=counts}else if(gender==='male'){data[2]+=counts;data[3]+=counts}}}
+const data=Array(4).fill(0);ethnicity='Ethnic Category: Total of All Subjects **';data[0]=ethnicity;enrollmentData.forEach((values,keys)=>{for(let i=1;i<values.length;i++){data[i]+=values[i]}});enrollmentData.set(ethnicity,data);return Array.from(enrollmentData,([key,value])=>value)};const getRacialPlannedData=(enrollments)=>{const enrollmentData=new Map();for(const enrollment of enrollments){const ethnicity=enrollment.ethnicity;if(ethnicity==='no ethnicity info'){continue}
+const gender=enrollment.gender;const counts=enrollment.counts;let race=enrollment.race;if(!enrollmentData.has(race)){const data=Array(4).fill(0);data[0]=race;enrollmentData.set(race,data)}
+const data=enrollmentData.get(race);if(gender==='female'){data[1]+=counts;data[3]+=counts}else if(gender==='male'){data[2]+=counts;data[3]+=counts}}
+enrollmentData.delete('More than One Race');enrollmentData.delete('Unknown or Not Reported');const data=Array(4).fill(0);race='Racial Categories: Total of All Subjects **';data[0]=race;enrollmentData.forEach((values,keys)=>{for(let i=1;i<values.length;i++){data[i]+=values[i]}});enrollmentData.set(race,data);return Array.from(enrollmentData,([key,value])=>value)};const addRowToCumulativeTable=(values,tbody)=>{const columns=[];const row=tbody.insertRow(-1);for(let i=0;i<values.length;i++){columns[i]=row.insertCell(i);if(i===0){columns[i].outerHTML=`<th scope="row">${values[i]}</th>`}else{columns[i].innerHTML=values[i]}}
+columns[1].classList.add('table-secondary');columns[2].classList.add('table-secondary');columns[3].classList.add('table-secondary');columns[7].classList.add('table-secondary');columns[8].classList.add('table-secondary');columns[9].classList.add('table-secondary')};const addToCumulativeTable=(data)=>{let tbody=cumulativeEnrollmentTable.getElementsByTagName('tbody')[0];tbody.innerHTML='';const lastIndex=data.length-1;for(let i=0;i<lastIndex;i++){addRowToCumulativeTable(data[i],tbody)}
+let tfoot=cumulativeEnrollmentTable.getElementsByTagName('tfoot')[0];tfoot.innerHTML='';addRowToCumulativeTable(data[lastIndex],tfoot)};const addRowToPlannedTable=(values,tbody)=>{const columns=[];const row=tbody.insertRow(-1);for(let i=0;i<values.length;i++){columns[i]=row.insertCell(i);if(i===0){columns[i].outerHTML=`<th scope="row">${values[i]}</th>`}else{columns[i].innerHTML=values[i]}}};const addToPlannedTable=(ethnicPlannedData,racialPlannedData)=>{let tbody=plannedEnrollmentTable.getElementsByTagName('tbody')[0];tbody.innerHTML='';let lastIndex=ethnicPlannedData.length-1;for(let i=0;i<lastIndex;i++){addRowToPlannedTable(ethnicPlannedData[i],tbody)}
+const values=ethnicPlannedData[lastIndex];let row=tbody.insertRow(-1);row.classList.add('border');row.classList.add('border-2');row.classList.add('border-end-0');row.classList.add('border-bottom-0');row.classList.add('border-start-0');row.classList.add('border-black');for(let i=0;i<values.length;i++){let column=row.insertCell(i);if(i===0){column.outerHTML=`<th scope="row">${values[i]}</th>`}else{column.innerHTML=values[i]}}
+row=tbody.insertRow(-1);column=row.insertCell(0);column.setAttribute('colspan','4');column.classList.add('p-0');row=tbody.insertRow(-1);row.classList.add('border');row.classList.add('border-2');row.classList.add('border-top-0');row.classList.add('border-end-0');row.classList.add('border-start-0');row.classList.add('border-black');row.classList.add('text-center');row.classList.add('align-middle');column=row.insertCell(0);column.outerHTML=`<th scope="row">Racial Categories</th>`;column=row.insertCell(1);column.setAttribute('colspan','3');lastIndex=racialPlannedData.length-1;for(let i=0;i<lastIndex;i++){addRowToPlannedTable(racialPlannedData[i],tbody)}
+let tfoot=plannedEnrollmentTable.getElementsByTagName('tfoot')[0];tfoot.innerHTML='';addRowToPlannedTable(racialPlannedData[lastIndex],tfoot)};const loadData=(rawInputData)=>{enrollments.length=0;const countsForTenOrLess=patientCountsSelect.options[patientCountsSelect.selectedIndex].value;for(const line of rawInputData){getCounts(line,enrollments,countsForTenOrLess)}
+const cumulativeInclusionData=getCumulativeInclusionData(enrollments);addToCumulativeTable(cumulativeInclusionData);const ethnicPlannedData=getEthnicPlannedData(enrollments);const racialPlannedData=getRacialPlannedData(enrollments);addToPlannedTable(ethnicPlannedData,racialPlannedData)};const clearAllData=()=>{sitesIncluded.clear();rawInputData.length=0;enrollments.length=0;if(cumulativeEnrollmentTable){cumulativeEnrollmentTable.getElementsByTagName('tbody')[0].innerHTML='';cumulativeEnrollmentTable.getElementsByTagName('tfoot')[0].innerHTML=''}
+if(plannedEnrollmentTable){plannedEnrollmentTable.getElementsByTagName('tbody')[0].innerHTML='';plannedEnrollmentTable.getElementsByTagName('tfoot')[0].innerHTML=''}};const buildForms=async(csvFile)=>{fileNameDisplay.textContent=csvFile.name;fileNameDisplay.style.display='block';clearAllData();await getBreakdownQueryValidSitesTask(csvFile,sitesIncluded);await readInBreakdownQueryData(csvFile,sitesIncluded,rawInputData);populateSiteNames(sitesIncluded);try{loadData(rawInputData)}catch(err){const messageModal=new bootstrap.Modal(document.getElementById('message_modal'));messageModal.show()}};const addFileDrapDropEventListeners=()=>{const dropArea=document.getElementById('drop_area');if(!dropArea){return}
+const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};['dragenter','dragover','dragleave','drop'].forEach(event=>dropArea.addEventListener(event,preventDefaults,!1));const highlight=(event)=>event.target.classList.add('highlight');['dragenter','dragover'].forEach(event=>dropArea.addEventListener(event,highlight,!1));const unhighlight=(event)=>event.target.classList.remove('highlight');dropArea.addEventListener('dragleave',unhighlight,!1);const handleFileDrop=(event)=>{event.target.classList.remove('highlight');if(event.dataTransfer.items){[...event.dataTransfer.items].forEach((item,i)=>{if(item.kind==="file"){const file=item.getAsFile();if(file.type==='text/csv'){buildForms(file)}}})}else{[...event.dataTransfer.files].forEach((file,i)=>{buildForms(file)})}};dropArea.addEventListener('drop',handleFileDrop,!1)};const addFileSelectEventListeners=()=>{const fileSelect=document.getElementById('select_csv_file');if(!fileSelect){return}
+const handleFileSelect=(event)=>{if(event.target.files.length>0){const file=event.target.files[0];if(file.type==='text/csv'){buildForms(file)}}};fileSelect.addEventListener('change',handleFileSelect)};const handleFormSwitch=()=>{const cumulativeEnrollment=document.getElementById('cumulative_enrollment_form');const plannedEnrollment=document.getElementById('planned_enrollment_form');const formType=formTypeSelect.options[formTypeSelect.selectedIndex].value;if(formType==='cier'){cumulativeEnrollment.style.display='block';plannedEnrollment.style.display='none'}else{cumulativeEnrollment.style.display='none';plannedEnrollment.style.display='block'}};const handlePatientCountChange=()=>{if(rawInputData.length>0){loadData(rawInputData)}};const exportCumulativeTableToCsv=(cumulativeInclusionData)=>{const header1=['','Not Hispanic','Not Hispanic','Not Hispanic','Hispanic','Hispanic','Hispanic','Unknown/Not Reported Ethnicity','Unknown/Not Reported Ethnicity','Unknown/Not Reported Ethnicity',''];const header2=['Racial Category','Female','Male','Unknown/Not Reported','Female','Male','Unknown/Not Reported','Female','Male','Unknown/Not Reported','Total'];const rowData=[];rowData.push(header1.join(','));rowData.push(header2.join(','));cumulativeInclusionData.forEach(values=>rowData.push(values.join(',')));return rowData.join('\r\n')};const exportPlannedTableToCsv=(ethnicPlannedData,racialPlannedData)=>{const header1=['Ethnic Category','Females','Males','Total'];const header2=['Racial Categories','Females','Males','Total'];const rowData=[];rowData.push(header1.join(','));ethnicPlannedData.forEach(values=>rowData.push(values.join(',')));rowData.push(header2.join(','));racialPlannedData.forEach(values=>rowData.push(values.join(',')));rowData.push('');rowData.push('* The "Ethnic Category: Total of All Subjects" must be equal to the "Racial Categories: Total of All Subjects."');return rowData.join('\r\n')};const handleExportData=()=>{const formType=formTypeSelect.options[formTypeSelect.selectedIndex].value;let content=(formType==='cier')?exportCumulativeTableToCsv(getCumulativeInclusionData(enrollments)):exportPlannedTableToCsv(getEthnicPlannedData(enrollments),getRacialPlannedData(enrollments));let blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const downloadLink=document.createElement("a");downloadLink.download='nih_enrollment.csv';downloadLink.href=URL.createObjectURL(blob);downloadLink.click()};const addEventListeners=()=>{addFileDrapDropEventListeners();addFileSelectEventListeners();formTypeSelect.addEventListener('change',handleFormSwitch,!1);patientCountsSelect.addEventListener('change',handlePatientCountChange,!1);exportData.addEventListener('click',handleExportData,!1)};document.addEventListener('DOMContentLoaded',()=>{document.getElementById('copyright_year').textContent=new Date().getFullYear();addEventListeners();handleFormSwitch()})</script>
     </body>
 </html>
