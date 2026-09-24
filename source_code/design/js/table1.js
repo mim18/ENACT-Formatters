@@ -500,6 +500,7 @@ const showSitesIncluded = () => {
 const moveToNextTab = () => {
     currentStep++;
     updateWizard();
+    getTable1Contents();
 };
 const moveToPreviousTab = () => {
     currentStep--;
@@ -1421,7 +1422,86 @@ const addAdditionalVars = () => {
     }
 };
 
-const exportData = () => {
+const getTable1HeaderContent = (rowData) => {
+    const content = [];
+    content.push('');
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        let label = $(`#c${colNum}_label`).text().trim();
+        if (label.includes(',')) {
+            // add quotes to escape comma
+            label = `"${label}"`;
+        }
+        content.push(label);
+    }
+
+    rowData.push(content.join(','));
+};
+const getTable1TotalContent = (rowData) => {
+    let content = [];
+    content.push('Total');
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        content.push(`(n=${totalCounts[colNum]})`);
+    }
+
+    rowData.push(content.join(','));
+};
+const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
+    let content = [];
+    content.push('Demographic Distribution By');
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        content.push('');
+    }
+    rowData.push(content.join(','));
+
+    const numOfVars = variables.length;
+    for (let i = 0; i < numOfVars; i++) {
+        content = [];
+
+        // add variable name
+        let demoVar = variables[i];
+        if (demoVar.includes(',')) {
+            demoVar = `"${demoVar}"`;
+        }
+        content.push(demoVar);
+
+        // add counts for each variable
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const count = counts[colNum][i];
+            const total = totals[colNum];
+            const percentage = (total > 0) ? Math.round((count / total) * 100) : 0;
+
+            content.push(`${count} (${percentage}%)`);
+        }
+
+        rowData.push(content.join(','));
+    }
+};
+const getTable1Contents = () => {
+    const rowData = [];
+    getTable1HeaderContent(rowData);
+    getTable1TotalContent(rowData);
+    getTable1VariableDataContents(rowData, demoVars, demoCounts, totalCounts);
+//    if (hasComorbidity) {
+//        getTable1ComorbidityContents(rowData);
+//    }
+//    if (groupVarRawData.size > 0) {
+//        getTable1GroupVarContents(rowData);
+//    }
+
+    console.info(rowData.join('\r\n'));
+    return rowData.join('\r\n');
+};
+
+const exportData = (event) => {
+    event.preventDefault();
+
+    const content = getTable1Contents();
+    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+    const downloadLink = document.createElement("a");
+    downloadLink.download = 'table1.csv';
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.click();
 };
 
 const addLabelEventListener = (name) => {
@@ -1540,8 +1620,6 @@ const updateWizard = () => {
 const isCurrentStepValid = () => {
     return true;
 };
-
-
 
 $(document).ready(function () {
     $('#copyright_year').text(new Date().getFullYear());
