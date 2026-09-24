@@ -486,6 +486,17 @@ const computeCounts = () => {
     constructTableOne();
 };
 
+const showSitesIncluded = () => {
+    const siteCounts = document.getElementById('site_counts');
+    siteCounts.textContent = validSites.size;
+
+    const data = [...validSites.keys()].sort();
+
+    const tbody = document.querySelector('#site_names tbody');
+    tbody.innerHTML = '';
+    data.forEach(name => tbody.insertRow(-1).insertCell(0).textContent = name);
+};
+
 const moveToNextTab = () => {
     currentStep++;
     updateWizard();
@@ -510,6 +521,7 @@ const loadData = () => {
 
     Promise.all(tasks).then(() => {
         computeCounts();
+        showSitesIncluded();
         moveToNextTab();
     });
 };
