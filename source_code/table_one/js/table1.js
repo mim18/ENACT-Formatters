@@ -1652,10 +1652,6 @@ const updateWizard = () => {
     }
 };
 
-const isCurrentStepValid = () => {
-    return true;
-};
-
 $(document).ready(function () {
     $('#copyright_year').text(new Date().getFullYear());
 
