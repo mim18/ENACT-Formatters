@@ -342,7 +342,7 @@ const addTableOneRowAdditionalVars = (table) => {
 };
 
 const constructTableOne = () => {
-    $('#table_label_text').text($('#table_label').text());
+    $('#table_label_text').text($('#table_label').text().trim());
 
     // clear existing table heads and bodies data
     const theads = document.querySelectorAll("#tableOne thead");
@@ -500,7 +500,6 @@ const showSitesIncluded = () => {
 const moveToNextTab = () => {
     currentStep++;
     updateWizard();
-    getTable1Contents();
 };
 const moveToPreviousTab = () => {
     currentStep--;
@@ -1204,8 +1203,8 @@ const addLabelColumn = (tbody, colNum) => {
     column.classList.add('text-center');
     column.innerHTML = `
 <label for="c${colNum}_label_input">
-    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
 </label>
 `;
 
@@ -1218,10 +1217,10 @@ const addTotalColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `;
@@ -1233,10 +1232,10 @@ const addDemographicsColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="${name}_filename"></div>
 <ul class="list-group" id="${name}_var_list"></ul>
@@ -1249,10 +1248,10 @@ const addComorbColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `;
@@ -1264,10 +1263,10 @@ const addGroupColumn = (tbody, colNum, groupNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
-    <label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
+<label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <ul class="list-group" id="${name}_var_list"></ul>
 `;
@@ -1402,14 +1401,14 @@ const addAdditionalVars = () => {
     const tbodyRow = tbody.insertRow(-1);
     tbodyRow.insertCell(0).outerHTML = `
 <td>
-    <label for="${groupId}_label_input">
-        <span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
-        <input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
-    </label>
-    <div class="row g-2 align-items-center mt-2 pb-5">
-        <div class="col p-2">&nbsp;</div>
-    </div>
-    <ul class="list-group" id="${groupId}_var_list"></ul>
+<label for="${groupId}_label_input">
+<span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
+</label>
+<div class="row g-2 align-items-center mt-2 pb-5">
+<div class="col p-2">&nbsp;</div>
+</div>
+<ul class="list-group" id="${groupId}_var_list"></ul>
 </td>
 `;
     addLabelEventListener(`${groupId}_label`);
@@ -1422,9 +1421,18 @@ const addAdditionalVars = () => {
     }
 };
 
+const getTable1TitleContent = (rowData) => {
+    let title = $('#table_label').text().trim();
+    if (title.includes(',')) {
+        title = `"${title}"`;
+    }
+
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = title;
+    rowData.push(content.join(','));
+};
 const getTable1HeaderContent = (rowData) => {
-    const content = [];
-    content.push('');
+    const content = [''];
     for (let colNum = 1; colNum <= numOfCols; colNum++) {
         let label = $(`#c${colNum}_label`).text().trim();
         if (label.includes(',')) {
@@ -1437,22 +1445,11 @@ const getTable1HeaderContent = (rowData) => {
     rowData.push(content.join(','));
 };
 const getTable1TotalContent = (rowData) => {
-    let content = [];
-    content.push('Total');
-    for (let colNum = 1; colNum <= numOfCols; colNum++) {
-        content.push(`(n=${totalCounts[colNum]})`);
-    }
-
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = 'Total';
     rowData.push(content.join(','));
 };
 const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
-    let content = [];
-    content.push('Demographic Distribution By');
-    for (let colNum = 1; colNum <= numOfCols; colNum++) {
-        content.push('');
-    }
-    rowData.push(content.join(','));
-
     const numOfVars = variables.length;
     for (let i = 0; i < numOfVars; i++) {
         content = [];
@@ -1476,19 +1473,57 @@ const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
         rowData.push(content.join(','));
     }
 };
+const getTable1DemographicContents = (rowData) => {
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = 'Demographic Distribution By';
+    rowData.push(content.join(','));
+
+    getTable1VariableDataContents(rowData, demoVars, demoCounts, totalCounts);
+};
+const getTable1ComorbidityContents = (rowData) => {
+    let label = $('#comorb_label').text().trim();
+    if (label.includes(',')) {
+        label = `"${label}"`;
+    }
+
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = label;
+    rowData.push(content.join(','));
+
+    getTable1VariableDataContents(rowData, comorbVars, comorbCounts, totalCounts);
+};
+const getTable1GroupVarContents = (rowData) => {
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        const groupId = `g${groupNum}`;
+
+        let label = $(`#${groupId}_label`).text().trim();
+        if (label.includes(',')) {
+            label = `"${label}"`;
+        }
+
+        const content = Array(numOfCols + 1).fill('');
+        content[0] = label;
+        rowData.push(content.join(','));
+
+        const variables = addVarsVarNames.get(groupId);
+        const counts = addVarCounts.get(groupId);
+        getTable1VariableDataContents(rowData, variables, counts, totalCounts);
+    }
+};
 const getTable1Contents = () => {
     const rowData = [];
+
+    getTable1TitleContent(rowData);
     getTable1HeaderContent(rowData);
     getTable1TotalContent(rowData);
-    getTable1VariableDataContents(rowData, demoVars, demoCounts, totalCounts);
-//    if (hasComorbidity) {
-//        getTable1ComorbidityContents(rowData);
-//    }
-//    if (groupVarRawData.size > 0) {
-//        getTable1GroupVarContents(rowData);
-//    }
+    getTable1DemographicContents(rowData);
+    if (comorbFiles.size > 0) {
+        getTable1ComorbidityContents(rowData);
+    }
+    if (addVarFiles.size > 0) {
+        getTable1GroupVarContents(rowData);
+    }
 
-    console.info(rowData.join('\r\n'));
     return rowData.join('\r\n');
 };
 

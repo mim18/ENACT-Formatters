@@ -1,60 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Table 1</title>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-        <style>.dropArea{height:100%;color:#0f3c4b;background-color:#e3f2e1;transition:outline-offset 0.2s ease-out,outline-color 0.3s ease-in-out,background-color 0.2s ease-out}.dropArea.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#cff4fc!important}</style>
+        <meta name="author" content="Kevin V. Bui" />
+        <meta name="revised" content="1.1.0" />
+        <meta name="description" content="Create Table 1 using SHRINE exported CSV files." />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+        <style>.wizard-content{display:none}.wizard-content.active{display:block}#prevBtn,#nextBtn{width:150px}.dropArea{height:100%;color:#0f3c4b;background-color:#e3f2e1;transition:outline-offset 0.2s ease-out,outline-color 0.3s ease-in-out,background-color 0.2s ease-out}.dropArea.highlight{outline-offset:-4px;outline-color:#0f3c4b;background-color:#cff4fc!important}</style>
     </head>
-    <body class="bg-body-tertiary">
+    <body>
         <div class="container my-5">
-            <h3>ENACT Table 1</h3>
-            <hr class="mb-4" />
-            <ul class="nav nav-pills mb-5" id="wizard-tab" role="tablist">
-                <li class="nav-item flex-fill">
-                    <button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#step1">Input Data</button>
-                </li>
-                <li class="nav-item flex-fill">
-                    <button class="nav-link w-100 disabled" id="step2btn" data-bs-toggle="pill" data-bs-target="#step2">Table</button>
-                </li>
-            </ul>
-            <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active" id="step1">
-                    <div class="card border-secondary">
-                        <div class="card-body">
+            <header class="d-flex flex-wrap justify-content-between mb-2 border-bottom border-2 py-2">
+                <h5 class="m-0">ENACT Table 1</h5>
+                <ul class="list-unstyled list-inline m-0">
+                    <li class="list-inline-item">Version 1.1</li>
+                    <li class="list-inline-item">
+                        <a href="https://github.com/mim18/ENACT-Formatters" class="d-inline-flex link-body-emphasis" target="_blank">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </li>
+                </ul>
+            </header>
+            <p>Create a baseline characteristics table (Table 1) using SHRINE exported CSV files.</p>
+            <main class="py-5">
+                <div class="card shadow-sm">
+                    <!-- card header -->
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="m-0" id="step_title">Table Title</h5>
+                            <a class="text-decoration-none" id="export_data" aria-current="page" href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Export to file">
+                                <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- card header -->
+                    <!-- card body -->
+                    <div class="card-body py-5">
+                        <!-- wizard content -->
+                        <!-- step 1 -->
+                        <div class="wizard-content active" id="step1">
                             <!-- table design -->
                             <div class="col-12">
                                 <div class="alert alert-danger p-2" id="dataErrorMsg" role="alert" style="display: none;">
                                     <i class="bi bi-exclamation-triangle"></i> Please provide the data file for the red-highlighted cells.
                                 </div>
-                                <!-- settings -->
-                                <div class="text-bg-light p-2 mb-2">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="mt-2">
-                                            <i class="bi bi-pencil"></i> Double click to edit label.
-                                        </div>
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-auto">
-                                                <label for="numOfCols" class="form-label m-0 fw-bold">Number of columns:</label>
-                                            </div>
-                                            <div class="col-auto">
-                                                <select class="form-select" id="numOfCols" aria-label="Select number of columns">
-                                                    <option value="1" selected="selected">1</option>
-                                                    <option value="2">2</option>
-                                                    <option value="3">3</option>
-                                                    <option value="4">4</option>
-                                                    <option value="5">5</option>
-                                                    <option value="6">6</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- end of settings -->
                                 <form id="input_labels">
-                                    <table class="table table-bordered w-100" id="tableInput">
+                                    <table class="table table-bordered caption-top w-100" id="tableInput">
+                                        <caption class="text-reset">
+                                            <!-- settings -->
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <!-- set title -->
+                                                <label for="table_label_input">
+                                                    <span class="h6 fw-bold" id="table_label">Table 1 <i class="bi bi-pencil"></i></span>
+                                                    <input type="text" aria-label="Label" class="form-control" id="table_label_input" name="table_label_input" value="" required="required" style="display: none;" />
+                                                </label>
+                                                <!-- end of set title -->
+                                                <!-- set number of columns -->
+                                                <div class="row g-2 align-items-center">
+                                                    <div class="col-auto">
+                                                        <label for="numOfCols" class="form-label m-0 fw-bold">Number of columns:</label>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <select class="form-select" id="numOfCols" aria-label="Select number of columns">
+                                                            <option value="1" selected="selected">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                            <option value="6">6</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <!-- end of set number of columns -->
+                                            </div>
+                                            <!-- end of settings -->
+                                        </caption>
                                         <tbody>
                                             <tr>
                                                 <td></td>
@@ -179,61 +202,92 @@
                             </div>
                             <!-- end of table design -->
                         </div>
-                    </div>
-                    <div class="d-grid gap-0 col-4 mx-auto mt-5">
-                        <button type="button" class="btn btn-primary" id="nextStep"><i class="bi bi-arrow-right"></i> Next</button>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="step2">
-                    <div class="card border-secondary">
-                        <div class="card-body">
+                        <!-- end of step 1 -->
+                        <!-- step 2 -->
+                        <div class="wizard-content" id="step2">
                             <div class="row gy-5">
-                                <!-- settings -->
-                                <div class="col-12 text-bg-light p-2">
-                                    <div class="d-flex justify-content-between">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-auto">
-                                                <label for="selectPatientCounts" class="form-label mt-2">Select patient counts for <i>"10 patients or fewer"</i>:</label>
-                                            </div>
-                                            <div class="col-auto">
-                                                <select class="form-select" id="selectPatientCounts" aria-label="Default select example">
-                                                    <option value="0">0</option>
-                                                    <option value="1">1</option>
-                                                    <option value="2">2</option>
-                                                    <option value="3">3</option>
-                                                    <option value="4">4</option>
-                                                    <option value="5">5</option>
-                                                    <option value="6">6</option>
-                                                    <option value="7">7</option>
-                                                    <option value="8">8</option>
-                                                    <option value="9">9</option>
-                                                    <option value="10" selected="selected">10</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="exportData" class="btn btn-success float-end"><i class="bi bi-file-earmark-arrow-down"></i> Export Data</button>
-                                    </div>
-                                </div>
-                                <!-- end of settings -->
                                 <!-- table design -->
                                 <div class="col-12">
-                                    <table id="tableOne" class="table table-sm table-bordered border-secondary table-striped caption-top"></table>
+                                    <table id="tableOne" class="table table-sm table-bordered border-secondary table-striped caption-top">
+                                        <caption>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="m-0" id="table_label_text">Table Title</h6>
+                                                <!-- settings -->
+                                                <div class="row g-2 align-items-center">
+                                                    <div class="col-auto">
+                                                        <label for="selectPatientCounts" class="form-label mt-2">Select patient counts for <i>"10 patients or fewer"</i>:</label>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <select class="form-select" id="selectPatientCounts" aria-label="Select patient counts">
+                                                            <option value="0">0</option>
+                                                            <option value="1">1</option>
+                                                            <option value="2">2</option>
+                                                            <option value="3">3</option>
+                                                            <option value="4">4</option>
+                                                            <option value="5">5</option>
+                                                            <option value="6">6</option>
+                                                            <option value="7">7</option>
+                                                            <option value="8">8</option>
+                                                            <option value="9">9</option>
+                                                            <option value="10" selected="selected">10</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <!-- end of settings -->
+                                            </div>
+                                        </caption>
+                                        <thead></thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
                                 <!-- end of table design -->
+                                <!-- show included sites -->
+                                <div class="col-sm-12 col-md-12 col-lg-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="m-0">Sites Included <span class="badge text-bg-secondary" id="site_counts">0</span></h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="overflow-scroll" style="max-height: 400px;">
+                                                <table class="table table-striped table-sm caption-top w-100" id="site_names">
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- end of show included sites -->
                             </div>
                         </div>
+                        <!-- end of step 2 -->
+                        <!-- end of wizard content -->
                     </div>
-                    <div class="d-grid gap-0 col-4 mx-auto mt-5">
-                        <button type="button" class="btn btn-primary" id="prevStep"><i class="bi bi-arrow-left"></i> Back</button>
+                    <!-- end of card body -->
+                    <!-- card footer -->
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-evenly">
+                            <button type="button" class="btn btn-primary" id="prevBtn" disabled="disabled"><i class="bi bi-arrow-left-circle"></i> Previous</button>
+                            <button type="button" class="btn btn-primary" id="nextBtn">Next <i class="bi bi-arrow-right-circle"></i></button>
+                        </div>
                     </div>
+                    <!-- end of card footer -->
                 </div>
-            </div>
+            </main>
+            <footer class="d-flex flex-wrap justify-content-between text-body-secondary border-top border-2 pt-2" style="font-size: 0.9em;">
+                <ul class="nav flex-column">
+                    <li class="nav-item">&copy; <span id="copyright_year">2025</span> University of Pittsburgh</li>
+                    <li class="nav-item">Department of Biomedical Informatics</li>
+                </ul>
+                <ul class="nav flex-column">
+                    <li class="nav-item">This work was supported in part by the National Institutes of Health under grant U24TR004111.</li>
+                </ul>
+            </footer>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.slim.min.js" integrity="sha512-sNylduh9fqpYUK5OYXWcBleGzbZInWj8yCJAU57r1dpSK9tP2ghf/SRYCMj+KsslFkCOt3TvJrX2AV/Gc3wOqA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-        <script>const validSites=new Map();const totalFiles=new Map();let totalRawData=[];let totalCounts=[];const demoFiles=new Map();const demoVarFiles=new Map();const demoVarNames=new Set();let demoRawData=[];let demoCounts=[];let demoVars=[];let demVarIdNum=0;const comorbFiles=new Map();let comorbRawData=[];let comorbCounts=[];let comorbVars=[];const varsToExclude=['Race Middle Eastern or North African'];const excludedVars=new Set(varsToExclude.map(item=>item.replace('Demographic Distribution by','').replace('NIH Enrollment','').trim()));let numOfCols=0;let currentNumOfCols=0;let isBreakdownQuery=!0;const addVarFiles=new Map();const addVarsVarNames=new Map();const addVarRawData=new Map();const addVarCounts=new Map();let numOfGroups=1;let groupVarIdNum=0;const shuffle=(array)=>{let randomIndex;let currentIndex=array.length;while(currentIndex!==0){randomIndex=Math.floor(Math.random()*currentIndex);currentIndex--;[array[currentIndex],array[randomIndex]]=[array[randomIndex],array[currentIndex]]}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.22.1/dist/jquery.validate.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.7.0/papaparse.min.js"></script>
+        <script>let currentStep=0;const stepContents=Array.from(document.querySelectorAll('.wizard-content'));const prevBtn=document.getElementById('prevBtn');const nextBtn=document.getElementById('nextBtn');const validSites=new Map();const totalFiles=new Map();let totalRawData=[];let totalCounts=[];const demoFiles=new Map();const demoVarFiles=new Map();const demoVarNames=new Set();let demoRawData=[];let demoCounts=[];let demoVars=[];let demVarIdNum=0;const comorbFiles=new Map();let comorbRawData=[];let comorbCounts=[];let comorbVars=[];const varsToExclude=['Race Middle Eastern or North African'];const excludedVars=new Set(varsToExclude.map(item=>item.replace('Demographic Distribution by','').replace('NIH Enrollment','').trim()));let numOfCols=0;let currentNumOfCols=0;let isBreakdownQuery=!0;const addVarFiles=new Map();const addVarsVarNames=new Map();const addVarRawData=new Map();const addVarCounts=new Map();let numOfGroups=1;let groupVarIdNum=0;const shuffle=(array)=>{let randomIndex;let currentIndex=array.length;while(currentIndex!==0){randomIndex=Math.floor(Math.random()*currentIndex);currentIndex--;[array[currentIndex],array[randomIndex]]=[array[randomIndex],array[currentIndex]]}
 return array};const getRegularQueryValidSitesTask=(csvFile)=>{return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const sitesIncluded=new Set();const lines=results.data;for(let i=1;i<lines.length;i++){const data=lines[i];if(data.length>1){const site=data[0].trim();const count=data[1].trim().toLowerCase();if(count==='10 patients or fewer'||!isNaN(count)){sitesIncluded.add(site)}}}
 resolve(sitesIncluded)}})})};const getBreakdownQueryValidSitesTask=(csvFile)=>{return new Promise((resolve,reject)=>{Papa.parse(csvFile,{complete:function(results){const sitesIncluded=new Set();const rows=results.data;if(rows.length>1){const sites=rows[0];for(let r=2;r<rows.length;r++){const cols=rows[r];if(cols.length===sites.length){const variable=cols[0].replace('Demographic Distribution by','').replace('NIH Enrollment','').trim();if(excludedVars.has(variable)){continue}
 for(let c=2;c<cols.length;c++){const count=cols[c].trim().toLowerCase();if(!(count==='10 patients or fewer'||!isNaN(count))){sites[c]=null}}}}
@@ -251,7 +305,9 @@ resolve()}})})};const addVariableDataToTable=(tbody,variables,counts,totals)=>{c
 for(let i=0;i<numOfVars;i++){tableRows[i].insertCell(0).outerHTML=`<td class="var_${i + 1}_label_text">${variables[i]}</td>`}
 for(let colNum=1;colNum<=numOfCols;colNum++){for(let i=0;i<numOfVars;i++){const count=counts[colNum][i];const total=totals[colNum];const percentage=(total>0)?Math.round((count/total)*100):0;tableRows[i].insertCell(colNum).innerHTML=`<span class="me-2">${count}</span> (${percentage}%)`}}};const addGroupVariableDataToTable=(tbody,variables,counts,totals,groupId)=>{const numOfVars=variables.length;const tableRows=[];for(let i=0;i<numOfVars;i++){tableRows.push(tbody.insertRow(-1))}
 for(let i=0;i<numOfVars;i++){tableRows[i].insertCell(0).outerHTML=`<td class="${groupId}_var_${i + 1}_label_text">${variables[i]}</td>`}
-for(let colNum=1;colNum<=numOfCols;colNum++){for(let i=0;i<numOfVars;i++){const count=counts[colNum][i];const total=totals[colNum];const percentage=(total>0)?Math.round((count/total)*100):0;tableRows[i].insertCell(colNum).innerHTML=`<span class="me-2">${count}</span> (${percentage}%)`}}};const addTableOneHeader=(thead)=>{const theadRow=thead.insertRow(0);theadRow.insertCell(0).outerHTML='<th></th>';for(let colNum=1;colNum<=numOfCols;colNum++){const name=`c${colNum}_label`;const label=$(`#${name}`).text();theadRow.insertCell(colNum).outerHTML=`<th class="${name}_text">${label}</th>`}};const addTableOneRowTotal=(tbody)=>{const tbodyRow=tbody.insertRow(0);const id='total_label';const label=$(`#${id}`).text();tbodyRow.insertCell(0).outerHTML=`<th class="${id}_text">${label}</th>`;for(let colNum=1;colNum<=numOfCols;colNum++){tbodyRow.insertCell(colNum).innerText=`(n=${totalCounts[colNum]})`}};const addTableOneRowDemographics=(table)=>{const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="demo_label_text" colspan="${numOfCols + 1}">${$('#demo_label').text()}</th>`;addVariableDataToTable(tbody,demoVars,demoCounts,totalCounts)};const addTableOneRowComorbidity=(table)=>{const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="comorb_label_text" colspan="${numOfCols + 1}">${$('#comorb_label').text()}</th>`;addVariableDataToTable(tbody,comorbVars,comorbCounts,totalCounts)};const addTableOneRowAdditionalVars=(table)=>{for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="${groupId}_label_text" colspan="${numOfCols + 1}">${$(`#${groupId}_label`).text()}</th>`;const variables=addVarsVarNames.get(groupId);const counts=addVarCounts.get(groupId);addGroupVariableDataToTable(tbody,variables,counts,totalCounts,groupId)}};const constructTableOne=()=>{$('#tableOne').empty();const table=document.getElementById('tableOne');const caption=table.createCaption();const thead=table.createTHead();const tbody=table.createTBody();caption.innerText='Table 1';tbody.className='table-group-divider';addTableOneHeader(thead);addTableOneRowTotal(tbody);if(demoFiles.size>0||demoVarFiles.size>0){addTableOneRowDemographics(table)}
+for(let colNum=1;colNum<=numOfCols;colNum++){for(let i=0;i<numOfVars;i++){const count=counts[colNum][i];const total=totals[colNum];const percentage=(total>0)?Math.round((count/total)*100):0;tableRows[i].insertCell(colNum).innerHTML=`<span class="me-2">${count}</span> (${percentage}%)`}}};const addTableOneHeader=(table)=>{const thead=table.createTHead();const theadRow=thead.insertRow(0);theadRow.insertCell(0).outerHTML='<th></th>';for(let colNum=1;colNum<=numOfCols;colNum++){const name=`c${colNum}_label`;const label=$(`#${name}`).text();theadRow.insertCell(colNum).outerHTML=`<th class="${name}_text">${label}</th>`}};const addTableOneRowTotal=(table)=>{const tbody=table.createTBody();tbody.className='table-group-divider';const id='total_label';const label=$(`#${id}`).text();const tbodyRow=tbody.insertRow(-1);tbodyRow.insertCell(0).outerHTML=`<th class="${id}_text">${label}</th>`;for(let colNum=1;colNum<=numOfCols;colNum++){tbodyRow.insertCell(colNum).innerText=`(n=${totalCounts[colNum]})`}};const addTableOneRowDemographics=(table)=>{const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="demo_label_text" colspan="${numOfCols + 1}">${$('#demo_label').text()}</th>`;addVariableDataToTable(tbody,demoVars,demoCounts,totalCounts)};const addTableOneRowComorbidity=(table)=>{const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="comorb_label_text" colspan="${numOfCols + 1}">${$('#comorb_label').text()}</th>`;addVariableDataToTable(tbody,comorbVars,comorbCounts,totalCounts)};const addTableOneRowAdditionalVars=(table)=>{for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;const tbody=table.createTBody();tbody.className='table-group-divider';const tbodyRow=tbody.insertRow(-1);tbodyRow.className='table-info';tbodyRow.insertCell(0).outerHTML=`<th class="${groupId}_label_text" colspan="${numOfCols + 1}">${$(`#${groupId}_label`).text()}</th>`;const variables=addVarsVarNames.get(groupId);const counts=addVarCounts.get(groupId);addGroupVariableDataToTable(tbody,variables,counts,totalCounts,groupId)}};const constructTableOne=()=>{$('#table_label_text').text($('#table_label').text().trim());const theads=document.querySelectorAll("#tableOne thead");if(theads){theads.forEach(thead=>thead.remove())}
+const tbodies=document.querySelectorAll("#tableOne tbody");if(tbodies){tbodies.forEach(tbody=>tbody.remove())}
+const table=document.getElementById('tableOne');addTableOneHeader(table);addTableOneRowTotal(table);if(demoFiles.size>0||demoVarFiles.size>0){addTableOneRowDemographics(table)}
 if(comorbFiles.size>0){addTableOneRowComorbidity(table)}
 if(addVarFiles.size>0){addTableOneRowAdditionalVars(table)}};const getTotalCountsTasks=(tasks)=>{totalRawData=new Array(numOfCols+1).fill(null);for(let colNum=1;colNum<=numOfCols;colNum++){tasks.push(readInRegularQueryData(totalFiles.get(`c${colNum}_total`),colNum,totalRawData))}};const getDemographicsCountsTasks=(tasks)=>{demoRawData=new Array(numOfCols+1).fill(null);demoVars=[];if(isBreakdownQuery){for(let colNum=1;colNum<=numOfCols;colNum++){tasks.push(readInBreakdownQueryData(demoFiles.get(`c${colNum}_demo`),colNum,demoRawData,demoVars))}}else{for(let colNum=1;colNum<=numOfCols;colNum++){const varFiles=demoVarFiles.get(`c${colNum}_demo`);if(varFiles){demoRawData[colNum]=new Array(varFiles.size).fill(null);let index=0;for(const[key,file]of varFiles.entries()){tasks.push(readInRegularQueryData(file,index++,demoRawData[colNum]))}}}
 $('#demo_var_list li').each(function(index){demoVars.push($(`#var_${index + 1}_label`).text())})}};const getComorbidityCountsTasks=(tasks)=>{comorbRawData=new Array(numOfCols+1).fill(null);comorbVars=[];for(let colNum=1;colNum<=numOfCols;colNum++){tasks.push(readInBreakdownQueryData(comorbFiles.get(`c${colNum}_comorb`),colNum,comorbRawData,comorbVars))}};const getAdditionalVarCountsTasks=(tasks)=>{for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;const groupFiles=addVarFiles.get(groupId);if(groupFiles&&groupFiles.size>0){const columnRawData=[];for(let colNum=1;colNum<=numOfCols;colNum++){const varFiles=groupFiles.get(`g${groupNum}c${colNum}_addvar`);if(varFiles){columnRawData[colNum]=new Array(varFiles.size).fill(null);let index=0;for(const[key,file]of varFiles.entries()){tasks.push(readInRegularQueryData(file,index++,columnRawData[colNum]))}}}
@@ -260,10 +316,10 @@ return counts};const computeIndividualTotals=(countsForTenOrLess,rawData)=>{cons
 return counts};const computeCounts=()=>{const countsForTenOrLess=parseInt($('#selectPatientCounts').val());totalCounts=computeAggregateTotals(countsForTenOrLess,totalRawData);if(demoFiles.size>0||demoVarFiles.size>0){demoCounts=computeIndividualTotals(countsForTenOrLess,demoRawData)}
 if(comorbFiles.size>0){comorbCounts=computeIndividualTotals(countsForTenOrLess,comorbRawData)}
 if(addVarFiles.size>0){for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;const groupFiles=addVarFiles.get(groupId);if(groupFiles&&groupFiles.size>0){const columnRawData=addVarRawData.get(groupId);addVarCounts.set(groupId,computeIndividualTotals(countsForTenOrLess,columnRawData))}}}
-constructTableOne()};const moveToNextTab=()=>{const nextTab=$('.nav-link.active').parent().next().find('button');nextTab.removeClass('disabled');(new bootstrap.Tab(nextTab)).show()};const moveToPreviousTab=()=>{const prevTab=$('.nav-link.active').parent().prev().find('button');(new bootstrap.Tab(prevTab)).show()};const loadData=()=>{const tasks=[];getTotalCountsTasks(tasks);if(demoFiles.size>0||demoVarFiles.size>0){getDemographicsCountsTasks(tasks)}
+constructTableOne()};const showSitesIncluded=()=>{const siteCounts=document.getElementById('site_counts');siteCounts.textContent=validSites.size;const data=[...validSites.keys()].sort();const tbody=document.querySelector('#site_names tbody');tbody.innerHTML='';data.forEach(name=>tbody.insertRow(-1).insertCell(0).textContent=name)};const moveToNextTab=()=>{currentStep++;updateWizard()};const moveToPreviousTab=()=>{currentStep--;updateWizard()};const loadData=()=>{const tasks=[];getTotalCountsTasks(tasks);if(demoFiles.size>0||demoVarFiles.size>0){getDemographicsCountsTasks(tasks)}
 if(comorbFiles.size>0){getComorbidityCountsTasks(tasks)}
 if(addVarFiles.size>0){getAdditionalVarCountsTasks(tasks)}
-Promise.all(tasks).then(()=>{computeCounts();moveToNextTab()})};const getCurrentMaxNumOfDemoVarFiles=()=>{let maxVarItems=0;for(let colNum=1;colNum<=numOfCols;colNum++){const files=demoVarFiles.get(`c${colNum}_demo`);if(files&&(files.size>maxVarItems)){maxVarItems=files.size}}
+Promise.all(tasks).then(()=>{computeCounts();showSitesIncluded();moveToNextTab()})};const getCurrentMaxNumOfDemoVarFiles=()=>{let maxVarItems=0;for(let colNum=1;colNum<=numOfCols;colNum++){const files=demoVarFiles.get(`c${colNum}_demo`);if(files&&(files.size>maxVarItems)){maxVarItems=files.size}}
 return maxVarItems};const getCurrentMaxNumOfGroupVarFiles=(groupId)=>{let maxVarItems=0;const groupFiles=addVarFiles.get(groupId);if(groupFiles){for(let colNum=1;colNum<=numOfCols;colNum++){const files=groupFiles.get(`${groupId}c${colNum}_addvar`);if(files&&(files.size>maxVarItems)){maxVarItems=files.size}}}
 return maxVarItems};const hasMetAllRequirements=()=>{let isAllValid=!0;for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_total`;const dropAreaId=`#${fileId}_droparea`;if(totalFiles.has(fileId)){$(dropAreaId).removeClass('bg-danger-subtle')}else{$(dropAreaId).addClass('bg-danger-subtle');isAllValid=!1}}
 if(isBreakdownQuery){if(demoFiles.size>0){for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_demo`;if(!demoFiles.has(fileId)){$(`#${fileId}_droparea`).addClass('bg-danger-subtle');$('#dataErrorMsg').show();isAllValid=!1}}}}else{if(demoVarFiles.size>0){const numOfVarsRequired=getCurrentMaxNumOfDemoVarFiles();for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_demo`;const dropAreaId=`#${fileId}_droparea`;if(demoVarFiles.has(fileId)){const varFiles=demoVarFiles.get(fileId);if(varFiles.size===numOfVarsRequired){$(dropAreaId).removeClass('bg-danger-subtle')}else{$(dropAreaId).addClass('bg-danger-subtle');$('#dataErrorMsg').show();isAllValid=!1}}else{$(dropAreaId).addClass('bg-danger-subtle');$('#dataErrorMsg').show();isAllValid=!1}}}}
@@ -271,7 +327,7 @@ if(comorbFiles.size>0){for(let colNum=1;colNum<=numOfCols;colNum++){const fileId
 if(addVarFiles.size>0){for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;const groupFiles=addVarFiles.get(groupId);if(groupFiles&&groupFiles.size>0){const numOfVarsRequired=getCurrentMaxNumOfGroupVarFiles(groupId);for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`g${groupNum}c${colNum}_addvar`;const dropAreaId=`#${fileId}_droparea`;if(groupFiles.has(fileId)){const varFiles=groupFiles.get(fileId);if(varFiles.size===numOfVarsRequired){$(dropAreaId).removeClass('bg-danger-subtle')}else{$(dropAreaId).addClass('bg-danger-subtle');$('#dataErrorMsg').show();isAllValid=!1}}else{$(dropAreaId).addClass('bg-danger-subtle');$('#dataErrorMsg').show();isAllValid=!1}}}}}
 if(isAllValid){$('#dataErrorMsg').hide();for(let colNum=1;colNum<=numOfCols;colNum++){$(`#c${colNum}_total_droparea`).removeClass('bg-danger-subtle');$(`#c${colNum}_demo_droparea`).removeClass('bg-danger-subtle');$(`#c${colNum}_comorb_droparea`).removeClass('bg-danger-subtle')}
 for(let groupNum=1;groupNum<=numOfGroups;groupNum++){for(let colNum=1;colNum<=numOfCols;colNum++){$(`#g${groupNum}c${colNum}_addvar_droparea`).removeClass('bg-danger-subtle')}}}else{$('#dataErrorMsg').show()}
-return isAllValid};const generateTableOne=()=>{if($('#input_labels').valid()&&hasMetAllRequirements()){Promise.all(getValidSiteTasks()).then((siteNames)=>{let sites=new Set();siteNames.forEach(siteName=>{sites=sites.size>0?sites.intersection(siteName):sites.union(siteName)});validSites.clear();const shuffledIndexes=shuffle([...Array(sites.size).keys()]);Array.from(sites).forEach((site,index)=>validSites.set(site,shuffledIndexes[index]+1));loadData()})}};const isCurrentlyMetRequirements=()=>{if(totalFiles.size!==numOfCols){return!1}
+return isAllValid};const generateTableOne=()=>{Promise.all(getValidSiteTasks()).then((siteNames)=>{let sites=new Set();siteNames.forEach(siteName=>{sites=sites.size>0?sites.intersection(siteName):sites.union(siteName)});validSites.clear();const shuffledIndexes=shuffle([...Array(sites.size).keys()]);Array.from(sites).forEach((site,index)=>validSites.set(site,shuffledIndexes[index]+1));loadData()})};const isCurrentlyMetRequirements=()=>{if(totalFiles.size!==numOfCols){return!1}
 if(isBreakdownQuery){if((demoFiles.size>0)&&(demoFiles.size!==numOfCols)){return!1}}else{if(demoVarFiles.size>0){if((demoVarFiles.size===numOfCols)){const numOfVarsRequired=getCurrentMaxNumOfDemoVarFiles();for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_demo`;const varFiles=demoVarFiles.get(fileId);if(varFiles.size!==numOfVarsRequired){return!1}}}else{return!1}}}
 if((comorbFiles.size>0)&&(comorbFiles.size!==numOfCols)){return!1}
 return!0};const removeGroupVariableErrorNotifications=(groupId)=>{const groupFiles=addVarFiles.get(groupId);if(groupFiles){const numOfVarsRequired=getCurrentMaxNumOfGroupVarFiles(groupId);for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`${groupId}c${colNum}_addvar`;const files=groupFiles.get(fileId);if(files&&(files.size===numOfVarsRequired)){const dropAreaId=`#${fileId}_droparea`;$(dropAreaId).removeClass('bg-danger-subtle')}}}};const removeDemographicVariableErrorNotifications=()=>{const numOfVarsRequired=getCurrentMaxNumOfDemoVarFiles();for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_demo`;const files=demoVarFiles.get(fileId);if(files&&(files.size===numOfVarsRequired)){const dropAreaId=`#${fileId}_droparea`;$(dropAreaId).removeClass('bg-danger-subtle')}}};const removeDemographicErrorNotifications=()=>{if(demoFiles.size===0){for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_demo`;const dropAreaId=`#${fileId}_droparea`;$(dropAreaId).removeClass('bg-danger-subtle')}}};const removeComorbidityErrorNotifications=()=>{if(comorbFiles.size===0){for(let colNum=1;colNum<=numOfCols;colNum++){const fileId=`c${colNum}_comorb`;const dropAreaId=`#${fileId}_droparea`;$(dropAreaId).removeClass('bg-danger-subtle')}}};const removeFile=(trashObj)=>{const elementId=trashObj.parentElement.parentElement.id;$(`#${elementId}`).empty();const fileId=elementId.split('_',2).join('_');if(fileId.includes('total')){totalFiles.delete(fileId)}else if(fileId.includes('demo')){demoFiles.delete(fileId);removeDemographicErrorNotifications()}else if(fileId.includes('comorb')){comorbFiles.delete(fileId);removeComorbidityErrorNotifications()}
@@ -314,40 +370,40 @@ demVarIdNum=0;demoVarFiles.clear();const list='#demo_var_list';$(list).empty();$
 demoFiles.clear()}};const preventDefaults=(event)=>{event.preventDefault();event.stopPropagation()};const highlight=(event)=>event.target.classList.add('highlight');const unhighlight=(event)=>event.target.classList.remove('highlight');const handleFileDrop=(event)=>{const fileId=event.target.id.replace('_droparea','').trim();if(event.originalEvent.dataTransfer.items){[...event.originalEvent.dataTransfer.items].forEach(item=>{if(item.kind==='file'&&item.type==='text/csv'){saveInputData(fileId,item.getAsFile())}})}else{[...event.originalEvent.dataTransfer.files].forEach(file=>{if(file.type==='text/csv'){saveInputData(fileId,file)}})}};const handleFileSelect=(event)=>{event.preventDefault();event.stopPropagation();if(event.target.files.length>0){const fileId=event.target.id.replace('_file','').trim();[...event.target.files].forEach(file=>{if(file.type==='text/csv'){saveInputData(fileId,file)}})}
 event.target.value=""};const addGroupFileDrapDropEventListeners=(groupNum,colNum)=>{const groupDropArea=`#g${groupNum}c${colNum}_addvar_droparea`;['dragenter','dragover','dragleave','drop'].forEach(event=>{$(groupDropArea).on(event,preventDefaults)});['dragenter','dragover'].forEach(event=>{$(groupDropArea).on(event,highlight)});['dragleave'].forEach(event=>{$(groupDropArea).on(event,unhighlight)});['drop'].forEach(event=>{$(groupDropArea).on(event,handleFileDrop)})};const addGroupFileSelectEventListeners=(groupNum,colNum)=>{const groupDropArea=`#g${groupNum}c${colNum}_addvar_droparea`;['change'].forEach(event=>{$(groupDropArea).on(event,handleFileSelect)})};const addFileDrapDropEventListeners=(colNum)=>{const totalDropArea=`#c${colNum}_total_droparea`;const demoDropArea=`#c${colNum}_demo_droparea`;const comorbDropArea=`#c${colNum}_comorb_droparea`;['dragenter','dragover','dragleave','drop'].forEach(event=>{$(totalDropArea).on(event,preventDefaults);$(demoDropArea).on(event,preventDefaults);$(comorbDropArea).on(event,preventDefaults)});['dragenter','dragover'].forEach(event=>{$(totalDropArea).on(event,highlight);$(demoDropArea).on(event,highlight);$(comorbDropArea).on(event,highlight)});['dragleave'].forEach(event=>{$(totalDropArea).on(event,unhighlight);$(demoDropArea).on(event,unhighlight);$(comorbDropArea).on(event,unhighlight)});['drop'].forEach(event=>{$(totalDropArea).on(event,handleFileDrop);$(demoDropArea).on(event,handleFileDrop);$(comorbDropArea).on(event,handleFileDrop)})};const addFileSelectEventListeners=(colNum)=>{const totalDropArea=`#c${colNum}_total_droparea`;const demoDropArea=`#c${colNum}_demo_droparea`;const comorbDropArea=`#c${colNum}_comorb_droparea`;['change'].forEach(event=>{$(totalDropArea).on(event,handleFileSelect);$(demoDropArea).on(event,handleFileSelect);$(comorbDropArea).on(event,handleFileSelect)})};const addFileEventListeners=(colNum)=>{addFileDrapDropEventListeners(colNum);addFileSelectEventListeners(colNum)};const addGroupFileEventListeners=(groupNum,colNum)=>{addGroupFileDrapDropEventListeners(groupNum,colNum);addGroupFileSelectEventListeners(groupNum,colNum)};const addLabelColumn=(tbody,colNum)=>{const column=tbody.rows[0].cells[colNum];column.classList.add('text-center');column.innerHTML=`
 <label for="c${colNum}_label_input">
-    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
 </label>
 `;addLabelEventListener(`c${colNum}_label`)};const addTotalColumn=(tbody,colNum)=>{const name=`c${colNum}_total`;const column=tbody.rows[0].cells[colNum];column.classList.add('border','border-black','border-2');column.innerHTML=`
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `};const addDemographicsColumn=(tbody,colNum)=>{const name=`c${colNum}_demo`;const column=tbody.rows[0].cells[colNum];column.classList.add('border','border-black','border-2');column.innerHTML=`
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="${name}_filename"></div>
 <ul class="list-group" id="${name}_var_list"></ul>
 `};const addComorbColumn=(tbody,colNum)=>{const name=`c${colNum}_comorb`;const column=tbody.rows[0].cells[colNum];column.classList.add('border','border-black','border-2');column.innerHTML=`
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `};const addGroupColumn=(tbody,colNum,groupNum)=>{const name=`g${groupNum}c${colNum}_addvar`;const column=tbody.rows[0].cells[colNum];column.classList.add('border','border-black','border-2');column.innerHTML=`
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
-    <label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
+<label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <ul class="list-group" id="${name}_var_list"></ul>
 `};const addColumns=()=>{const table=document.getElementById('tableInput');const tbodies=table.tBodies;for(let t=0;t<tbodies.length;t++){const rows=tbodies[t].rows;if(t===4){rows[0].cells[0].colSpan=numOfCols+1}else{for(let r=0;r<rows.length;r++){for(let c=currentNumOfCols;c<numOfCols;c++){rows[r].insertCell(-1)}}}}
@@ -360,18 +416,27 @@ removeExtraGroupVars(groupId);removeGroupVariableErrorNotifications(groupId)}
 if(isCurrentlyMetRequirements()){$('#dataErrorMsg').hide()}};const adjustNumberOfColumns=()=>{numOfCols=parseInt($('#numOfCols').val());if(currentNumOfCols<numOfCols){addColumns()}else if(currentNumOfCols>numOfCols){removeColumns()}
 currentNumOfCols=numOfCols};const addAdditionalVars=()=>{const groupNum=++numOfGroups;const groupId=`g${groupNum}`;const table=document.getElementById('tableInput');const tbody=table.createTBody();const tbodyRow=tbody.insertRow(-1);tbodyRow.insertCell(0).outerHTML=`
 <td>
-    <label for="${groupId}_label_input">
-        <span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
-        <input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
-    </label>
-    <div class="row g-2 align-items-center mt-2 pb-5">
-        <div class="col p-2">&nbsp;</div>
-    </div>
-    <ul class="list-group" id="${groupId}_var_list"></ul>
+<label for="${groupId}_label_input">
+<span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
+</label>
+<div class="row g-2 align-items-center mt-2 pb-5">
+<div class="col p-2">&nbsp;</div>
+</div>
+<ul class="list-group" id="${groupId}_var_list"></ul>
 </td>
-`;addLabelEventListener(`${groupId}_label`);for(let colNum=1;colNum<=numOfCols;colNum++){tbodyRow.insertCell(colNum);addGroupColumn(tbody,colNum,groupNum);addGroupFileEventListeners(groupNum,colNum)}};const addLabelEventListener=(name)=>{$(`#${name}`).on('dblclick',()=>switchToEditMode(name));$(`#${name}_input`).on('focusout',()=>switchToLabelMode(name));$(`#${name}_input`).on('keypress',event=>saveOnEnter(event,name))};const addWizardEventListeners=()=>{$('#nextStep').on('click',generateTableOne);$('#prevStep').on('click',moveToPreviousTab)};const addLabelEventListeners=()=>{for(let i=1;i<=numOfCols;i++){addLabelEventListener(`c${i}_label`)}
-addLabelEventListener('total_label');addLabelEventListener('demo_label');addLabelEventListener('comorb_label');for(let groupNum=1;groupNum<=numOfGroups;groupNum++){addLabelEventListener(`g${groupNum}_label`)}};const addSettingsEventListeners=()=>{$('#numOfCols').on('change',adjustNumberOfColumns);$('input[name="datatype"]').on('change',adjustDataType);$('#selectPatientCounts').on('change',computeCounts);$('#add_additional_vars').on("click",addAdditionalVars)};const addEventListeners=()=>{addWizardEventListeners();addLabelEventListeners();addSettingsEventListeners();for(let colNum=1;colNum<=numOfCols;colNum++){addFileEventListeners(colNum)}
+`;addLabelEventListener(`${groupId}_label`);for(let colNum=1;colNum<=numOfCols;colNum++){tbodyRow.insertCell(colNum);addGroupColumn(tbody,colNum,groupNum);addGroupFileEventListeners(groupNum,colNum)}};const getTable1TitleContent=(rowData)=>{let title=$('#table_label').text().trim();if(title.includes(',')){title=`"${title}"`}
+const content=Array(numOfCols+1).fill('');content[0]=title;rowData.push(content.join(','))};const getTable1HeaderContent=(rowData)=>{const content=[''];for(let colNum=1;colNum<=numOfCols;colNum++){let label=$(`#c${colNum}_label`).text().trim();if(label.includes(',')){label=`"${label}"`}
+content.push(label)}
+rowData.push(content.join(','))};const getTable1TotalContent=(rowData)=>{const content=Array(numOfCols+1).fill('');content[0]='Total';rowData.push(content.join(','))};const getTable1VariableDataContents=(rowData,variables,counts,totals)=>{const numOfVars=variables.length;for(let i=0;i<numOfVars;i++){content=[];let demoVar=variables[i];if(demoVar.includes(',')){demoVar=`"${demoVar}"`}
+content.push(demoVar);for(let colNum=1;colNum<=numOfCols;colNum++){const count=counts[colNum][i];const total=totals[colNum];const percentage=(total>0)?Math.round((count/total)*100):0;content.push(`${count} (${percentage}%)`)}
+rowData.push(content.join(','))}};const getTable1DemographicContents=(rowData)=>{const content=Array(numOfCols+1).fill('');content[0]='Demographic Distribution By';rowData.push(content.join(','));getTable1VariableDataContents(rowData,demoVars,demoCounts,totalCounts)};const getTable1ComorbidityContents=(rowData)=>{let label=$('#comorb_label').text().trim();if(label.includes(',')){label=`"${label}"`}
+const content=Array(numOfCols+1).fill('');content[0]=label;rowData.push(content.join(','));getTable1VariableDataContents(rowData,comorbVars,comorbCounts,totalCounts)};const getTable1GroupVarContents=(rowData)=>{for(let groupNum=1;groupNum<=numOfGroups;groupNum++){const groupId=`g${groupNum}`;let label=$(`#${groupId}_label`).text().trim();if(label.includes(',')){label=`"${label}"`}
+const content=Array(numOfCols+1).fill('');content[0]=label;rowData.push(content.join(','));const variables=addVarsVarNames.get(groupId);const counts=addVarCounts.get(groupId);getTable1VariableDataContents(rowData,variables,counts,totalCounts)}};const getTable1Contents=()=>{const rowData=[];getTable1TitleContent(rowData);getTable1HeaderContent(rowData);getTable1TotalContent(rowData);getTable1DemographicContents(rowData);if(comorbFiles.size>0){getTable1ComorbidityContents(rowData)}
+if(addVarFiles.size>0){getTable1GroupVarContents(rowData)}
+return rowData.join('\r\n')};const exportData=(event)=>{event.preventDefault();const content=getTable1Contents();const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});const downloadLink=document.createElement("a");downloadLink.download='table1.csv';downloadLink.href=URL.createObjectURL(blob);downloadLink.click()};const addLabelEventListener=(name)=>{$(`#${name}`).on('dblclick',()=>switchToEditMode(name));$(`#${name}_input`).on('focusout',()=>switchToLabelMode(name));$(`#${name}_input`).on('keypress',event=>saveOnEnter(event,name))};const addWizardEventListeners=()=>{nextBtn.addEventListener('click',()=>{if($('#input_labels').valid()&&hasMetAllRequirements()){generateTableOne()}});prevBtn.addEventListener('click',moveToPreviousTab)};const addLabelEventListeners=()=>{for(let i=1;i<=numOfCols;i++){addLabelEventListener(`c${i}_label`)}
+addLabelEventListener('table_label');addLabelEventListener('total_label');addLabelEventListener('demo_label');addLabelEventListener('comorb_label');for(let groupNum=1;groupNum<=numOfGroups;groupNum++){addLabelEventListener(`g${groupNum}_label`)}};const addSettingsEventListeners=()=>{$('#numOfCols').on('change',adjustNumberOfColumns);$('input[name="datatype"]').on('change',adjustDataType);$('#selectPatientCounts').on('change',computeCounts);$('#add_additional_vars').on("click",addAdditionalVars)};const addEventListeners=()=>{addWizardEventListeners();addLabelEventListeners();addSettingsEventListeners();for(let colNum=1;colNum<=numOfCols;colNum++){addFileEventListeners(colNum)}
 for(let groupNum=1;groupNum<=numOfGroups;groupNum++){for(let colNum=1;colNum<=numOfCols;colNum++){addGroupFileEventListeners(groupNum,colNum)}}
-$('#input_labels').on('submit',preventDefaults)};const resetToDefault=()=>{$('#numOfCols option').eq(0).prop('selected',!0);$('#selectPatientCounts option').eq(10).prop('selected',!0);$('#demo_breakdown_query').prop('checked',!0);numOfCols=parseInt($('#numOfCols').val());currentNumOfCols=1;validSites.clear();totalFiles.clear();totalRawData=[];totalCounts=[];demoFiles.clear();demoVarFiles.clear();demoVarNames.clear();demoRawData=[];demoCounts=[];demoVars=[];comorbFiles.clear();comorbRawData=[];comorbCounts=[];comorbVars=[];addVarFiles.clear();addVarsVarNames.clear();addVarRawData.clear();addVarCounts.clear();numOfGroups=1;groupVarIdNum=0};$(document).ready(function(){resetToDefault();addEventListeners();adjustNumberOfColumns();adjustDataType();$('#input_labels').validate({errorElement:"em",errorClass:'text-danger',errorPlacement:function(error,element){error.addClass("invalid-feedback");error.insertAfter(element)},highlight:function(element){$(element).addClass("is-invalid").removeClass("is-valid")},unhighlight:function(element){$(element).addClass("is-valid").removeClass("is-invalid")}})})</script>
+$('#export_data').on("click",exportData);$('#input_labels').on('submit',preventDefaults)};const resetToDefault=()=>{$('#numOfCols option').eq(0).prop('selected',!0);$('#selectPatientCounts option').eq(10).prop('selected',!0);$('#demo_breakdown_query').prop('checked',!0);numOfCols=parseInt($('#numOfCols').val());currentNumOfCols=1;validSites.clear();totalFiles.clear();totalRawData=[];totalCounts=[];demoFiles.clear();demoVarFiles.clear();demoVarNames.clear();demoRawData=[];demoCounts=[];demoVars=[];comorbFiles.clear();comorbRawData=[];comorbCounts=[];comorbVars=[];addVarFiles.clear();addVarsVarNames.clear();addVarRawData.clear();addVarCounts.clear();numOfGroups=1;groupVarIdNum=0};const updateWizard=()=>{stepContents.forEach((step,index)=>{step.classList.toggle('active',index===currentStep)});const isInitialStep=currentStep===0;if(isInitialStep){prevBtn.disabled=!0;nextBtn.disabled=!1;$('#step_title').text('Input Data');$('#export_data').hide()}else{prevBtn.disabled=!1;nextBtn.disabled=!0;$('#step_title').text('Generate Table');$('#export_data').show()}};const isCurrentStepValid=()=>{return!0};$(document).ready(function(){$('#copyright_year').text(new Date().getFullYear());updateWizard();resetToDefault();addEventListeners();adjustNumberOfColumns();adjustDataType();$('#input_labels').validate({errorElement:"em",errorClass:'text-danger',errorPlacement:function(error,element){error.addClass("invalid-feedback");error.insertAfter(element)},highlight:function(element){$(element).addClass("is-invalid").removeClass("is-valid")},unhighlight:function(element){$(element).addClass("is-valid").removeClass("is-invalid")}})})</script>
     </body>
 </html>

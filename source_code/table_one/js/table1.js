@@ -1,3 +1,8 @@
+let currentStep = 0;
+const stepContents = Array.from(document.querySelectorAll('.wizard-content'));
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
 const validSites = new Map();
 const totalFiles = new Map();
 let totalRawData = [];
@@ -272,7 +277,8 @@ const addGroupVariableDataToTable = (tbody, variables, counts, totals, groupId) 
 };
 
 // construct table 1
-const addTableOneHeader = (thead) => {
+const addTableOneHeader = (table) => {
+    const thead = table.createTHead();
     const theadRow = thead.insertRow(0);
 
     // first column header is empty
@@ -285,11 +291,13 @@ const addTableOneHeader = (thead) => {
         theadRow.insertCell(colNum).outerHTML = `<th class="${name}_text">${label}</th>`;
     }
 };
-const addTableOneRowTotal = (tbody) => {
-    const tbodyRow = tbody.insertRow(0);
+const addTableOneRowTotal = (table) => {
+    const tbody = table.createTBody();
+    tbody.className = 'table-group-divider';
 
     const id = 'total_label';
     const label = $(`#${id}`).text();
+    const tbodyRow = tbody.insertRow(-1);
     tbodyRow.insertCell(0).outerHTML = `<th class="${id}_text">${label}</th>`;
 
     for (let colNum = 1; colNum <= numOfCols; colNum++) {
@@ -334,20 +342,21 @@ const addTableOneRowAdditionalVars = (table) => {
 };
 
 const constructTableOne = () => {
-    // clear table
-    $('#tableOne').empty();
+    $('#table_label_text').text($('#table_label').text().trim());
 
-    // get table
+    // clear existing table heads and bodies data
+    const theads = document.querySelectorAll("#tableOne thead");
+    if (theads) {
+        theads.forEach(thead => thead.remove());
+    }
+    const tbodies = document.querySelectorAll("#tableOne tbody");
+    if (tbodies) {
+        tbodies.forEach(tbody => tbody.remove());
+    }
+
     const table = document.getElementById('tableOne');
-    const caption = table.createCaption();
-    const thead = table.createTHead();
-    const tbody = table.createTBody();
-
-    caption.innerText = 'Table 1';
-    tbody.className = 'table-group-divider';
-
-    addTableOneHeader(thead);
-    addTableOneRowTotal(tbody);
+    addTableOneHeader(table);
+    addTableOneRowTotal(table);
     if (demoFiles.size > 0 || demoVarFiles.size > 0) {
         addTableOneRowDemographics(table);
     }
@@ -477,16 +486,24 @@ const computeCounts = () => {
     constructTableOne();
 };
 
-const moveToNextTab = () => {
-    const nextTab = $('.nav-link.active').parent().next().find('button');
-    nextTab.removeClass('disabled');
+const showSitesIncluded = () => {
+    const siteCounts = document.getElementById('site_counts');
+    siteCounts.textContent = validSites.size;
 
-    (new bootstrap.Tab(nextTab)).show();
+    const data = [...validSites.keys()].sort();
+
+    const tbody = document.querySelector('#site_names tbody');
+    tbody.innerHTML = '';
+    data.forEach(name => tbody.insertRow(-1).insertCell(0).textContent = name);
+};
+
+const moveToNextTab = () => {
+    currentStep++;
+    updateWizard();
 };
 const moveToPreviousTab = () => {
-    const prevTab = $('.nav-link.active').parent().prev().find('button');
-
-    (new bootstrap.Tab(prevTab)).show();
+    currentStep--;
+    updateWizard();
 };
 
 const loadData = () => {
@@ -504,6 +521,7 @@ const loadData = () => {
 
     Promise.all(tasks).then(() => {
         computeCounts();
+        showSitesIncluded();
         moveToNextTab();
     });
 };
@@ -654,20 +672,18 @@ const hasMetAllRequirements = () => {
 };
 
 const generateTableOne = () => {
-    if ($('#input_labels').valid() && hasMetAllRequirements()) {
-        Promise.all(getValidSiteTasks()).then((siteNames) => {
-            let sites = new Set();
-            siteNames.forEach(siteName => {
-                sites = sites.size > 0 ? sites.intersection(siteName) : sites.union(siteName);
-            });
-
-            validSites.clear();
-            const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
-            Array.from(sites).forEach((site, index) => validSites.set(site, shuffledIndexes[index] + 1));
-
-            loadData();
+    Promise.all(getValidSiteTasks()).then((siteNames) => {
+        let sites = new Set();
+        siteNames.forEach(siteName => {
+            sites = sites.size > 0 ? sites.intersection(siteName) : sites.union(siteName);
         });
-    }
+
+        validSites.clear();
+        const shuffledIndexes = shuffle([...Array(sites.size).keys()]);
+        Array.from(sites).forEach((site, index) => validSites.set(site, shuffledIndexes[index] + 1));
+
+        loadData();
+    });
 };
 
 const isCurrentlyMetRequirements = () => {
@@ -1187,8 +1203,8 @@ const addLabelColumn = (tbody, colNum) => {
     column.classList.add('text-center');
     column.innerHTML = `
 <label for="c${colNum}_label_input">
-    <span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
-    <input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
+<span class="h6 fw-bold" id="c${colNum}_label">Column ${colNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Column ${colNum} label" class="form-control" id="c${colNum}_label_input" name="c${colNum}_label_input" value="" required="required" style="display: none;" />
 </label>
 `;
 
@@ -1201,10 +1217,10 @@ const addTotalColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `;
@@ -1216,10 +1232,10 @@ const addDemographicsColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success demo_choose_file_label" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(<span class="query_type"></span> Query)</div>
 </div>
 <div id="${name}_filename"></div>
 <ul class="list-group" id="${name}_var_list"></ul>
@@ -1232,10 +1248,10 @@ const addComorbColumn = (tbody, colNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
-    <label class="btn btn-success" for="${name}_file">Choose CSV File</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" />
+<label class="btn btn-success" for="${name}_file">Choose CSV File</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Breakdown Query)</div>
 </div>
 <div id="${name}_filename"></div>
 `;
@@ -1247,10 +1263,10 @@ const addGroupColumn = (tbody, colNum, groupNum) => {
     column.classList.add('border', 'border-black', 'border-2');
     column.innerHTML = `
 <div class="text-center align-middle p-4 dropArea" id="${name}_droparea">
-    Drag &amp; Drop or
-    <input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
-    <label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
-    <div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
+Drag &amp; Drop or
+<input class="position-absolute invisible" id="${name}_file" type="file" accept=".csv" multiple="multiple" />
+<label class="btn btn-success" for="${name}_file">Choose Multiple CSV Files</label>
+<div class="mt-3" style="width: fit-content; margin-inline: auto;">(Regular Query)</div>
 </div>
 <ul class="list-group" id="${name}_var_list"></ul>
 `;
@@ -1385,14 +1401,14 @@ const addAdditionalVars = () => {
     const tbodyRow = tbody.insertRow(-1);
     tbodyRow.insertCell(0).outerHTML = `
 <td>
-    <label for="${groupId}_label_input">
-        <span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
-        <input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
-    </label>
-    <div class="row g-2 align-items-center mt-2 pb-5">
-        <div class="col p-2">&nbsp;</div>
-    </div>
-    <ul class="list-group" id="${groupId}_var_list"></ul>
+<label for="${groupId}_label_input">
+<span class="h6 fw-bold" id="${groupId}_label">Group ${groupNum} <i class="bi bi-pencil"></i></span>
+<input type="text" aria-label="Label" class="form-control" id="${groupId}_label_input" name="${groupId}_label_input" value="" required="required" style="display: none;" />
+</label>
+<div class="row g-2 align-items-center mt-2 pb-5">
+<div class="col p-2">&nbsp;</div>
+</div>
+<ul class="list-group" id="${groupId}_var_list"></ul>
 </td>
 `;
     addLabelEventListener(`${groupId}_label`);
@@ -1405,6 +1421,124 @@ const addAdditionalVars = () => {
     }
 };
 
+const getTable1TitleContent = (rowData) => {
+    let title = $('#table_label').text().trim();
+    if (title.includes(',')) {
+        title = `"${title}"`;
+    }
+
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = title;
+    rowData.push(content.join(','));
+};
+const getTable1HeaderContent = (rowData) => {
+    const content = [''];
+    for (let colNum = 1; colNum <= numOfCols; colNum++) {
+        let label = $(`#c${colNum}_label`).text().trim();
+        if (label.includes(',')) {
+            // add quotes to escape comma
+            label = `"${label}"`;
+        }
+        content.push(label);
+    }
+
+    rowData.push(content.join(','));
+};
+const getTable1TotalContent = (rowData) => {
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = 'Total';
+    rowData.push(content.join(','));
+};
+const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
+    const numOfVars = variables.length;
+    for (let i = 0; i < numOfVars; i++) {
+        content = [];
+
+        // add variable name
+        let demoVar = variables[i];
+        if (demoVar.includes(',')) {
+            demoVar = `"${demoVar}"`;
+        }
+        content.push(demoVar);
+
+        // add counts for each variable
+        for (let colNum = 1; colNum <= numOfCols; colNum++) {
+            const count = counts[colNum][i];
+            const total = totals[colNum];
+            const percentage = (total > 0) ? Math.round((count / total) * 100) : 0;
+
+            content.push(`${count} (${percentage}%)`);
+        }
+
+        rowData.push(content.join(','));
+    }
+};
+const getTable1DemographicContents = (rowData) => {
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = 'Demographic Distribution By';
+    rowData.push(content.join(','));
+
+    getTable1VariableDataContents(rowData, demoVars, demoCounts, totalCounts);
+};
+const getTable1ComorbidityContents = (rowData) => {
+    let label = $('#comorb_label').text().trim();
+    if (label.includes(',')) {
+        label = `"${label}"`;
+    }
+
+    const content = Array(numOfCols + 1).fill('');
+    content[0] = label;
+    rowData.push(content.join(','));
+
+    getTable1VariableDataContents(rowData, comorbVars, comorbCounts, totalCounts);
+};
+const getTable1GroupVarContents = (rowData) => {
+    for (let groupNum = 1; groupNum <= numOfGroups; groupNum++) {
+        const groupId = `g${groupNum}`;
+
+        let label = $(`#${groupId}_label`).text().trim();
+        if (label.includes(',')) {
+            label = `"${label}"`;
+        }
+
+        const content = Array(numOfCols + 1).fill('');
+        content[0] = label;
+        rowData.push(content.join(','));
+
+        const variables = addVarsVarNames.get(groupId);
+        const counts = addVarCounts.get(groupId);
+        getTable1VariableDataContents(rowData, variables, counts, totalCounts);
+    }
+};
+const getTable1Contents = () => {
+    const rowData = [];
+
+    getTable1TitleContent(rowData);
+    getTable1HeaderContent(rowData);
+    getTable1TotalContent(rowData);
+    getTable1DemographicContents(rowData);
+    if (comorbFiles.size > 0) {
+        getTable1ComorbidityContents(rowData);
+    }
+    if (addVarFiles.size > 0) {
+        getTable1GroupVarContents(rowData);
+    }
+
+    return rowData.join('\r\n');
+};
+
+const exportData = (event) => {
+    event.preventDefault();
+
+    const content = getTable1Contents();
+    const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+    const downloadLink = document.createElement("a");
+    downloadLink.download = 'table1.csv';
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.click();
+};
+
 const addLabelEventListener = (name) => {
     $(`#${name}`).on('dblclick', () => switchToEditMode(name));
     $(`#${name}_input`).on('focusout', () => switchToLabelMode(name));
@@ -1412,14 +1546,20 @@ const addLabelEventListener = (name) => {
 };
 
 const addWizardEventListeners = () => {
-    $('#nextStep').on('click', generateTableOne);
-    $('#prevStep').on('click', moveToPreviousTab);
+    nextBtn.addEventListener('click', () => {
+        if ($('#input_labels').valid() && hasMetAllRequirements()) {
+            generateTableOne();
+        }
+    });
+
+    prevBtn.addEventListener('click', moveToPreviousTab);
 };
 const addLabelEventListeners = () => {
     for (let i = 1; i <= numOfCols; i++) {
         addLabelEventListener(`c${i}_label`);
     }
 
+    addLabelEventListener('table_label');
     addLabelEventListener('total_label');
     addLabelEventListener('demo_label');
     addLabelEventListener('comorb_label');
@@ -1447,6 +1587,8 @@ const addEventListeners = () => {
             addGroupFileEventListeners(groupNum, colNum);
         }
     }
+
+    $('#export_data').on("click", exportData);
 
     $('#input_labels').on('submit', preventDefaults);
 };
@@ -1486,7 +1628,39 @@ const resetToDefault = () => {
     groupVarIdNum = 0;
 };
 
+const updateWizard = () => {
+    // show or hide step contents
+    stepContents.forEach((step, index) => {
+        step.classList.toggle('active', index === currentStep);
+    });
+
+    const isInitialStep = currentStep === 0;
+    if (isInitialStep) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = false;
+
+        $('#step_title').text('Input Data');
+
+        $('#export_data').hide();
+    } else {
+        prevBtn.disabled = false;
+        nextBtn.disabled = true;
+
+        $('#step_title').text('Generate Table');
+
+        $('#export_data').show();
+    }
+};
+
+const isCurrentStepValid = () => {
+    return true;
+};
+
 $(document).ready(function () {
+    $('#copyright_year').text(new Date().getFullYear());
+
+    updateWizard();
+
     resetToDefault();
     addEventListeners();
     adjustNumberOfColumns();

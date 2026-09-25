@@ -1,0 +1,25 @@
+.wizard-content {
+    display: none;
+}
+.wizard-content.active {
+    display: block;
+}
+
+#prevBtn,#nextBtn {
+    width: 150px;
+}
+
+.dropArea {
+    height: 100%;
+    color: #0f3c4b;
+    background-color: #e3f2e1;
+    transition:
+        outline-offset 0.2s ease-out,
+        outline-color 0.3s ease-in-out,
+        background-color 0.2s ease-out;
+}
+.dropArea.highlight {
+    outline-offset: -4px;
+    outline-color: #0f3c4b;
+    background-color: #cff4fc !important;
+}
