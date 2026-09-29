@@ -1437,7 +1437,7 @@ const getTable1HeaderContent = (rowData) => {
 };
 const getTable1TotalContent = (rowData) => {
     const content = Array(numOfCols + 1).fill('');
-    content[0] = 'Total';
+    content[0] = $('#total_label').text().trim();
     rowData.push(content.join(','));
 };
 const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
@@ -1466,7 +1466,7 @@ const getTable1VariableDataContents = (rowData, variables, counts, totals) => {
 };
 const getTable1DemographicContents = (rowData) => {
     const content = Array(numOfCols + 1).fill('');
-    content[0] = 'Demographic Distribution By';
+    content[0] = $('#demo_label').text().trim();
     rowData.push(content.join(','));
 
     getTable1VariableDataContents(rowData, demoVars, demoCounts, totalCounts);
