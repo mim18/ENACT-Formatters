@@ -1,7 +1,7 @@
-let currentStep = 0;
-const stepContents = Array.from(document.querySelectorAll('.wizard-content'));
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+const prevTab = $('#nav-data-tab');
+const nextTab = $('#nav-analysis-tab');
+const prevBtn = $('#prevBtn');
+const nextBtn = $('#nextBtn');
 
 const validSites = new Map();
 const totalFiles = new Map();
@@ -495,15 +495,6 @@ const showSitesIncluded = () => {
     const tbody = document.querySelector('#site_names tbody');
     tbody.innerHTML = '';
     data.forEach(name => tbody.insertRow(-1).insertCell(0).textContent = name);
-};
-
-const moveToNextTab = () => {
-    currentStep++;
-    updateWizard();
-};
-const moveToPreviousTab = () => {
-    currentStep--;
-    updateWizard();
 };
 
 const loadData = () => {
@@ -1544,16 +1535,6 @@ const addLabelEventListener = (name) => {
     $(`#${name}_input`).on('focusout', () => switchToLabelMode(name));
     $(`#${name}_input`).on('keypress', event => saveOnEnter(event, name));
 };
-
-const addWizardEventListeners = () => {
-    nextBtn.addEventListener('click', () => {
-        if ($('#input_labels').valid() && hasMetAllRequirements()) {
-            generateTableOne();
-        }
-    });
-
-    prevBtn.addEventListener('click', moveToPreviousTab);
-};
 const addLabelEventListeners = () => {
     for (let i = 1; i <= numOfCols; i++) {
         addLabelEventListener(`c${i}_label`);
@@ -1573,6 +1554,35 @@ const addSettingsEventListeners = () => {
     $('input[name="datatype"]').on('change', adjustDataType);
     $('#selectPatientCounts').on('change', computeCounts);
     $('#add_additional_vars').on("click", addAdditionalVars);
+};
+const moveToNextTab = () => {
+    nextTab.removeClass('disabled');
+    nextTab.trigger('click', [true]);
+};
+const addWizardEventListeners = () => {
+    prevBtn.on('click', () => {
+        prevTab.trigger('click');
+    });
+    nextBtn.on('click', () => {
+        if ($('#input_labels').valid() && hasMetAllRequirements()) {
+            generateTableOne();
+        }
+    });
+
+    prevTab.on("click", () => {
+        prevBtn.addClass('disabled');
+        nextBtn.removeClass('disabled');
+    });
+    nextTab.on("click", (event, noRerun) => {
+        if (noRerun) {
+            prevBtn.removeClass('disabled');
+            nextBtn.addClass('disabled');
+        } else {
+            nextTab.addClass('disabled');
+            prevTab.trigger('click');
+            nextBtn.trigger('click');
+        }
+    });
 };
 const addEventListeners = () => {
     addWizardEventListeners();
@@ -1628,34 +1638,8 @@ const resetToDefault = () => {
     groupVarIdNum = 0;
 };
 
-const updateWizard = () => {
-    // show or hide step contents
-    stepContents.forEach((step, index) => {
-        step.classList.toggle('active', index === currentStep);
-    });
-
-    const isInitialStep = currentStep === 0;
-    if (isInitialStep) {
-        prevBtn.disabled = true;
-        nextBtn.disabled = false;
-
-        $('#step_title').text('Input Data');
-
-        $('#export_data').hide();
-    } else {
-        prevBtn.disabled = false;
-        nextBtn.disabled = true;
-
-        $('#step_title').text('Generate Table');
-
-        $('#export_data').show();
-    }
-};
-
 $(document).ready(function () {
     $('#copyright_year').text(new Date().getFullYear());
-
-    updateWizard();
 
     resetToDefault();
     addEventListeners();
