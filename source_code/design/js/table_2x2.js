@@ -1293,6 +1293,43 @@ const addExportEventListeners = () => {
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.click();
     });
+
+    const exportPlot = (plotId, outputFilename) => {
+        const svg = d3.select(plotId).node();
+        const {width, height} = svg.getBoundingClientRect();
+
+        // get SVG as Base64 encode string
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgDataBase64 = btoa(unescape(encodeURIComponent(svgData)));
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8;base64,${svgDataBase64}`;
+
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+
+        const context = canvas.getContext('2d');
+        context.fillStyle = '#FFFFFF';
+        context.fillRect(0, 0, width, height);
+
+        const image = new Image();
+        image.addEventListener('load', () => {
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            const downloadLink = document.createElement('a');
+            downloadLink.download = outputFilename;
+            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.click();
+        });
+        image.src = svgDataUrl;
+    };
+    $('#export_forest_plot_fixed').on('click', (event) => {
+        event.preventDefault();
+        exportPlot('#forest_plot_fixed', 'forest_plot_fixed.png');
+    });
+    $('#export_forest_plot_random').on('click', (event) => {
+        event.preventDefault();
+        exportPlot('#forest_plot_random', 'forest_plot_random.png');
+    });
 };
 const addEventListeners = () => {
     addLabelEventListeners();
