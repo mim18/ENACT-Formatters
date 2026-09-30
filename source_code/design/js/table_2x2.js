@@ -470,6 +470,24 @@ const getForestPlotData = (showSiteNames, sortSiteNames, isRandomEffect) => {
     return data;
 };
 
+/**
+ * Get the pixel with of a string given font size.
+ *
+ * @param {type} text
+ * @param {type} font
+ * @returns {unresolved}
+ */
+const getStringWidth = (text, font = '14px Arial, sans-serif') => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = font;
+
+    return context.measureText(text).width;
+};
+const getColumnPixelSize = (data, font) => {
+    return Math.max(...data.map(value => Math.ceil(getStringWidth(value, font))));
+};
+
 const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     aggregateCounts.forEach((counts, id) => $(`#${id}`).text(counts));
@@ -572,6 +590,255 @@ const populateForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal
     const col1Txt = $('.col1LabelText').first().text();
     const col2Txt = $('.col2LabelText').first().text();
     const groupCntLbl = `${col1Txt} / ${col2Txt}`;
+
+    const font = '16px Arial, sans-serif';
+    const lengthCol1 = getColumnPixelSize([...data.map(d => d.study ? d.study : ''), 'Site'], font);
+    const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : ''}`), row1Txt, groupCntLbl], font);
+    const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : ''}`), row2Txt, groupCntLbl], font);
+    const lengthCol4 = plotWidth;
+    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? Round.toFour(d.estimate, decimal) : ''}`), 'IRR'], font);
+    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? Round.toFour(d.lower, decimal) : ''}, ${d.upper ? Round.toFour(d.upper, decimal) : ''}]`), '95% CI'], font);
+    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${Round.toTwo(d.wgtPct, decimal)}%` : ''), 'Weight'], font);
+
+    // column 1: Site
+    svg.append('text')
+            .style('font-weight', 'bold')
+            .text('Site');
+    rows.append('text')
+            .attr('text-anchor', 'start')
+            .attr('class', 'site-name')
+            .text(d => d.study ? d.study : '');
+    // bold effect model
+    d3.selectAll('.site-name')
+            .filter(d => d.effectModel)
+            .style('font-weight', 'bold');
+
+    // Column 2: Group A (n/N)
+    let xPos = lengthCol1 + (lengthCol2 / 2);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(row1Txt);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dy', dyPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(groupCntLbl);
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('class', 'group-a')
+            .attr('text-anchor', 'middle')
+            .text(d => (d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : '');
+    // bold effect model
+    d3.selectAll('.group-a')
+            .filter(d => d.effectModel)
+            .style('font-weight', 'bold');
+
+    // Column 3: Group B (n/N)
+    xPos += (lengthCol2 + lengthCol3) / 2;
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(row2Txt);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dy', dyPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(groupCntLbl);
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('class', 'group-b')
+            .attr('text-anchor', 'middle')
+            .text(d => (d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : '');
+    // bold effect model
+    d3.selectAll('.group-b')
+            .filter(d => d.effectModel)
+            .style('font-weight', 'bold');
+
+    // Column 4: Incident Rate Ratio (forest plot)
+    xPos += (lengthCol3 / 2) + dxPos;
+    svg.append('text')
+            .attr('x', xPos + (width / 2))
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text('Incidence Rate Ratio (IRR)');
+    svg.append('text')
+            .attr('x', xPos + (width / 2))
+            .attr('dy', dyPos)
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .text(isRandomEffect ? 'Random Effects Model' : 'Fixed Effect Model');
+    svg.append('g')
+            .attr('transform', `translate(${xPos},${height})`)
+            .call(d3.axisBottom(x));
+
+    // add vertical reference line (null effect)
+    svg.append('line')
+            .attr('x1', x(1) + xPos)
+            .attr('x2', x(1) + xPos)
+            .attr('y1', yPlotStart)
+            .attr('y2', height)
+            .attr('stroke', 'red')
+            .attr('stroke-dasharray', 'none');
+
+    // effect model vertical reference line
+    svg.append('line')
+            .attr('x1', x(effectModel.estimate) + xPos)
+            .attr('x2', x(effectModel.estimate) + xPos)
+            .attr('y1', yPlotStart)
+            .attr('y2', y(effectModel.study))
+            .attr('stroke', 'blue')
+            .attr('stroke-dasharray', '8');
+
+    // draw confidence intervals (horizontal lines)
+    const yShift = 5;
+    svg.selectAll('.ci')
+            .data(data)
+            .enter()
+            .append('line')
+            .attr('x1', d => d.effectModel ? d.estimate : d.lower ? x(d.lower) + xPos : x(1) + xPos)
+            .attr('x2', d => d.effectModel ? d.estimate : d.upper ? x(d.upper) + xPos : x(1) + xPos)
+            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) - yShift : x(1) + xPos)
+            .attr('stroke-width', 1)
+            .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.lower ? x(d.lower) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
+//            .attr('stroke', 'black');
+//    svg.selectAll('.ci')
+//            .data(data)
+//            .enter()
+//            .append('line')
+//            .attr('x1', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('x2', d => d.upper ? x(d.upper) + xPos : x(1) + xPos)
+//            .attr('y1', d => d.study ? y(d.study) + (y.bandwidth() / 2) - (yShift * 2) : x(1) + xPos)
+//            .attr('y2', d => d.study ? y(d.study) + (y.bandwidth() / 2) : x(1) + xPos)
+//            .attr('stroke-width', 1)
+//            .attr('stroke', 'black');
+
+    // draw effect size points (boxes)
+    const sizeScale = d3.scaleSqrt()
+            .domain([0, d3.max(data, d => d.wgt ? d.wgt : 0)])
+            .range([0, 25]);
+    svg.selectAll('.point')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', 'point')
+            .attr('x', d => (d.estimate && d.wgt) ? x(d.estimate) - (sizeScale(d.wgt) / 2) + xPos : x(1) + xPos)
+            .attr('y', d => (d.study && d.wgt) ? (y(d.study) + (y.bandwidth() / 2)) - (sizeScale(d.wgt) / 2) - yShift : x(1) + xPos)
+            .attr('width', d => d.effectModel ? 0 : d.wgt ? sizeScale(d.wgt) : 0)
+            .attr('height', d => d.effectModel ? 0 : d.wgt ? sizeScale(d.wgt) : 0)
+            .attr('fill', 'black');
+
+    // draw effect point
+    const size = 8;
+    const lineGenerator = d3.line()
+            .x(d => d.x)
+            .y(d => d.y);
+    const diamond = [
+        {x: x(effectModel.lower) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift}, // left
+        {x: x(effectModel.estimate) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift - size}, // top
+        {x: x(effectModel.upper) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift}, // right
+        {x: x(effectModel.estimate) + xPos, y: y(effectModel.study) + (y.bandwidth() / 2) - yShift + size} // bottom
+    ];
+    svg.append('path')
+            .attr('d', lineGenerator(diamond) + 'Z') // 'Z' closes path
+            .attr('fill', 'blue')
+            .attr('stroke', 'blue');
+
+    // Column 5: IRR
+    xPos += lengthCol4 + (lengthCol5 / 2);
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'end')
+            .style('font-weight', 'bold')
+            .text('IRR');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'end')
+            .attr('class', 'irr')
+            .text(d => d.estimate ? Round.toFour(d.estimate, decimal) : '');
+    // bold effect model (IRR)
+    d3.selectAll('.irr')
+            .filter(d => d.effectModel)
+            .attr('x', xPos)
+            .style('font-weight', 'bold');
+
+    // Column 6: 95% CI
+    xPos += dxPos;
+    svg.append('text')
+            .attr('x', xPos + ((decimal < 1) ? 4 : decimal))
+            .style('font-weight', 'bold')
+            .text('95% CI');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('class', 'ci')
+            .text(d => (d.lower && d.upper && d.estimate) ? `[${Round.toFour(d.lower, decimal)}, ${Round.toFour(d.upper, decimal)}]` : '');
+    // bold effect model (95% CI)
+    d3.selectAll('.ci')
+            .filter(d => d.effectModel)
+            .attr('x', xPos)
+            .style('font-weight', 'bold');
+
+    // Column 7: Fixed Weight
+    xPos += lengthCol6 + lengthCol7 - dxPos;
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'end')
+            .style('font-weight', 'bold')
+            .text(isRandomEffect ? 'Random' : 'Fixed');
+    svg.append('text')
+            .attr('x', xPos)
+            .attr('dy', dyPos)
+            .attr('text-anchor', 'end')
+            .style('font-weight', 'bold')
+            .text('Weight');
+    rows.append('text')
+            .attr('x', xPos)
+            .attr('text-anchor', 'end')
+            .attr('class', 'weight-percent')
+            .text(d => d.wgtPct ? (d.wgtPct === 100) ? '100%' : `${Round.toTwo(d.wgtPct, decimal)}%` : '');
+    // bold effect model (95% CI)
+    d3.selectAll('.weight-percent')
+            .filter(d => d.effectModel)
+            .attr('x', xPos)
+            .style('font-weight', 'bold');
+
+    let yPosInfo = height + margin.bottom - dyPos - dyPos;
+    const heterogeneity = stats.metaAnalysis.heterogeneity;
+    const iSq = heterogeneity.ISq.toFixed(1);
+    const tauSq = heterogeneity.tauSq.toFixed(4);
+    const Q = heterogeneity.Q.toFixed(2);
+    const df = heterogeneity.df;
+    let pValue = heterogeneity.pValue;
+    let pValDisp = (pValue < 0.0001) ? 'p < 0.0001' : `p = ${pValue.toFixed(4)}`;
+    svg.append('text')
+            .attr('x', 0)
+            .attr('y', yPosInfo)
+            .text(`Heterogeneity: I² = ${iSq}%, τ² = ${tauSq}, Q = ${Q} df = ${df} (${pValDisp})`);
+
+    yPosInfo += dyPos;
+    const fixedEffect = stats.metaAnalysis.fixedEffect;
+    const randomEffect = stats.metaAnalysis.randomEffect;
+    const zScore = isRandomEffect ? randomEffect.zScore.toFixed(2) : fixedEffect.zScore.toFixed(2);
+    pValue = isRandomEffect ? randomEffect.pValue : fixedEffect.pValue;
+    pValDisp = (pValue < 0.0001) ? 'p < 0.0001' : `p = ${pValue.toFixed(4)}`;
+    svg.append('text')
+            .attr('x', 0)
+            .attr('y', yPosInfo)
+            .text(`Test for overall effect: z = ${zScore} (${pValDisp})`);
 };
 const populateForestPlots = (decimal, showSiteNames, sortSiteNames) => {
     const aggr = stats.aggregate;
@@ -589,7 +856,7 @@ const populateForestPlots = (decimal, showSiteNames, sortSiteNames) => {
         wgtPct: 100,
         effectModel: true
     };
-    populateForestPlot('#forestChartFixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
+    populateForestPlot('#forest_plot_fixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
 
     const rand = stats.metaAnalysis.randomEffect;
     const random = {
@@ -604,8 +871,23 @@ const populateForestPlots = (decimal, showSiteNames, sortSiteNames) => {
         wgtPct: 100,
         effectModel: true
     };
-    populateForestPlot('#forestChartRandom', getForestPlotData(showSiteNames, sortSiteNames, true), random, true, decimal);
+    populateForestPlot('#forest_plot_random', getForestPlotData(showSiteNames, sortSiteNames, true), random, true, decimal);
 };
+const populateSiteTable = (showSiteNames, sortSiteNames) => {
+    $('#site_counts').text(validSites.size);
+
+    let data = showSiteNames ? [...validSites.keys()] : [...validSites.values()];
+    if (sortSiteNames) {
+        data = showSiteNames ? data.sort() : data.sort((a, b) => a - b);
+    }
+
+    const tbody = document.querySelector('#site_names tbody');
+    tbody.innerHTML = '';
+    data.forEach(name => {
+        tbody.insertRow(-1).insertCell(0).innerHTML = showSiteNames ? name : `Site ${name}`;
+    });
+};
+
 const constructTableAndPlot = () => {
     computeStats();
     populateTableCounts();
@@ -616,7 +898,7 @@ const constructTableAndPlot = () => {
     populateAggregateStatsTable(decimal);
     populateMetaAnalysisTable(decimal, showSiteNames, sortSiteNames);
     populateForestPlots(decimal, showSiteNames, sortSiteNames, false);
-//    populateSiteTable(showSiteNames, sortSiteNames);
+    populateSiteTable(showSiteNames, sortSiteNames);
 };
 
 /**
@@ -882,12 +1164,13 @@ const addSettingsEventListeners = () => {
     });
 
     $('#round_decimal').on('change', () => {
-        const showSiteNames = $('#show_site_names').prop('checked');
         const decimal = parseInt($('#round_decimal').val());
+        const showSiteNames = $('#show_site_names').prop('checked');
+        const sortSiteNames = $('#sort_site_names').prop('checked');
 
         populateAggregateStatsTable(decimal);
         populateMetaAnalysisTable(decimal, showSiteNames);
-//        populateForestPlot(decimal, showSiteNames);
+        populateForestPlots(decimal, showSiteNames, sortSiteNames);
     });
 
     const handleSiteNameChange = () => {
@@ -895,9 +1178,9 @@ const addSettingsEventListeners = () => {
         const showSiteNames = $('#show_site_names').prop('checked');
         const sortSiteNames = $('#sort_site_names').prop('checked');
 
-//        populateSiteTable(showSiteNames, sortSiteNames);
         populateMetaAnalysisTable(decimal, showSiteNames, sortSiteNames);
-//        populateForestPlot(decimal, showSiteNames, sortSiteNames);
+        populateForestPlots(decimal, showSiteNames, sortSiteNames);
+        populateSiteTable(showSiteNames, sortSiteNames);
     };
     $('#show_site_names').on('change', handleSiteNameChange);
     $('#sort_site_names').on('change', handleSiteNameChange);
