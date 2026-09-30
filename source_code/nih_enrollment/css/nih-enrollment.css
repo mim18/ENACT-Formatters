@@ -1,11 +1,7 @@
-body {
-    margin: 24px;
-}
-
-#dropArea {
+#drop_area {
     color: #0f3c4b;
-    background-color: #f9f9fa;
-    /*background-color: #f3f5f7;*/
+    /*background-color: #f9f9fa;*/
+    background-color: #f3f5f7;
     outline: 4px dashed #0f3c4b;
     outline-offset: -12px;
     transition:
@@ -13,10 +9,10 @@ body {
         outline-color 0.3s ease-in-out,
         background-color 0.2s ease-out;
 }
-#dropArea.highlight {
+#drop_area.highlight {
     outline-offset: -4px;
     outline-color: #0f3c4b;
-    background-color: #f3f5f7;
+    background-color: #cff4fc !important;
 }
 
 .table-striped-1 > tbody > tr:nth-of-type(1) > * {
