@@ -1,3 +1,8 @@
+const prevTab = $('#nav-data-tab');
+const nextTab = $('#nav-analysis-tab');
+const prevBtn = $('#prevBtn');
+const nextBtn = $('#nextBtn');
+
 /**
  * Contains input files.
  *
@@ -137,6 +142,27 @@ const stats = {
     }
 };
 
+const computeCounts = () => {
+    aggregateCounts.clear();
+    siteGroupCounts.clear();
+
+    const countsForTenOrLess = parseInt($('#select_patient_counts').val());
+    if (countsForTenOrLess >= 1 && countsForTenOrLess <= 10) {
+        for (const [group, rawSiteCounts] of dataFileRawData) {
+            let total = 0;
+            const siteCounts = new Map();
+            for (const [site, rawCounts] of rawSiteCounts) {
+                const counts = (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts);
+                siteCounts.set(site, counts);
+                total += counts;
+            }
+
+            aggregateCounts.set(group, total);
+            siteGroupCounts.set(group, siteCounts);
+        }
+    }
+};
+
 /**
  * Fisher-Yates Shuffle
  *
@@ -156,33 +182,6 @@ const shuffle = (array) => {
     }
 
     return array;
-};
-
-const clearDataStructures = () => {
-    dataFiles.clear();
-    dataFileRawData.clear();
-
-    validSites.clear();
-
-    aggregateCounts.clear();
-    siteGroupCounts.clear();
-
-    stats.aggregate = {
-        r1c1: 0, r1c2: 0, r1c3: 0,
-        r2c1: 0, r2c2: 0, r2c3: 0,
-        irr: 0, lnIrr: 0, varLnIrr: 0,
-        lnStdErr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
-        zScore: 0, pValue: 0
-    };
-    stats.individual.clear();
-    stats.fixedIrr = 0;
-    stats.fixedLower95CI = 0;
-    stats.fixedUpper95CI = 0;
-    stats.randomIrr = 0;
-    stats.randomLower95CI = 0;
-    stats.randomUpper95CI = 0;
-    stats.tauSquare = 0;
-    stats.iSquare = 0;
 };
 
 /**
@@ -237,25 +236,18 @@ const readIn2ColumnRowDataTask = (csvFile, group, map) => {
     });
 };
 
-const computeCounts = () => {
-    aggregateCounts.clear();
-    siteGroupCounts.clear();
+const readInData = (callback) => {
+    dataFileRawData.clear();
 
-    const countsForTenOrLess = parseInt($('#selectPatientCounts').val());
-    if (countsForTenOrLess >= 1 && countsForTenOrLess <= 10) {
-        for (const [group, rawSiteCounts] of dataFileRawData) {
-            let total = 0;
-            const siteCounts = new Map();
-            for (const [site, rawCounts] of rawSiteCounts) {
-                const counts = (rawCounts === '10 patients or fewer') ? countsForTenOrLess : parseInt(rawCounts);
-                siteCounts.set(site, counts);
-                total += counts;
-            }
+    const tasks = [];
+    dataFiles.forEach((file, group) => {
+        tasks.push(readIn2ColumnRowDataTask(file, group, dataFileRawData));
+    });
 
-            aggregateCounts.set(group, total);
-            siteGroupCounts.set(group, siteCounts);
-        }
-    }
+    Promise.all(tasks).then(() => {
+        computeCounts();
+        callback();
+    });
 };
 
 const computeAggregateSiteStats = () => {
@@ -418,7 +410,16 @@ const computeStats = () => {
     computeIndividualSiteStats();
 };
 
-const getStatsTableData = (decimal, showSiteNames, isExport) => {
+const Round = {
+    toTwo: function (value, decimal) {
+        return (decimal < 1) ? value.toFixed(2) : value.toFixed(decimal);
+    },
+    toFour: function (value, decimal) {
+        return (decimal < 1) ? value.toFixed(4) : value.toFixed(decimal);
+    }
+};
+
+const getMetaAnalysisData = (decimal, showSiteNames, isExport) => {
     const tableData = new Map();
 
     stats.individual.forEach((stats, site) => {
@@ -426,12 +427,12 @@ const getStatsTableData = (decimal, showSiteNames, isExport) => {
         const data = [
             isExport ? `"${name}"` : name,
             stats.r1c1, stats.r1c2, stats.r2c1, stats.r2c2,
-            stats.lnStdErr.toFixed(decimal), stats.irr.toFixed(decimal),
-            stats.lower95CI.toFixed(decimal), stats.upper95CI.toFixed(decimal),
-            stats.fixedWgt.toFixed(decimal), stats.fixedWgtPct.toFixed(decimal),
-            stats.randomWgt.toFixed(decimal), stats.randomWgtPct.toFixed(decimal),
-            stats.zScore.toFixed(decimal),
-            stats.pValue < 0.0001 ? '< 0.0001' : stats.pValue.toFixed(decimal)
+            Round.toFour(stats.lnStdErr, decimal), Round.toFour(stats.irr, decimal),
+            Round.toFour(stats.lower95CI, decimal), Round.toFour(stats.upper95CI, decimal),
+            Round.toTwo(stats.fixedWgt, decimal), Round.toTwo(stats.fixedWgtPct, decimal),
+            Round.toTwo(stats.randomWgt, decimal), Round.toTwo(stats.randomWgtPct, decimal),
+            Round.toTwo(stats.zScore, decimal),
+            stats.pValue < 0.0001 ? '< 0.0001' : Round.toFour(stats.pValue, decimal)
         ];
 
         if (showSiteNames) {
@@ -491,23 +492,24 @@ const populateTableCounts = () => {
     // display counts for r1c1,r1c2,r2c1,r2c2
     aggregateCounts.forEach((counts, id) => $(`#${id}`).text(counts));
 };
-const populateTableProbabilities = (decimal) => {
+const populateAggregateStatsTable = (decimal) => {
     const aggr = stats.aggregate;
 
-    $('#r1c3').text(aggr.r1c3.toFixed(decimal));
-    $('#r2c3').text(aggr.r2c3.toFixed(decimal));
-    $('#r2c4').text(`${aggr.irr.toFixed(decimal)} (${aggr.lower95CI.toFixed(decimal)}-${aggr.upper95CI.toFixed(decimal)})`);
+    $('#r1c3').text(Round.toTwo(aggr.r1c3 * 100, decimal));
+    $('#r2c3').text(Round.toTwo(aggr.r2c3 * 100, decimal));
+    $('#r1c4').text(`${Round.toFour(aggr.irr, decimal)} (${Round.toFour(aggr.lower95CI, decimal)}-${Round.toFour(aggr.upper95CI, decimal)})`);
 
-    $('#stderr').text(aggr.lnStdErr.toFixed(decimal));
-    $('#irr').text(aggr.irr.toFixed(decimal));
-    $('#ci_lower').text(aggr.lower95CI.toFixed(decimal));
-    $('#ci_upper').text(aggr.upper95CI.toFixed(decimal));
-    $('#p_value').text(aggr.pValue < 0.0001 ? '< 0.0001' : aggr.pValue.toFixed(decimal));
+    $('#stderr').text(Round.toFour(aggr.lnStdErr, decimal));
+    $('#irr').text(Round.toFour(aggr.irr, decimal));
+    $('#ci_lower').text(Round.toFour(aggr.lower95CI, decimal));
+    $('#ci_upper').text(Round.toFour(aggr.upper95CI, decimal));
+    $('#p_value').text(aggr.pValue < 0.0001 ? '< 0.0001' : Round.toFour(aggr.pValue));
 };
-const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
-    const tableData = getStatsTableData(decimal, showSiteNames, false);
+const populateMetaAnalysisTable = (decimal, showSiteNames, sortSiteNames) => {
+    const isDefault = decimal < 1;
+    const tableData = getMetaAnalysisData(decimal, showSiteNames, false);
 
-    const tbody = document.querySelector('#stats tbody');
+    const tbody = document.querySelector('#meta_analysis tbody');
     tbody.innerHTML = '';
     const data = sortSiteNames
             ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
@@ -531,7 +533,7 @@ const populateStatsTable = (decimal, showSiteNames, sortSiteNames) => {
         row.cells[12].classList.add('table-primary');
     });
 };
-const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal) => {
+const populateForestPlot = (plot, plotData, effectModel, isRandomEffect, decimal) => {
     const blankRow = {};
     const data = [...plotData, blankRow, effectModel];
 
@@ -594,9 +596,9 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     const lengthCol2 = getColumnPixelSize([...data.map(d => `${(d.groupA && d.groupATotal) ? `${d.groupA} / ${d.groupATotal}` : ''}`), row1Txt, groupCntLbl], font);
     const lengthCol3 = getColumnPixelSize([...data.map(d => `${(d.groupB && d.groupBTotal) ? `${d.groupB} / ${d.groupBTotal}` : ''}`), row2Txt, groupCntLbl], font);
     const lengthCol4 = plotWidth;
-    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? d.estimate.toFixed(decimal) : ''}`), 'IRR'], font);
-    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? d.lower.toFixed(decimal) : ''}, ${d.upper ? d.upper.toFixed(decimal) : ''}]`), '95% CI'], font);
-    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${d.wgtPct.toFixed(decimal)}%` : ''), 'Weight'], font);
+    const lengthCol5 = getColumnPixelSize([...data.map(d => `${d.estimate ? Round.toFour(d.estimate, decimal) : ''}`), 'IRR'], font);
+    const lengthCol6 = getColumnPixelSize([...data.map(d => `[${d.lower ? Round.toFour(d.lower, decimal) : ''}, ${d.upper ? Round.toFour(d.upper, decimal) : ''}]`), '95% CI'], font);
+    const lengthCol7 = getColumnPixelSize([...data.map(d => d.wgtPct ? `${Round.toTwo(d.wgtPct, decimal)}%` : ''), 'Weight'], font);
 
     // column 1: Site
     svg.append('text')
@@ -767,7 +769,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('x', xPos)
             .attr('text-anchor', 'end')
             .attr('class', 'irr')
-            .text(d => d.estimate ? d.estimate.toFixed(decimal) : '');
+            .text(d => d.estimate ? Round.toFour(d.estimate, decimal) : '');
     // bold effect model (IRR)
     d3.selectAll('.irr')
             .filter(d => d.effectModel)
@@ -777,13 +779,13 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
     // Column 6: 95% CI
     xPos += dxPos;
     svg.append('text')
-            .attr('x', xPos + decimal)
+            .attr('x', xPos + ((decimal < 1) ? 4 : decimal))
             .style('font-weight', 'bold')
             .text('95% CI');
     rows.append('text')
             .attr('x', xPos)
             .attr('class', 'ci')
-            .text(d => (d.lower && d.upper && d.estimate) ? `[${d.lower.toFixed(decimal)}, ${d.upper.toFixed(decimal)}]` : '');
+            .text(d => (d.lower && d.upper && d.estimate) ? `[${Round.toFour(d.lower, decimal)}, ${Round.toFour(d.upper, decimal)}]` : '');
     // bold effect model (95% CI)
     d3.selectAll('.ci')
             .filter(d => d.effectModel)
@@ -807,7 +809,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('x', xPos)
             .attr('text-anchor', 'end')
             .attr('class', 'weight-percent')
-            .text(d => d.wgtPct ? (d.wgtPct === 100) ? '100%' : `${d.wgtPct.toFixed(decimal)}%` : '');
+            .text(d => d.wgtPct ? (d.wgtPct === 100) ? '100%' : `${Round.toTwo(d.wgtPct, decimal)}%` : '');
     // bold effect model (95% CI)
     d3.selectAll('.weight-percent')
             .filter(d => d.effectModel)
@@ -838,7 +840,7 @@ const populateWeightedForestPlot = (plot, plotData, effectModel, isRandomEffect,
             .attr('y', yPosInfo)
             .text(`Test for overall effect: z = ${zScore} (${pValDisp})`);
 };
-const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
+const populateForestPlots = (decimal, showSiteNames, sortSiteNames) => {
     const aggr = stats.aggregate;
 
     const fixed = stats.metaAnalysis.fixedEffect;
@@ -854,7 +856,7 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
         wgtPct: 100,
         effectModel: true
     };
-    populateWeightedForestPlot('#forestChartFixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
+    populateForestPlot('#forest_plot_fixed', getForestPlotData(showSiteNames, sortSiteNames, false), common, false, decimal);
 
     const rand = stats.metaAnalysis.randomEffect;
     const random = {
@@ -869,17 +871,17 @@ const populateForestPlot = (decimal, showSiteNames, sortSiteNames) => {
         wgtPct: 100,
         effectModel: true
     };
-    populateWeightedForestPlot('#forestChartRandom', getForestPlotData(showSiteNames, sortSiteNames, true), random, true, decimal);
+    populateForestPlot('#forest_plot_random', getForestPlotData(showSiteNames, sortSiteNames, true), random, true, decimal);
 };
 const populateSiteTable = (showSiteNames, sortSiteNames) => {
-    $('#siteCounts').text(validSites.size);
+    $('#site_counts').text(validSites.size);
 
     let data = showSiteNames ? [...validSites.keys()] : [...validSites.values()];
     if (sortSiteNames) {
         data = showSiteNames ? data.sort() : data.sort((a, b) => a - b);
     }
 
-    const tbody = document.querySelector('#siteNames tbody');
+    const tbody = document.querySelector('#site_names tbody');
     tbody.innerHTML = '';
     data.forEach(name => {
         tbody.insertRow(-1).insertCell(0).innerHTML = showSiteNames ? name : `Site ${name}`;
@@ -890,27 +892,13 @@ const constructTableAndPlot = () => {
     computeStats();
     populateTableCounts();
 
-    const showSiteNames = $('#showSiteNames').prop('checked');
-    const decimal = parseInt($('#decimal').val());
-    const sortSiteNames = $('#sortSiteNames').prop('checked');
-    populateTableProbabilities(decimal);
-    populateStatsTable(decimal, showSiteNames, sortSiteNames);
-    populateForestPlot(decimal, showSiteNames, sortSiteNames, false);
+    const showSiteNames = $('#show_site_names').prop('checked');
+    const decimal = parseInt($('#round_decimal').val());
+    const sortSiteNames = $('#sort_site_names').prop('checked');
+    populateAggregateStatsTable(decimal);
+    populateMetaAnalysisTable(decimal, showSiteNames, sortSiteNames);
+    populateForestPlots(decimal, showSiteNames, sortSiteNames, false);
     populateSiteTable(showSiteNames, sortSiteNames);
-};
-
-const readInData = (callback) => {
-    dataFileRawData.clear();
-
-    const tasks = [];
-    dataFiles.forEach((file, group) => {
-        tasks.push(readIn2ColumnRowDataTask(file, group, dataFileRawData));
-    });
-
-    Promise.all(tasks).then(() => {
-        computeCounts();
-        callback();
-    });
 };
 
 /**
@@ -927,32 +915,11 @@ const getValidSiteTasks = () => {
     return tasks;
 };
 
-const saveInputData = (fileId, csvFile) => {
-    if (fileId && csvFile) {
-        dataFiles.set(fileId, csvFile);
-
-        const htmlCode = `<div class="alert alert-light p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
-        $(`#filename_${fileId}`).html(htmlCode);
-
-        // remove error alerts
-        $(`#droparea_${fileId}`)
-                .removeClass('bg-danger-subtle')
-                .removeClass('highlight')
-                .addClass('bg-dropped');
-
-        if (dataFiles.size >= 4) {
-            $('#dataErrorMsg').hide();
-        }
-    }
-};
-
 const advanceToNextTab = () => {
     constructTableAndPlot();
 
-    const nextTab = $('.nav-link.active').parent().next().find('button');
     nextTab.removeClass('disabled');
-
-    (new bootstrap.Tab(nextTab)).show();
+    nextTab.trigger('click', [true]);
 };
 
 const generateTableAndPlot = () => {
@@ -995,27 +962,27 @@ const getAggregateDataContents = () => {
     ];
     content.push(header.join(','));
 
-    const decimal = parseInt($('#decimal').val());
+    const decimal = parseInt($('#round_decimal').val());
     const aggr = stats.aggregate;
     const data = [
-        aggr.r1c1.toFixed(decimal),
-        aggr.r1c2.toFixed(decimal),
-        aggr.r2c1.toFixed(decimal),
-        aggr.r2c2.toFixed(decimal),
-        aggr.r1c3.toFixed(decimal),
-        aggr.r2c3.toFixed(decimal),
-        `${aggr.irr.toFixed(decimal)} (${aggr.lower95CI.toFixed(decimal)}-${aggr.upper95CI.toFixed(decimal)})`,
-        aggr.lnStdErr.toFixed(decimal),
-        aggr.irr.toFixed(decimal),
-        aggr.lower95CI.toFixed(decimal),
-        aggr.upper95CI.toFixed(decimal),
-        aggr.pValue < 0.0001 ? '< 0.0001' : aggr.pValue.toFixed(decimal)
+        aggr.r1c1,
+        aggr.r1c2,
+        aggr.r2c1,
+        aggr.r2c2,
+        Round.toTwo(aggr.r1c3 * 100, decimal),
+        Round.toTwo(aggr.r2c3 * 100, decimal),
+        `${Round.toFour(aggr.irr, decimal)} (${Round.toFour(aggr.lower95CI, decimal)}-${Round.toFour(aggr.upper95CI, decimal)})`,
+        Round.toFour(aggr.lnStdErr, decimal),
+        Round.toFour(aggr.irr, decimal),
+        Round.toFour(aggr.lower95CI, decimal),
+        Round.toFour(aggr.upper95CI, decimal),
+        aggr.pValue < 0.0001 ? '< 0.0001' : Round.toFour(aggr.pValue)
     ];
     content.push(data.join(','));
 
     return content.join('\r\n');
 };
-const getIndividualDataContents = (isExport) => {
+const getMetaAnalysisDataContents = (isExport) => {
     const content = [];
 
     const row1Label = $('.row1LabelText').first().text();
@@ -1042,11 +1009,11 @@ const getIndividualDataContents = (isExport) => {
     content.push(header.join(','));
 
     // settings
-    const decimal = parseInt($('#decimal').val());
-    const showSiteNames = $('#showSiteNames').prop('checked');
-    const sortSiteNames = $('#sortSiteNames').prop('checked');
+    const decimal = parseInt($('#round_decimal').val());
+    const showSiteNames = $('#show_site_names').prop('checked');
+    const sortSiteNames = $('#sort_site_names').prop('checked');
 
-    const tableData = getStatsTableData(decimal, showSiteNames, isExport);
+    const tableData = getMetaAnalysisData(decimal, showSiteNames, isExport);
     const data = sortSiteNames
             ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
             : [...tableData.keys()];
@@ -1054,16 +1021,51 @@ const getIndividualDataContents = (isExport) => {
 
     return content.join('\r\n');
 };
-const getSiteNameContents = () => {
-    const content = [];
-    content.push('"Generic Name","Site Name"');
 
-    const sortedMapByValue = new Map([...validSites].sort((a, b) => a[1] - b[1]));
-    sortedMapByValue.forEach((number, name) => {
-        content.push(`"Site ${number}","${name}"`);
-    });
+const clearDataStructures = () => {
+    dataFiles.clear();
+    dataFileRawData.clear();
 
-    return content.join('\r\n');
+    validSites.clear();
+
+    aggregateCounts.clear();
+    siteGroupCounts.clear();
+
+    stats.aggregate = {
+        r1c1: 0, r1c2: 0, r1c3: 0,
+        r2c1: 0, r2c2: 0, r2c3: 0,
+        irr: 0, lnIrr: 0, varLnIrr: 0,
+        lnStdErr: 0, ci: 0, lower95CI: 0, upper95CI: 0,
+        zScore: 0, pValue: 0
+    };
+    stats.individual.clear();
+    stats.fixedIrr = 0;
+    stats.fixedLower95CI = 0;
+    stats.fixedUpper95CI = 0;
+    stats.randomIrr = 0;
+    stats.randomLower95CI = 0;
+    stats.randomUpper95CI = 0;
+    stats.tauSquare = 0;
+    stats.iSquare = 0;
+};
+
+const saveInputData = (fileId, csvFile) => {
+    if (fileId && csvFile) {
+        dataFiles.set(fileId, csvFile);
+
+        const htmlCode = `<div class="alert alert-light p-2 m-0" role="alert"><i class="bi bi-file-earmark-arrow-up"></i> ${csvFile.name}</div>`;
+        $(`#filename_${fileId}`).html(htmlCode);
+
+        // remove error alerts
+        $(`#droparea_${fileId}`)
+                .removeClass('bg-danger-subtle')
+                .removeClass('highlight')
+                .addClass('bg-dropped');
+
+        if (dataFiles.size >= 4) {
+            $('#dataErrorMsg').hide();
+        }
+    }
 };
 
 const validInputFiles = () => {
@@ -1129,37 +1131,35 @@ const addLabelEventListeners = () => {
         }
     };
 
+    // exposure label (row)
     $('#rowLabel').on('dblclick', () => switchToEditMode('rowLabel'));
     $('#rowLabelInput').on('focusout', () => switchToLabelMode('rowLabel'));
     $('#rowLabelInput').on('keypress', event => saveOnEnter(event, 'rowLabel'));
 
+    // experimental label (row 1)
     $('#row1Label').on('dblclick', () => switchToEditMode('row1Label'));
     $('#row1LabelInput').on('focusout', () => switchToLabelMode('row1Label'));
     $('#row1LabelInput').on('keypress', event => saveOnEnter(event, 'row1Label'));
 
+    // control label (row 2)
     $('#row2Label').on('dblclick', () => switchToEditMode('row2Label'));
     $('#row2LabelInput').on('focusout', () => switchToLabelMode('row2Label'));
     $('#row2LabelInput').on('keypress', event => saveOnEnter(event, 'row2Label'));
 
+    // column label (col)
     $('#colLabel').on('dblclick', () => switchToEditMode('colLabel'));
     $('#colLabelInput').on('focusout', () => switchToLabelMode('colLabel'));
     $('#colLabelInput').on('keypress', event => saveOnEnter(event, 'colLabel'));
 
+    // column label (col 1)
     $('#col1Label').on('dblclick', () => switchToEditMode('col1Label'));
     $('#col1LabelInput').on('focusout', () => switchToLabelMode('col1Label'));
     $('#col1LabelInput').on('keypress', event => saveOnEnter(event, 'col1Label'));
 
+    // column label (col 2)
     $('#col2Label').on('dblclick', () => switchToEditMode('col2Label'));
     $('#col2LabelInput').on('focusout', () => switchToLabelMode('col2Label'));
     $('#col2LabelInput').on('keypress', event => saveOnEnter(event, 'col2Label'));
-
-    $('#col3Label').on('dblclick', () => switchToEditMode('col3Label'));
-    $('#col3LabelInput').on('focusout', () => switchToLabelMode('col3Label'));
-    $('#col3LabelInput').on('keypress', event => saveOnEnter(event, 'col3Label'));
-
-    $('#col4Label').on('dblclick', () => switchToEditMode('col4Label'));
-    $('#col4LabelInput').on('focusout', () => switchToLabelMode('col4Label'));
-    $('#col4LabelInput').on('keypress', event => saveOnEnter(event, 'col4Label'));
 };
 
 const addFileDrapDropEventListeners = () => {
@@ -1213,51 +1213,64 @@ const addFileSelectEventListeners = () => {
     };
     $('.file_select').on('change', handleFileSelect);
 };
-
 const addWizardEventListeners = () => {
-    $('#nextStep').on('click', () => {
+    prevBtn.on('click', () => {
+        prevTab.trigger('click');
+    });
+    nextBtn.on('click', () => {
         if (isValidInput()) {
             generateTableAndPlot();
         }
     });
 
-    $('#prevStep').on('click', () => {
-        const prevTab = $('.nav-link.active').parent().prev().find('button');
-
-        (new bootstrap.Tab(prevTab)).show();
+    prevTab.on("click", () => {
+        prevBtn.addClass('disabled');
+        nextBtn.removeClass('disabled');
+    });
+    nextTab.on("click", (event, noRerun) => {
+        if (noRerun) {
+            prevBtn.removeClass('disabled');
+            nextBtn.addClass('disabled');
+        } else {
+            nextTab.addClass('disabled');
+            prevTab.trigger('click');
+            nextBtn.trigger('click');
+        }
     });
 };
 const addSettingsEventListeners = () => {
-    $('#selectPatientCounts').on('change', () => {
+    $('#select_patient_counts').on('change', () => {
         if (aggregateCounts.size >= 4) {
             computeCounts();
             constructTableAndPlot();
         }
     });
 
-    $('#decimal').on('change', () => {
-        const showSiteNames = $('#showSiteNames').prop('checked');
-        const decimal = parseInt($('#decimal').val());
+    $('#round_decimal').on('change', () => {
+        const decimal = parseInt($('#round_decimal').val());
+        const showSiteNames = $('#show_site_names').prop('checked');
+        const sortSiteNames = $('#sort_site_names').prop('checked');
 
-        populateTableProbabilities(decimal);
-        populateStatsTable(decimal, showSiteNames);
-        populateForestPlot(decimal, showSiteNames);
+        populateAggregateStatsTable(decimal);
+        populateMetaAnalysisTable(decimal, showSiteNames);
+        populateForestPlots(decimal, showSiteNames, sortSiteNames);
     });
 
     const handleSiteNameChange = () => {
-        const decimal = parseInt($('#decimal').val());
-        const showSiteNames = $('#showSiteNames').prop('checked');
-        const sortSiteNames = $('#sortSiteNames').prop('checked');
+        const decimal = parseInt($('#round_decimal').val());
+        const showSiteNames = $('#show_site_names').prop('checked');
+        const sortSiteNames = $('#sort_site_names').prop('checked');
 
+        populateMetaAnalysisTable(decimal, showSiteNames, sortSiteNames);
+        populateForestPlots(decimal, showSiteNames, sortSiteNames);
         populateSiteTable(showSiteNames, sortSiteNames);
-        populateStatsTable(decimal, showSiteNames, sortSiteNames);
-        populateForestPlot(decimal, showSiteNames, sortSiteNames);
     };
-    $('#showSiteNames').on('change', handleSiteNameChange);
-    $('#sortSiteNames').on('change', handleSiteNameChange);
+    $('#show_site_names').on('change', handleSiteNameChange);
+    $('#sort_site_names').on('change', handleSiteNameChange);
 };
+
 const addExportEventListeners = () => {
-    $('#exportAggregateData').on('click', (event) => {
+    $('#export_aggregate_data').on('click', (event) => {
         event.preventDefault();
 
         const content = getAggregateDataContents();
@@ -1269,26 +1282,14 @@ const addExportEventListeners = () => {
         downloadLink.click();
     });
 
-    $('#exportIndividualData').on('click', (event) => {
+    $('#export_meta_analysis').on('click', (event) => {
         event.preventDefault();
 
-        const content = getIndividualDataContents(true);
+        const content = getMetaAnalysisDataContents(true);
         const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
 
         const downloadLink = document.createElement('a');
         downloadLink.download = 'meta-analysis.csv';
-        downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.click();
-    });
-
-    $('#exportSiteNames').on('click', (event) => {
-        event.preventDefault();
-
-        const content = getSiteNameContents();
-        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
-
-        const downloadLink = document.createElement('a');
-        downloadLink.download = 'sites.csv';
         downloadLink.href = URL.createObjectURL(blob);
         downloadLink.click();
     });
@@ -1321,13 +1322,13 @@ const addExportEventListeners = () => {
         });
         image.src = svgDataUrl;
     };
-    $('#exportForestPlotFixed').on('click', (event) => {
+    $('#export_forest_plot_fixed').on('click', (event) => {
         event.preventDefault();
-        exportPlot('#forestChartFixed', 'forest_plot_fixed.png');
+        exportPlot('#forest_plot_fixed', 'forest_plot_fixed.png');
     });
-    $('#exportForestPlotRandom').on('click', (event) => {
+    $('#export_forest_plot_random').on('click', (event) => {
         event.preventDefault();
-        exportPlot('#forestChartRandom', 'forest_plot_random.png');
+        exportPlot('#forest_plot_random', 'forest_plot_random.png');
     });
 };
 const addEventListeners = () => {
@@ -1335,16 +1336,13 @@ const addEventListeners = () => {
     addFileDrapDropEventListeners();
     addFileSelectEventListeners();
     addWizardEventListeners();
-
     addSettingsEventListeners();
     addExportEventListeners();
 };
 
-const resetData = () => {
-    clearDataStructures();
-};
-
 $(document).ready(function () {
+    $('#copyright_year').text(new Date().getFullYear());
+
     addEventListeners();
 
     $('#inputLabels').validate({
@@ -1362,5 +1360,5 @@ $(document).ready(function () {
         }
     });
 
-    resetData();
+    clearDataStructures();
 });
