@@ -939,6 +939,89 @@ const generateTableAndPlot = () => {
     return true;
 };
 
+const getAggregateDataContents = () => {
+    const content = [];
+
+    const row1Label = $('.row1LabelText').first().text();
+    const row2Label = $('.row2LabelText').first().text();
+    const col1Label = $('.col1LabelText').first().text();
+    const col2Label = $('.col2LabelText').first().text();
+    const header = [
+        `"${row1Label}: ${col1Label}"`,
+        `"${row1Label}: ${col2Label}"`,
+        `"${row2Label}: ${col1Label}"`,
+        `"${row2Label}: ${col2Label}"`,
+        `"${row1Label}: Total # per 100 persons"`,
+        `"${row2Label}: Total # per 100 persons"`,
+        '"Incidence rate ratio (95% CI)*"',
+        '"SE for ln(IRR)"',
+        '"Incidence rate ratio"',
+        '"Lower bound 95% CI"',
+        '"Upper bound 95% CI"',
+        '"P-Value"'
+    ];
+    content.push(header.join(','));
+
+    const decimal = parseInt($('#round_decimal').val());
+    const aggr = stats.aggregate;
+    const data = [
+        aggr.r1c1,
+        aggr.r1c2,
+        aggr.r2c1,
+        aggr.r2c2,
+        Round.toTwo(aggr.r1c3 * 100, decimal),
+        Round.toTwo(aggr.r2c3 * 100, decimal),
+        `${Round.toFour(aggr.irr, decimal)} (${Round.toFour(aggr.lower95CI, decimal)}-${Round.toFour(aggr.upper95CI, decimal)})`,
+        Round.toFour(aggr.lnStdErr, decimal),
+        Round.toFour(aggr.irr, decimal),
+        Round.toFour(aggr.lower95CI, decimal),
+        Round.toFour(aggr.upper95CI, decimal),
+        aggr.pValue < 0.0001 ? '< 0.0001' : Round.toFour(aggr.pValue)
+    ];
+    content.push(data.join(','));
+
+    return content.join('\r\n');
+};
+const getMetaAnalysisDataContents = (isExport) => {
+    const content = [];
+
+    const row1Label = $('.row1LabelText').first().text();
+    const row2Label = $('.row2LabelText').first().text();
+    const col1Label = $('.col1LabelText').first().text();
+    const col2Label = $('.col2LabelText').first().text();
+    const header = [
+        '"Site"',
+        `"${row1Label}: ${col1Label}"`,
+        `"${row1Label}: ${col2Label}"`,
+        `"${row2Label}: ${col1Label}"`,
+        `"${row2Label}: ${col2Label}"`,
+        '"SE ln(IRR)"',
+        '"IRR"',
+        '"Lower 95% CI"',
+        '"Upper 95% CI"',
+        '"Fixed Weight"',
+        '"Fixed Weight %"',
+        '"Random Weight"',
+        '"Random Weight %"',
+        'Z-Score',
+        'P-Value'
+    ];
+    content.push(header.join(','));
+
+    // settings
+    const decimal = parseInt($('#round_decimal').val());
+    const showSiteNames = $('#show_site_names').prop('checked');
+    const sortSiteNames = $('#sort_site_names').prop('checked');
+
+    const tableData = getMetaAnalysisData(decimal, showSiteNames, isExport);
+    const data = sortSiteNames
+            ? showSiteNames ? [...tableData.keys()].sort() : [...tableData.keys()].sort((a, b) => a - b)
+            : [...tableData.keys()];
+    data.forEach(key => content.push(tableData.get(key).join(',')));
+
+    return content.join('\r\n');
+};
+
 const clearDataStructures = () => {
     dataFiles.clear();
     dataFileRawData.clear();
@@ -1185,7 +1268,31 @@ const addSettingsEventListeners = () => {
     $('#show_site_names').on('change', handleSiteNameChange);
     $('#sort_site_names').on('change', handleSiteNameChange);
 };
+
 const addExportEventListeners = () => {
+    $('#export_aggregate_data').on('click', (event) => {
+        event.preventDefault();
+
+        const content = getAggregateDataContents();
+        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'aggregate_stats.csv';
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.click();
+    });
+
+    $('#export_meta_analysis').on('click', (event) => {
+        event.preventDefault();
+
+        const content = getMetaAnalysisDataContents(true);
+        const blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
+
+        const downloadLink = document.createElement('a');
+        downloadLink.download = 'meta-analysis.csv';
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.click();
+    });
 };
 const addEventListeners = () => {
     addLabelEventListeners();
