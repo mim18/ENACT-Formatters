@@ -1,14 +1,10 @@
-.wizard-content {
-    display: none;
+.rotate-text {
+    writing-mode: sideways-lr;
+    padding-right: 10px;
 }
-.wizard-content.active {
-    display: block;
+.bg-dropped {
+    background-color: #e3f2e1 !important;
 }
-
-#prevBtn,#nextBtn {
-    width: 150px;
-}
-
 .dropArea {
     height: 100%;
     color: #0f3c4b;
@@ -22,4 +18,7 @@
     outline-offset: -4px;
     outline-color: #0f3c4b;
     background-color: #cff4fc !important;
+}
+table#stats tbody tr:hover td {
+    background-color: yellow !important;
 }
